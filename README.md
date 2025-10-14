@@ -6,10 +6,8 @@ Ovaj projekt je reultat timskog rada u sklopu projeknog zadatka kolegija [Progra
 
 Današnji ubrzani svijet pun gužve je znatno otežao vlasnicima pasa da pronađu vremena za šetnje sa svojim ljubimcem. Srećom tu je GoFetch!, moderna platforma koja povezuje vlasnike s provjerenim lokalnim šetačima. Bez obzira jeste li zaglavili u prometu, imate li viška obaveza ili vam je samo potrebna dodatna pomoć - GoFetch! vam pomaže osigurati da vaš krzneni prijatelj dobije ono što zaslužuje te šetačima omogućuje zabavan način za brzu zaradu.
 
-Kratko opisati cilj Vašeg projekta. Vaša motivacija?  (Napomena: odgovor nije »Zato što je to bio zadatak i nismo imali ideje za drugo.«). Koji problem rješavate?
-> Obzirom da je ovo zadani projekt navedite i što želite/jeste novo  naučili.
-
-> Dobro izrađen opis omogućuje vam da pokažete svoj rad drugim programerima, kao i potencijalnim poslodavcima. Ne samo da prvi dojam na stranici opisa često razlikuje dobar projekt od lošeg projekta već i predstavlja dobru praksu koju morate savladati.
+# Naša misija
+Jer svaki pas zaslužuje šetnju - GoFetch! omogućuje jednostavno, pouzdano i gotovo bezbrižno povezivanje vlasnika i šetača pasa na jednom mjestu. Sljedeća avantura vašeg psa udaljena je samo jedan klik
 
 # Funkcijski zahtjevi
 
