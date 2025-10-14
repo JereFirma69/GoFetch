@@ -25,13 +25,13 @@ Kratko opisati cilj Vašeg projekta. Vaša motivacija?  (Napomena: odgovor nije 
 # Instalcija
 
 # Članovi tima 
-> [Jure Kovačević](https://github.com/jurekova)
-> [Dorian Jerčić](https://github.com/JereFirma69)
-> [Matija Relić](https://github.com/Relifoks743)
-> [Anja Čerkez](https://github.com/AnjaCerkez)
-> [Davor Žic](https://github.com/davor-zic)
-> [Roko Stapić](https://github.com/rs-fer)
-> [Erna Topalović](https://github.com/ernafer)
+> [Jure Kovačević](https://github.com/jurekova) <br>
+> [Dorian Jerčić](https://github.com/JereFirma69) <br>
+> [Matija Relić](https://github.com/Relifoks743) <br>
+> [Anja Čerkez](https://github.com/AnjaCerkez) <br>
+> [Davor Žic](https://github.com/davor-zic) <br>
+> [Roko Stapić](https://github.com/rs-fer) <br>
+> [Erna Topalović](https://github.com/ernafer) <br>
 
 # Kontribucije
 >Pravila ovise o organizaciji tima i su često izdvojena u CONTRIBUTING.md
