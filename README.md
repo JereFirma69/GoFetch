@@ -10,6 +10,18 @@ Jer svaki pas zaslužuje šetnju - GoFetch! omogućuje jednostavno, pouzdano i g
 
 # Funkcijski zahtjevi
 
+| **ID zahtjeva** | **Opis** | **Prioritet** | **Izvor** | **Kriteriji prihvaćanja** |
+|------------------|-----------|----------------|-------------|-----------------------------|
+| F-001 | Sustav omogućuje registraciju i autentifikaciju korisnika (vlasnik/šetač) putem OAuth 2.0. | Visok | Zahtjev dionika | Korisnik se može registrirati i prijaviti putem vanjskog servisa. |
+| F-002 | Sustav omogućuje online načine plaćanja (osim gotovine), podržava PayPal i kreditne kartice. | Visok | Dokument projekta | Korisnik može uspješno izvršiti uplatu putem PayPal-a ili kreditne kartice. |
+| F-003 | Sustav omogućuje rezervaciju i pregled rezervacija termina šetnje. | Visok | Zahtjev dionika | Korisnik može rezervirati termin i pregledati rezervacije. |
+| F-004 | Sustav omogućuje otkazivanje rezerviranog termina šetnje. | Visok | Dokument projekta | Korisnik može otkazati rezervaciju najkasnije 24h prije termina šetnje. |
+| F-005 | Sustav omogućuje slanje obavijesti korisnicima za nadolazeće rezervacije. | Srednji | Povratne informacije korisnika | Korisnik prima obavijest e-mailom ili push notifikacijom. |
+| F-006 | Sustav omogućuje komunikaciju između korisnika (vlasnik–šetač), slanje poruka i fotografija. | Srednji | Dokument projekta | Korisnici mogu razmjenjivati poruke i slike putem integriranog kom. kanala (npr. FreeChat). |
+| F-007 | Sustav omogućuje pretraživanje i filtriranje korisnika po određenim značajkama profila. | Visok | Zahtjev dionika | Korisnik može pretraživati šetače po kriterijima (poput: lokacije, cijene, dostupnosti i ocjene). |
+| F-008 | Sustav omogućuje recenziranje i dokumentiranje povratne informacije za korisnike nakon šetnje. | Visok | Dokument projekta | Nakon završene šetnje, vlasnik može ostaviti ocjenu (1–5) i komentar. |
+| F-009 | Sustav omogućuje hijerarhiju korisnika (administrator / korisnik). | Srednji | Dokument projekta | Administrator ima pristup administracijskom sučelju za upravljanje korisnicima i sadržajem. |
+
 # Tehnologije
 
 # Instalcija
