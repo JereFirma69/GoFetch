@@ -40,7 +40,7 @@ Front-end: React, JS <br>
 Back-end: Java <br>
 Baza podataka: PostgreSQL <br>
 
-# Instalcija
+# Instalacija
 
 # Članovi tima 
 > [Jure Kovačević](https://github.com/jurekova) <br>
@@ -66,7 +66,7 @@ Kodeks ponašanja skup je provedivih pravila koja služe za jasnu komunikaciju o
 >* implicitno podrazmijevamo da će svi članovi grupe slijediti kodeks ponašanja.
 
 # 📝 Licenca
-Važeča (1)
+Važeća (1)
 [![CC BY-NC-SA 4.0][cc-by-nc-sa-shield]][cc-by-nc-sa]
 
 Ovaj repozitorij sadrži otvoreni obrazovni sadržaji (eng. Open Educational Resources)  i licenciran je prema pravilima Creative Commons licencije koja omogućava da preuzmete djelo, podijelite ga s drugima uz 
