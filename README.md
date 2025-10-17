@@ -22,7 +22,23 @@ Jer svaki pas zaslužuje šetnju - GoFetch! omogućuje jednostavno, pouzdano i g
 | F-008 | Sustav omogućuje recenziranje i dokumentiranje povratne informacije za korisnike nakon šetnje. | Visok | Dokument projekta | Nakon završene šetnje, vlasnik može ostaviti ocjenu (1–5) i komentar. |
 | F-009 | Sustav omogućuje hijerarhiju korisnika (administrator / korisnik). | Srednji | Dokument projekta | Administrator ima pristup administracijskom sučelju za upravljanje korisnicima i sadržajem. |
 
+# Nefunkcijski zahtjevi
+
+| **ID zahtjeva** | **Opis** | **Prioritet** |
+|------------------|-----------|----------------|
+| NF-1.1 | Korisnički podaci se pohranjuju i zaštićeni su od neovlaštenog pristupa. | Visok | 
+| NF-1.2 | Sustav sprječava dupliciranje korisničkih podataka. | Visok | 
+| NF-3.1 | Korisnici mogu jednostavno mijenjati detalje rezervacije. | Srednji | 
+| NF-4.1 | Korisnik ne može otkazati rezervaciju unutar posljednja 24 sata prije početka termina. | Visok |
+| NF-5.1 | Obavijesti moraju biti kratke, jasne i razumljive. | Srednji | 
+| NF-5.2 | Sustav šalje različite vrste obavijesti za vlasnike i šetače. | Srednji | 
+| NF-8.1 | Recenzije su javno vidljive svim korisnicima. | Srednji |
+| NF-9.1 | Administrator može učinkovito upravljati korisnicima i njihovim podacima. | Visok | 
+
 # Tehnologije
+Front-end: React, JS <br>
+Back-end: Java <br>
+Baza podataka: PostgreSQL <br>
 
 # Instalcija
 
