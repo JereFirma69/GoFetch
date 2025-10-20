@@ -1,5 +1,9 @@
 {
+<<<<<<< HEAD
   "name": "gofetch",
+=======
+  "name": "react-frontend",
+>>>>>>> e7a2d15837b90b271122159bec2483ef5c0b9d8f
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -19,10 +23,19 @@
     "@types/react": "^19.1.16",
     "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "^5.0.4",
+<<<<<<< HEAD
+=======
+    "autoprefixer": "^10.4.21",
+>>>>>>> e7a2d15837b90b271122159bec2483ef5c0b9d8f
     "eslint": "^9.36.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.22",
     "globals": "^16.4.0",
+<<<<<<< HEAD
+=======
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.14",
+>>>>>>> e7a2d15837b90b271122159bec2483ef5c0b9d8f
     "vite": "^7.1.7"
   }
 }
