@@ -37,7 +37,7 @@ Jer svaki pas zaslužuje šetnju - GoFetch! omogućuje jednostavno, pouzdano i g
 
 # Tehnologije
 Front-end: React, JS <br>
-Back-end: Java <br>
+Back-end: .NET, C# <br>
 Baza podataka: PostgreSQL <br>
 
 # Instalacija
