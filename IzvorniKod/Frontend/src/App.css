@@ -60,3 +60,61 @@ body {
   height: 400px;
   border-radius: 20%;
 }
+
+/*----LOGIN PAGE----*/
+
+.authorisation-container{
+  display: flex;
+  flex-direction: column;
+  max-width: 300px;
+  text-align: center;
+  margin:3rem auto;
+  gap:0.8rem;
+}
+
+input{
+  padding:0.7rem;
+  border-color: lightgray;
+  border-radius: 4px;
+  border-style:outset;
+}
+
+.primary-btn,.google-btn{
+  border:none;
+  border-radius: 5px;
+  cursor:pointer;
+}
+
+.primary-btn{
+  padding:0.7rem;
+  background-color: black;
+  color: white;
+}
+
+.google-btn{
+  position: relative;
+  background-color: white;
+  border:1px solid black;
+  display: flex;
+  align-items:center;
+  justify-content: center;
+  padding:16px 20px;
+}
+
+.google-icon{
+  position:absolute;
+  left:15px;
+  height: 28px;
+  width:28px;
+}
+
+.gf-title{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap:16px;
+  margin-bottom: 25px;
+  font-weight: 600;
+  color:rgb(116, 9, 30);
+}
