@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { FcGoogle } from "react-icons/fc";
+import logoImg from '../assets/logo.png';
 
 function SignupPage() {
   const navigate = useNavigate();
@@ -9,46 +11,54 @@ function SignupPage() {
 
   function handleSignup(e) {
     e.preventDefault();
-
     const user = { username, email, password };
-
-    // "Spremi" korisnika lokalno (mock)
     localStorage.setItem("user", JSON.stringify(user));
     localStorage.setItem("isLoggedIn", "true");
-
-    // Prebaci korisnika na profilnu stranicu
     navigate("/profile");
   }
 
   return (
     <div className="authorisation-container">
-      <h2>GoFetch!</h2>
-      <p>Create your account</p>
+      <div className="gf-title">
+        <h2>GoFetch!</h2>
+        <img className="logo-img" src={logoImg} alt="Logo" />
+      </div>
 
-      <form onSubmit={handleSignup}>
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-        <input
-          type="email"
-          placeholder="E-mail"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+      {/* Google button */}
+      <button className="google-btn">
+        <FcGoogle className="google-icon" /> Continue with Google
+      </button>
 
-        <button type="submit" className="primary-btn">
-          Sign Up
-        </button>
-      </form>
+      <p>or</p>
+
+      {/* Signup form */}
+   <form onSubmit={handleSignup}>
+  <input
+    type="text"
+    placeholder="Username"
+    value={username}
+    onChange={(e) => setUsername(e.target.value)}
+  />
+  <input
+    type="email"
+    placeholder="E-mail"
+    value={email}
+    onChange={(e) => setEmail(e.target.value)}
+  />
+  <input
+    type="password"
+    placeholder="Password"
+    value={password}
+    onChange={(e) => setPassword(e.target.value)}
+  />
+  
+  {/* dugme unutar forme */}
+  <div className="button-container">
+    <button type="submit" className="primary-btn">
+      Sign Up
+    </button>
+  </div>
+</form>
 
       <p>
         Already have an account? <Link to="/login">Log In</Link>
