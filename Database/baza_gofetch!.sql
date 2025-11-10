@@ -419,10 +419,3 @@ CREATE INDEX i_setac_lokacija ON Setac (lokacija_setac);
 CREATE INDEX i_termin_cijena ON Termin (cijena, id_korisnik);
 
 CREATE INDEX i_recenzija_ocjena ON Recenzija (ocjena, id_rezervacija);
-
-
-CREATE INDEX i_setac_lokacija ON Setac (lokacija_setac);
-
-CREATE INDEX i_termin_cijena ON Termin (cijena, id_korisnik);
-
-CREATE INDEX i_recenzija_ocjena ON Recenzija (ocjena, id_rezervacija);
