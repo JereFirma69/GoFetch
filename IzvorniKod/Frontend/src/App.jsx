@@ -1,22 +1,33 @@
+// src/App.jsx
+import { Routes, Route, Navigate } from "react-router-dom";
+import LandingPage from "./pages/LandingPage";
+import LoginPage from "./pages/LoginPage";
+import SignupPage from "./pages/SignupPage";
+import ProfilePage from "./pages/ProfilePage";
+import { AuthProvider, AuthContext } from "./context/AuthContext";
+import { useContext } from "react";
 
-import {Routes, Route} from 'react-router-dom'
-import Header from './shared_components/Header'
-import LandingPage from './pages/LandingPage'
-import LoginPage from './pages/LoginPage'
-import SignUpPage from './pages/SignupPage'
-import ProfilePage from './pages/ProfilePage'
-
-
-function App(){
-  return (
-    <div>
-      <Routes>
-        <Route path="/" element={<LandingPage/>} />
-        <Route path="/login" element={<LoginPage/>} />
-        <Route path="/signup" element={<SignUpPage/>} />
-        <Route path="/profile" element={<ProfilePage />} />
-      </Routes>
-    </div>
-  )
+function PrivateRoute({ children }) {
+  const { user } = useContext(AuthContext);
+  return user ? children : <Navigate to="/login" />;
 }
-export default App
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+        <Route
+          path="/profile"
+          element={
+            <PrivateRoute>
+              <ProfilePage />
+            </PrivateRoute>
+          }
+        />
+      </Routes>
+    </AuthProvider>
+  );
+}

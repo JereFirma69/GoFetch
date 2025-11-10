@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { FcGoogle } from "react-icons/fc";
-import logoImg from '../assets/logo.png';
+import logoImg from "../assets/logo.png";
 
 function SignupPage() {
   const navigate = useNavigate();
@@ -32,33 +32,33 @@ function SignupPage() {
       <p>or</p>
 
       {/* Signup form */}
-   <form onSubmit={handleSignup}>
-  <input
-    type="text"
-    placeholder="Username"
-    value={username}
-    onChange={(e) => setUsername(e.target.value)}
-  />
-  <input
-    type="email"
-    placeholder="E-mail"
-    value={email}
-    onChange={(e) => setEmail(e.target.value)}
-  />
-  <input
-    type="password"
-    placeholder="Password"
-    value={password}
-    onChange={(e) => setPassword(e.target.value)}
-  />
-  
-  {/* dugme unutar forme */}
-  <div className="button-container">
-    <button type="submit" className="primary-btn">
-      Sign Up
-    </button>
-  </div>
-</form>
+      <form onSubmit={handleSignup}>
+        <input
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+        <input
+          type="email"
+          placeholder="E-mail"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+
+        {/* dugme unutar forme */}
+        <div className="button-container">
+          <button type="submit" className="primary-btn">
+            Sign Up
+          </button>
+        </div>
+      </form>
 
       <p>
         Already have an account? <Link to="/login">Log In</Link>
