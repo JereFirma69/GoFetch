@@ -4,16 +4,7 @@ import logoImg from '../assets/logo.png'
 function LandingPage(){
     return (
         <div>
-        <header className='header'>
-            <div className='logo'>
-                <img className='logo-img' src={logoImg} alt="Logo"></img>
-            </div>
-            <h1 className='title'>GoFetch!</h1>
-            <nav>
-                <Link to='/signup' className='nav-btn'>Sign Up</Link>
-                <Link to='/login' className='nav-btn'>Log In</Link>
-            </nav>
-        </header>
+
         
         <div className='landing-container'>
             <section className='banner'>

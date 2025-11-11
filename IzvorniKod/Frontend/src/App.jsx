@@ -6,6 +6,8 @@ import SignupPage from "./pages/SignupPage";
 import ProfilePage from "./pages/ProfilePage";
 import { AuthProvider, AuthContext } from "./context/AuthContext";
 import { useContext } from "react";
+import HomePage from "./pages/Homepage";
+import Header from "./shared_components/Header";
 
 function PrivateRoute({ children }) {
   const { user } = useContext(AuthContext);
@@ -15,6 +17,8 @@ function PrivateRoute({ children }) {
 export default function App() {
   return (
     <AuthProvider>
+      <Header />
+
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -24,6 +28,14 @@ export default function App() {
           element={
             <PrivateRoute>
               <ProfilePage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/homepage"
+          element={
+            <PrivateRoute>
+              <HomePage />
             </PrivateRoute>
           }
         />
