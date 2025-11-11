@@ -15,16 +15,14 @@ function SignupPage() {
     confirmPassword: "",
   });
   const [formError, setFormError] = useState("");
-  const [role, setRole] = useState("owner"); // default selected
+  const [role, setRole] = useState("owner"); // default to owner(TODO ako prode ideja na discordu trebat ce mijenjati logiku vezano za ovo)
 
 
-  // Local input change handler
   function handleChange(e) {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   }
 
-  // Submit signup form
   async function handleSignup(e) {
     e.preventDefault();
     setFormError("");

@@ -9,7 +9,7 @@ obj/
 *.exe
 *.log
 
-# Visual Studio / Rider
+# Visual Studio 
 .vs/
 .idea/
 *.sln.DotSettings.user
@@ -41,9 +41,6 @@ bld/
 project.lock.json
 project.fragment.lock.json
 artifacts/
-
-# Entity Framework Migrations (optional - uncomment if you want to ignore)
-# **/Migrations/
 
 # Node.js (Frontend)
 node_modules/

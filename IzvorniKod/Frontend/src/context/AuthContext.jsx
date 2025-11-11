@@ -10,7 +10,6 @@ export function AuthProvider({ children }) {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  // Restore session on load
   useEffect(() => {
     const stored = localStorage.getItem("user");
     if (stored) setUser(JSON.parse(stored));
@@ -21,7 +20,6 @@ export function AuthProvider({ children }) {
     setError("");
     try {
       const data = await api.post("/auth/login", { email, password });
-      // { jwt, userId, email, role, displayName }
       localStorage.setItem("jwt", data.jwt);
       const userObj = { userId: data.userId, email: data.email, role: data.role, displayName: data.displayName };
       localStorage.setItem("user", JSON.stringify(userObj));
@@ -41,11 +39,9 @@ export function AuthProvider({ children }) {
     try {
       const data = await api.post("/auth/register", { firstName, lastName, email, password });
       localStorage.setItem("jwt", data.jwt);
-      // Immediately register chosen role on backend
       try {
         await api.post("/auth/register-role", { role });
       } catch (e) {
-        // if role registration fails, still proceed but reflect chosen role locally
       }
       const userObj = { userId: data.userId, email: data.email, role: role || data.role, displayName: data.displayName };
       localStorage.setItem("user", JSON.stringify(userObj));
