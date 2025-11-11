@@ -1,26 +1,39 @@
 import {Link} from 'react-router-dom'
 import logoImg from '../assets/logo.png'
+import bannerImg from '../assets/banner.jpg';
+import aboutW from '../assets/aboutWalker.jpg';
+import aboutO from '../assets/aboutOwner.jpg';
 
 function LandingPage(){
     return (
         <div>
-
-        
         <div className='landing-container'>
-            <section className='banner'>
+            <section className='banner'
+             style={{backgroundImage: `url(${bannerImg})`}}>
                 <div className='banner-content'>
-                    <h2>PLACEHOLDER BANNER</h2>
+                    
                 </div>
             </section>
             <section className='about'>
-              <h3>ABOUT US</h3>
-              <p>Jer svaki pas zaslužuje šetnju - GoFetch! omogućuje jednostavno,
+              
+              <p className='aboutText'>Jer svaki pas zaslužuje šetnju - PawPal omogućuje jednostavno,
                  pouzdano i bezbrižno povezivanje vlasnika i šetača pasa na jednom mjestu. 
                  Sljedeća avantura vašeg psa udaljena je samo jedan klik.
                  </p>
+                 <p className='ulogaText'>Izaberi svoju ulogu i kreni u šetnju!</p>
             <div className='about-grid'>
-                <div className='about-box'></div> 
-                <div className='about-box'></div>
+                <div className='about-box'
+                 style={{backgroundImage:`url(${aboutO})`}}>
+                    <div className='overlay'>
+                        <span>Zadovoljni psi</span>
+                    </div>
+                </div> 
+                <div className='about-box'
+                 style={{backgroundImage:`url(${aboutW})`}}>
+                    <div className='overlay'>
+                        <span>Sigurni šetači</span>
+                    </div>
+                </div>
             </div>     
             </section>
         </div>
