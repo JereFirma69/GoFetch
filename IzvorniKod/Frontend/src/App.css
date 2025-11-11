@@ -105,12 +105,12 @@ body {
 }
 
 .about-box:hover .overlay {
-  background-color: rgba(0, 0, 0, 0.5); /* zatamni */
-  opacity: 1; /* prikaži tekst */
+  background-color: rgba(0, 0, 0, 0.5); 
+  opacity: 1; 
 }
 
 .about-box:hover {
-  transform: scale(1.05); /* lagano povećanje */
+  transform: scale(1.05); 
 }
 
 /*----LOGIN PAGE----*/
