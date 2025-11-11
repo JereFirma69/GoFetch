@@ -1,0 +1,29 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "IzvorniKod", "IzvorniKod", "{DBCACD39-09D8-0090-25B6-29FCE1107B18}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PawPal.Api", "IzvorniKod\PawPal.Api\PawPal.Api.csproj", "{FD7B6346-A299-A391-57E4-188D146822E2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FD7B6346-A299-A391-57E4-188D146822E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD7B6346-A299-A391-57E4-188D146822E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD7B6346-A299-A391-57E4-188D146822E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD7B6346-A299-A391-57E4-188D146822E2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{FD7B6346-A299-A391-57E4-188D146822E2} = {DBCACD39-09D8-0090-25B6-29FCE1107B18}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F85CA0F2-D8FD-40C5-94DF-ADE638B53648}
+	EndGlobalSection
+EndGlobal

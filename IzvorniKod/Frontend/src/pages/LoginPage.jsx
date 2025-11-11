@@ -1,20 +1,26 @@
 
 import { useContext, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FcGoogle } from "react-icons/fc";
 import { AuthContext } from "../context/AuthContext";
 import logoImg from "../assets/logo.png";
+import GoogleSignInButton from "../components/GoogleSignInButton";
 
 function LoginPage() {
-  const { login } = useContext(AuthContext);
+  const { login, loading, error, googleLogin } = useContext(AuthContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [formError, setFormError] = useState("");
   const navigate = useNavigate();
 
-  function handleLogin(e) {
+  async function handleLogin(e) {
     e.preventDefault();
-    if (login(email, password)) navigate("/homepage");
-    else alert("Pogrešan email ili lozinka");
+    setFormError("");
+    if (!email || !password) {
+      setFormError("Unesi email i lozinku.");
+      return;
+    }
+    const ok = await login(email, password);
+    if (ok) navigate("/profile");
   }
 
   return (
@@ -23,19 +29,30 @@ function LoginPage() {
         <img className="logo-img" src={logoImg} alt="Logo" />
       </div>
 
-      <button className="google-btn">
-        <FcGoogle className="google-icon" /> Continue with Google
-      </button>
+      <GoogleSignInButton text="signin_with" />
 
-      <p>or</p>
+      <p>ili</p>
 
       <form onSubmit={handleLogin}>
-        <input type="email" placeholder="E-mail" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        <button type="submit" className="primary-btn">Log In</button>
+        {(formError || error) && <p style={{ color: "red" }}>{formError || error}</p>}
+        <input
+          type="email"
+          placeholder="E-mail"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <input
+          type="password"
+          placeholder="Lozinka"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <button type="submit" className="primary-btn" disabled={loading}>
+          {loading ? "Prijava..." : "Prijava"}
+        </button>
       </form>
 
-      <p>Don't have an account? <Link to="/signup">Sign Up</Link></p>
+      <p>Nemaš račun? <Link to="/signup">Registracija</Link></p>
     </div>
   );
 }

@@ -11,7 +11,8 @@ import Header from "./shared_components/Header";
 
 function PrivateRoute({ children }) {
   const { user } = useContext(AuthContext);
-  return user ? children : <Navigate to="/login" />;
+  const hasStoredUser = localStorage.getItem("user");
+  return (user || hasStoredUser) ? children : <Navigate to="/login" />;
 }
 
 export default function App() {

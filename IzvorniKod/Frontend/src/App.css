@@ -118,3 +118,23 @@ input{
   font-weight: 600;
   color:rgb(116, 9, 30);
 }
+
+/* Role toggle on signup */
+.role-toggle{
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  margin: 8px 0 16px;
+}
+.role-btn{
+  background: #fff;
+  border:1px solid #cbd5e1; /* slate-300 */
+  color:#111827; /* gray-900 */
+  padding: 8px 16px;
+  border-radius: 8px;
+}
+.role-btn.selected{
+  background:#0ea5a0; /* teal-500-ish */
+  color:#fff;
+  border-color:#0ea5a0;
+}
