@@ -20,7 +20,7 @@ CREATE TABLE Vlasnik
 
 (
 	
-	id_korisnik INT NOT NULL,
+  id_korisnik INT NOT NULL,
 	
   PRIMARY KEY (id_korisnik),
 	
@@ -100,7 +100,7 @@ CREATE TABLE Pas
 
   id_korisnik INT NOT NULL,
 
-  PRIMARY KEY (id_pas, id_korisnik),
+  PRIMARY KEY (id_pas),
 
   FOREIGN KEY (id_korisnik) REFERENCES Vlasnik(id_korisnik) ON DELETE CASCADE
 
@@ -268,13 +268,11 @@ CREATE TABLE Rezervacija_Pas
 
   id_pas INT NOT NULL,
 
-  id_korisnik INT NOT NULL,
-
-  PRIMARY KEY (id_rezervacija, id_pas, id_korisnik),
+  PRIMARY KEY (id_rezervacija, id_pas),
 
   FOREIGN KEY (id_rezervacija) REFERENCES Rezervacija(id_rezervacija) ON DELETE CASCADE,
 
-  FOREIGN KEY (id_pas, id_korisnik) REFERENCES Pas(id_pas, id_korisnik) ON DELETE CASCADE
+  FOREIGN KEY (id_pas) REFERENCES Pas(id_pas) ON DELETE CASCADE
 
 );
 
@@ -412,13 +410,6 @@ FOR EACH ROW
 
 EXECUTE FUNCTION zabrani_placanje_otkazane_rezervacije();
 
-
-
-CREATE INDEX i_setac_lokacija ON Setac (lokacija_setac);
-
-CREATE INDEX i_termin_cijena ON Termin (cijena, id_korisnik);
-
-CREATE INDEX i_recenzija_ocjena ON Recenzija (ocjena, id_rezervacija);
 
 
 CREATE INDEX i_setac_lokacija ON Setac (lokacija_setac);
