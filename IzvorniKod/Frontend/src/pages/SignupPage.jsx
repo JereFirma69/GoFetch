@@ -14,7 +14,7 @@ function SignupPage() {
     const user = { username, email, password };
     localStorage.setItem("user", JSON.stringify(user));
     localStorage.setItem("isLoggedIn", "true");
-    navigate("/profile");
+    navigate("/homepage");
   }
 
   return (
