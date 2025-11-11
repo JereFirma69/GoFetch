@@ -20,7 +20,7 @@ CREATE TABLE Vlasnik
 
 (
 	
-	id_korisnik INT NOT NULL,
+  id_korisnik INT NOT NULL,
 	
   PRIMARY KEY (id_korisnik),
 	
@@ -100,7 +100,7 @@ CREATE TABLE Pas
 
   id_korisnik INT NOT NULL,
 
-  PRIMARY KEY (id_pas, id_korisnik),
+  PRIMARY KEY (id_pas),
 
   FOREIGN KEY (id_korisnik) REFERENCES Vlasnik(id_korisnik) ON DELETE CASCADE
 
@@ -268,13 +268,11 @@ CREATE TABLE Rezervacija_Pas
 
   id_pas INT NOT NULL,
 
-  id_korisnik INT NOT NULL,
-
-  PRIMARY KEY (id_rezervacija, id_pas, id_korisnik),
+  PRIMARY KEY (id_rezervacija, id_pas),
 
   FOREIGN KEY (id_rezervacija) REFERENCES Rezervacija(id_rezervacija) ON DELETE CASCADE,
 
-  FOREIGN KEY (id_pas, id_korisnik) REFERENCES Pas(id_pas, id_korisnik) ON DELETE CASCADE
+  FOREIGN KEY (id_pas) REFERENCES Pas(id_pas) ON DELETE CASCADE
 
 );
 
