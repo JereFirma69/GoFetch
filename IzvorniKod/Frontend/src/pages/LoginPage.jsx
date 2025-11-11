@@ -34,30 +34,6 @@ function LoginPage() {
         <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
         <button type="submit" className="primary-btn">Log In</button>
       </form>
-      <form onSubmit={handleLogin} className="flex flex-col gap-4">
-  <input
-    type="email"
-    placeholder="E-mail"
-    value={email}
-    onChange={(e) => setEmail(e.target.value)}
-    className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400"
-  />
-  <input
-    type="password"
-    placeholder="Password"
-    value={password}
-    onChange={(e) => setPassword(e.target.value)}
-    className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400"
-  />
-  <button
-    type="submit"
-    className="px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition font-medium"
-  >
-    Log In
-  </button>
-</form>
-      <form onSubmit={handleLogin} className="flex flex-col gap-4">
-
 
       <p>Don't have an account? <Link to="/signup">Sign Up</Link></p>
     </div>
