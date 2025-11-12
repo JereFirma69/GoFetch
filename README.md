@@ -112,4 +112,4 @@ Orginal [![cc0-1.0][cc0-1.0-shield]][cc0-1.0]
 ### Reference na licenciranje repozitorija
 
 # Izvor medijskih sadržaja
-- Logo slika preuzeta s Pexels [link:https://www.pexels.com/]
+- Sve fotografije preuzete su s Pexels [link:https://www.pexels.com/]
