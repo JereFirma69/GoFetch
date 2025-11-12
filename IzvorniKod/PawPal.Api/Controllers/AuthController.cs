@@ -71,16 +71,36 @@ public class AuthController : ControllerBase
     /// Register a role (owner or walker) for an authenticated user
     [Authorize]
     [HttpPost("register-role")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> RegisterRole([FromBody] RegisterRoleRequest request, CancellationToken ct)
+    public async Task<ActionResult<AuthResponse>> RegisterRole([FromBody] RegisterRoleRequest request, CancellationToken ct)
     {
         try
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-            await _authService.RegisterRoleAsync(userId, request.Role, ct);
-            return Ok(new { message = "Role registered successfully" });
+            var response = await _authService.RegisterRoleAsync(userId, request.Role, ct);
+            return Ok(response);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    /// Remove a role (owner or walker) from an authenticated user
+    [Authorize]
+    [HttpPost("remove-role")]
+    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<AuthResponse>> RemoveRole([FromBody] RegisterRoleRequest request, CancellationToken ct)
+    {
+        try
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var response = await _authService.RemoveRoleAsync(userId, request.Role, ct);
+            return Ok(response);
         }
         catch (InvalidOperationException ex)
         {

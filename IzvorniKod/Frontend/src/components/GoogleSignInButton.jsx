@@ -49,5 +49,5 @@ export default function GoogleSignInButton({
     }
   }, [googleLogin, navigate, text, size, theme, shape, onSuccessNavigate]);
 
-  return <div ref={containerRef} style={{ marginBottom: 8 }} />;
+  return <div ref={containerRef} className="mb-2" />;
 }

@@ -29,14 +29,13 @@ public class AuthService : IAuthService
 
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request, CancellationToken ct = default)
     {
-        // Check if user already exists
         var exists = await _db.Korisnici.AnyAsync(k => k.EmailKorisnik == request.Email, ct);
         if (exists)
         {
             throw new InvalidOperationException("User with this email already exists.");
         }
 
-        // Create new user
+        
         var user = new Korisnik
         {
             EmailKorisnik = request.Email,
@@ -44,7 +43,7 @@ public class AuthService : IAuthService
             Prezime = request.LastName
         };
 
-        // Hash password
+        
         user.LozinkaHashKorisnik = _passwordHasher.HashPassword(user, request.Password);
 
         _db.Korisnici.Add(user);
@@ -66,7 +65,7 @@ public class AuthService : IAuthService
             throw new UnauthorizedAccessException("Invalid email or password.");
         }
 
-        // Verify password
+    
         var result = _passwordHasher.VerifyHashedPassword(user, user.LozinkaHashKorisnik, request.Password);
         if (result == PasswordVerificationResult.Failed)
         {
@@ -81,6 +80,8 @@ public class AuthService : IAuthService
     {
         string email;
         string providerUserId;
+        string? firstName = null;
+        string? lastName = null;
 
         // Validate OAuth token based on provider
         switch (request.Provider.ToLowerInvariant())
@@ -89,6 +90,8 @@ public class AuthService : IAuthService
                 var payload = await GoogleJsonWebSignature.ValidateAsync(request.Token);
                 email = payload.Email;
                 providerUserId = payload.Subject;
+                firstName = payload.GivenName;
+                lastName = payload.FamilyName;
                 break;
 
             default:
@@ -109,7 +112,9 @@ public class AuthService : IAuthService
             {
                 EmailKorisnik = email,
                 AuthProvider = request.Provider.ToLowerInvariant(),
-                ProviderUserId = providerUserId
+                ProviderUserId = providerUserId,
+                Ime = firstName,
+                Prezime = lastName
             };
 
             _db.Korisnici.Add(user);
@@ -124,13 +129,69 @@ public class AuthService : IAuthService
                 user.ProviderUserId = providerUserId;
                 await _db.SaveChangesAsync(ct);
             }
+            
+            // Update name if not set
+            if (string.IsNullOrEmpty(user.Ime) && !string.IsNullOrEmpty(firstName))
+            {
+                user.Ime = firstName;
+                user.Prezime = lastName;
+                await _db.SaveChangesAsync(ct);
+            }
         }
 
         var role = DetermineUserRole(user);
         return GenerateAuthResponse(user, role);
     }
 
-    public async Task RegisterRoleAsync(int userId, string role, CancellationToken ct = default)
+    public async Task<AuthResponse> RegisterRoleAsync(int userId, string role, CancellationToken ct = default)
+    {
+        var user = await _db.Korisnici
+            .Include(k => k.Vlasnik)
+            .Include(k => k.Setac)
+            .FirstOrDefaultAsync(k => k.IdKorisnik == userId, ct);
+
+        if (user == null)
+        {
+            throw new InvalidOperationException("User not found.");
+        }
+        switch (role.ToLowerInvariant())
+        {
+            case "owner":
+                if (user.Vlasnik == null)
+                {
+                    user.Vlasnik = new Vlasnik { IdKorisnik = userId };
+                }
+                break;
+
+            case "walker":
+                if (user.Setac == null)
+                {
+                    user.Setac = new Setac
+                    {
+                        IdKorisnik = userId,
+                        ImeSetac = user.Ime ?? "",
+                        PrezimeSetac = user.Prezime ?? "",
+                        LokacijaSetac = "",
+                        TelefonSetac = "",
+                        ProfilnaSetac = ""
+                    };
+                }
+                break;
+
+            default:
+                throw new InvalidOperationException($"Invalid role: {role}. Must be 'owner' or 'walker'.");
+        }
+
+        await _db.SaveChangesAsync(ct);
+        
+
+        await _db.Entry(user).ReloadAsync(ct);
+        
+        var updatedRole = DetermineUserRole(user);
+        return GenerateAuthResponse(user, updatedRole);
+    }
+
+    public async Task<AuthResponse> RemoveRoleAsync(int userId, string role, CancellationToken ct = default)
     {
         var user = await _db.Korisnici
             .Include(k => k.Vlasnik)
@@ -142,28 +203,20 @@ public class AuthService : IAuthService
             throw new InvalidOperationException("User not found.");
         }
 
-        // Prevent changing role if already set
-        if (user.Vlasnik != null || user.Setac != null)
-        {
-            throw new InvalidOperationException("User role is already set.");
-        }
-
         switch (role.ToLowerInvariant())
         {
             case "owner":
-                user.Vlasnik = new Vlasnik { IdKorisnik = userId };
+                if (user.Vlasnik != null)
+                {
+                    _db.Vlasnici.Remove(user.Vlasnik);
+                }
                 break;
 
             case "walker":
-                user.Setac = new Setac
+                if (user.Setac != null)
                 {
-                    IdKorisnik = userId,
-                    ImeSetac = user.Ime ?? "",
-                    PrezimeSetac = user.Prezime ?? "",
-                    LokacijaSetac = "",
-                    TelefonSetac = "",
-                    ProfilnaSetac = ""
-                };
+                    _db.Setaci.Remove(user.Setac);
+                }
                 break;
 
             default:
@@ -171,14 +224,24 @@ public class AuthService : IAuthService
         }
 
         await _db.SaveChangesAsync(ct);
+        
+        await _db.Entry(user).ReloadAsync(ct);
+        
+        var updatedRole = DetermineUserRole(user);
+        return GenerateAuthResponse(user, updatedRole);
     }
 
 
     private string DetermineUserRole(Korisnik user)
     {
         if (user.Administrator != null) return "admin";
-        if (user.Vlasnik != null) return "owner";
-        if (user.Setac != null) return "walker";
+        
+        bool isOwner = user.Vlasnik != null;
+        bool isWalker = user.Setac != null;
+        
+        if (isOwner && isWalker) return "both";
+        if (isOwner) return "owner";
+        if (isWalker) return "walker";
         return "none";
     }
 
@@ -191,7 +254,14 @@ public class AuthService : IAuthService
             displayName = user.EmailKorisnik.Split('@')[0];
         }
 
-        return new AuthResponse(jwt, user.IdKorisnik, user.EmailKorisnik, role, displayName);
+        return new AuthResponse(
+            jwt, 
+            user.IdKorisnik, 
+            user.EmailKorisnik, 
+            role, 
+            displayName,
+            user.Ime,
+            user.Prezime);
     }
 
     private string GenerateJwt(Korisnik user, string role)

@@ -25,6 +25,17 @@ public record UpdateOwnerRequest(
     string FirstName,
     string LastName);
 
+public record UpdateProfileRequest(
+    string? FirstName,
+    string? LastName,
+    string? ProfilePicture,
+    WalkerDetailsDto? WalkerDetails);
+
+public record WalkerDetailsDto(
+    string Location,
+    string Phone,
+    string? WalkerProfilePicture);
+
 public record UpdateWalkerRequest(
     string FirstName,
     string LastName,

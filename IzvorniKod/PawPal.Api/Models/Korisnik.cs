@@ -28,6 +28,9 @@ public class Korisnik
     [MaxLength(50)]
     public string? Prezime { get; set; }
 
+    [MaxLength(100)]
+    public string? ProfilnaKorisnik { get; set; }
+
     public Vlasnik? Vlasnik { get; set; }
     public Setac? Setac { get; set; }
     public Administrator? Administrator { get; set; }

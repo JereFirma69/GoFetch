@@ -15,7 +15,6 @@ function SignupPage() {
     confirmPassword: "",
   });
   const [formError, setFormError] = useState("");
-  const [role, setRole] = useState("owner"); // default to owner(TODO ako prode ideja na discordu trebat ce mijenjati logiku vezano za ovo)
 
 
   function handleChange(e) {
@@ -35,7 +34,7 @@ function SignupPage() {
       setFormError("Lozinke se ne podudaraju.");
       return;
     }
-    const ok = await signup(firstName, lastName, email, password, role);
+    const ok = await signup(firstName, lastName, email, password);
     if (ok) navigate("/profile");
   }
 
@@ -51,23 +50,7 @@ function SignupPage() {
       <p>ili</p>
 
       <form onSubmit={handleSignup}>
-        {(formError || error) && <p style={{ color: "red" }}>{formError || error}</p>}
-        <div className="role-toggle">
-          <button
-            type="button"
-            className={`role-btn ${role === "owner" ? "selected" : ""}`}
-            onClick={() => setRole("owner")}
-          >
-            Owner
-          </button>
-          <button
-            type="button"
-            className={`role-btn ${role === "walker" ? "selected" : ""}`}
-            onClick={() => setRole("walker")}
-          >
-            Walker
-          </button>
-        </div>
+        {(formError || error) && <p className="form-error">{formError || error}</p>}
         <input
           type="text"
           placeholder="Ime"

@@ -1,9 +1,11 @@
-export default function AddedDogs({ dogs }) {
+export default function AddedDogs({ dogs, onAddClick, onDogClick }) {
   return (
     <div className="bg-white rounded-lg shadow-sm p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-gray-800">Dodaj psa</h3>
-        <button className="w-9 h-9 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:bg-gray-50 hover:border-teal-500 transition-colors text-xl">
+        <h3 className="font-semibold text-gray-800">Your dogs</h3>
+        <button 
+          onClick={onAddClick}
+          className="w-9 h-9 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:bg-gray-50 hover:border-teal-500 transition-colors text-xl">
           +
         </button>
       </div>
@@ -12,6 +14,7 @@ export default function AddedDogs({ dogs }) {
         {dogs.map((dog) => (
           <div
             key={dog.id}
+            onClick={() => onDogClick?.(dog)}
             className="bg-gray-50 rounded-lg p-3 flex items-center gap-3 hover:bg-gray-100 transition-colors cursor-pointer"
           >
             <img

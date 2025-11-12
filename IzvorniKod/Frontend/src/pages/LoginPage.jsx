@@ -34,7 +34,7 @@ function LoginPage() {
       <p>ili</p>
 
       <form onSubmit={handleLogin}>
-        {(formError || error) && <p style={{ color: "red" }}>{formError || error}</p>}
+        {(formError || error) && <p className="form-error">{formError || error}</p>}
         <input
           type="email"
           placeholder="E-mail"

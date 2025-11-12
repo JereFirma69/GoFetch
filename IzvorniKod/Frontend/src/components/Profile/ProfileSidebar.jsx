@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function ProfileSidebar({ user, onLogout }) {
+export default function ProfileSidebar({ user, onLogout, onEdit }) {
   return (
     <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
       <div className="flex flex-col items-center">
@@ -12,7 +12,10 @@ export default function ProfileSidebar({ user, onLogout }) {
         <h2 className="text-xl font-bold text-gray-800 mb-1">{user.name}</h2>
         <p className="text-gray-500 text-sm mb-4">{user.email}</p>
 
-        <button className="w-full py-2.5 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 mb-2 font-medium">
+        <button
+          onClick={onEdit}
+          className="w-full py-2.5 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 mb-2 font-medium"
+        >
           Edit Profile
         </button>
 

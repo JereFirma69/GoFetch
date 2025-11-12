@@ -42,6 +42,25 @@ public class ProfileController : ControllerBase
         }
     }
 
+    /// Update user profile (general info, walker details)
+    [HttpPut("")]
+    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<AuthResponse>> UpdateProfile([FromBody] UpdateProfileRequest request, CancellationToken ct)
+    {
+        try
+        {
+            var userId = GetUserId();
+            var response = await _profileService.UpdateProfileAsync(userId, request, ct);
+            return Ok(response);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
 
     /// Update owner profile (first name, last name)
     [HttpPut("owner")]

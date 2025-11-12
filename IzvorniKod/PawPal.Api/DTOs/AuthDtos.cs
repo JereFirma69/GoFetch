@@ -22,4 +22,6 @@ public record AuthResponse(
     int UserId,
     string Email,
     string Role, // "owner", "walker", "admin", or "none"
-    string? DisplayName);
+    string? DisplayName,
+    string? FirstName,
+    string? LastName);
