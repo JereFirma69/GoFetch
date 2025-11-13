@@ -35,7 +35,7 @@ function SignupPage() {
       return;
     }
     const ok = await signup(firstName, lastName, email, password);
-    if (ok) navigate("/profile");
+    if (ok) navigate("/homepage");
   }
 
   return (

@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Google.Apis.Auth;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -19,17 +20,22 @@ public class AuthService : IAuthService
     private readonly AppDbContext _db;
     private readonly IOptions<JwtOptions> _jwtOptions;
     private readonly PasswordHasher<Korisnik> _passwordHasher;
+    private readonly string? _googleClientId;
 
-    public AuthService(AppDbContext db, IOptions<JwtOptions> jwtOptions)
+    public AuthService(AppDbContext db, IOptions<JwtOptions> jwtOptions, IConfiguration configuration)
     {
         _db = db;
         _jwtOptions = jwtOptions;
         _passwordHasher = new PasswordHasher<Korisnik>();
+        _googleClientId = configuration["Google:ClientId"]; // e.g., set via env var Google__ClientId
     }
 
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request, CancellationToken ct = default)
     {
-        var exists = await _db.Korisnici.AnyAsync(k => k.EmailKorisnik == request.Email, ct);
+        var normalizedEmail = request.Email.Trim().ToLowerInvariant();
+
+        var exists = await _db.Korisnici
+            .AnyAsync(k => k.EmailKorisnik.ToLower() == normalizedEmail, ct);
         if (exists)
         {
             throw new InvalidOperationException("User with this email already exists.");
@@ -38,7 +44,7 @@ public class AuthService : IAuthService
         
         var user = new Korisnik
         {
-            EmailKorisnik = request.Email,
+            EmailKorisnik = normalizedEmail,
             Ime = request.FirstName,
             Prezime = request.LastName
         };
@@ -54,11 +60,13 @@ public class AuthService : IAuthService
 
     public async Task<AuthResponse> LoginAsync(LoginRequest request, CancellationToken ct = default)
     {
+        var normalizedEmail = request.Email.Trim().ToLowerInvariant();
+
         var user = await _db.Korisnici
             .Include(k => k.Vlasnik)
             .Include(k => k.Setac)
             .Include(k => k.Administrator)
-            .FirstOrDefaultAsync(k => k.EmailKorisnik == request.Email, ct);
+            .FirstOrDefaultAsync(k => k.EmailKorisnik.ToLower() == normalizedEmail, ct);
 
         if (user == null || user.LozinkaHashKorisnik == null)
         {
@@ -87,8 +95,31 @@ public class AuthService : IAuthService
         switch (request.Provider.ToLowerInvariant())
         {
             case "google":
-                var payload = await GoogleJsonWebSignature.ValidateAsync(request.Token);
-                email = payload.Email;
+                GoogleJsonWebSignature.Payload payload;
+                if (!string.IsNullOrWhiteSpace(_googleClientId))
+                {
+                    var settings = new GoogleJsonWebSignature.ValidationSettings
+                    {
+                        Audience = new[] { _googleClientId }
+                    };
+                    payload = await GoogleJsonWebSignature.ValidateAsync(request.Token, settings);
+                }
+                else
+                {
+                    // Fallback: validate without audience constraint (not recommended for production)
+                    payload = await GoogleJsonWebSignature.ValidateAsync(request.Token);
+                }
+                // Extra hardening checks
+                if (!(payload.Issuer == "accounts.google.com" || payload.Issuer == "https://accounts.google.com"))
+                {
+                    throw new UnauthorizedAccessException("Invalid token issuer.");
+                }
+                if (string.IsNullOrEmpty(payload.Email) || payload.EmailVerified != true)
+                {
+                    throw new UnauthorizedAccessException("Unverified Google account.");
+                }
+
+                email = payload.Email.Trim().ToLowerInvariant();
                 providerUserId = payload.Subject;
                 firstName = payload.GivenName;
                 lastName = payload.FamilyName;
@@ -103,7 +134,7 @@ public class AuthService : IAuthService
             .Include(k => k.Vlasnik)
             .Include(k => k.Setac)
             .Include(k => k.Administrator)
-            .FirstOrDefaultAsync(k => k.EmailKorisnik == email, ct);
+            .FirstOrDefaultAsync(k => k.EmailKorisnik.ToLower() == email, ct);
 
         if (user == null)
         {
@@ -122,6 +153,12 @@ public class AuthService : IAuthService
         }
         else
         {
+            // If account exists with a password and no OAuth provider, do NOT auto-link
+            if (user.LozinkaHashKorisnik != null && string.IsNullOrEmpty(user.AuthProvider))
+            {
+                throw new UnauthorizedAccessException("Email already registered with password. Use email/password login.");
+            }
+
             // Update OAuth info if not set
             if (string.IsNullOrEmpty(user.AuthProvider))
             {

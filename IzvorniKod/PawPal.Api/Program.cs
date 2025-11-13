@@ -15,21 +15,22 @@ var config = builder.Configuration;
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(config.GetConnectionString("DefaultConnection")));
 
-// CORS - Allow React frontend (local + production)
+// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
     {
-        var frontendUrl = config["FrontendUrl"] ?? "http://localhost:5173";
-        var allowedOrigins = new List<string> { frontendUrl };
+        var allowedOrigins = new List<string>();
         
-        // Add localhost variations for development
-        if (builder.Environment.IsDevelopment())
+        var productionUrl = config["FrontendUrl"];
+        if (!string.IsNullOrEmpty(productionUrl))
         {
-            allowedOrigins.Add("http://localhost:5173");
-            allowedOrigins.Add("http://localhost:5174");
-            allowedOrigins.Add("http://localhost:3000");
+            allowedOrigins.Add(productionUrl);
         }
+        
+        allowedOrigins.Add("http://localhost:5173");
+        allowedOrigins.Add("http://localhost:5174");
+        allowedOrigins.Add("http://localhost:3000");
         
         policy.WithOrigins(allowedOrigins.ToArray())
               .AllowAnyHeader()
@@ -73,7 +74,6 @@ builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new() { Title = "PawPal API", Version = "v1" });
     
-    // Add JWT authentication to Swagger
     options.AddSecurityDefinition("Bearer", new()
     {
         Name = "Authorization",
@@ -102,7 +102,6 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-// Configure HTTP for swagger
 app.UseSwagger();
 app.UseSwaggerUI(options =>
 {

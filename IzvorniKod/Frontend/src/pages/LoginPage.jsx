@@ -20,7 +20,7 @@ function LoginPage() {
       return;
     }
     const ok = await login(email, password);
-    if (ok) navigate("/profile");
+    if (ok) navigate("/homepage");
   }
 
   return (
