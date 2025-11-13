@@ -15,14 +15,27 @@ var config = builder.Configuration;
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(config.GetConnectionString("DefaultConnection")));
 
-// CORS - Allow React frontend
+// CORS - Allow React frontend (local + production)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
-        policy.WithOrigins(config["FrontendUrl"] ?? "http://localhost:5173")
+    {
+        var frontendUrl = config["FrontendUrl"] ?? "http://localhost:5173";
+        var allowedOrigins = new List<string> { frontendUrl };
+        
+        // Add localhost variations for development
+        if (builder.Environment.IsDevelopment())
+        {
+            allowedOrigins.Add("http://localhost:5173");
+            allowedOrigins.Add("http://localhost:5174");
+            allowedOrigins.Add("http://localhost:3000");
+        }
+        
+        policy.WithOrigins(allowedOrigins.ToArray())
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials());
+              .AllowCredentials();
+    });
 });
 
 // JWT Authentication
@@ -90,14 +103,11 @@ builder.Services.AddSwaggerGen(options =>
 var app = builder.Build();
 
 // Configure HTTP for swagger
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(options =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "PawPal API v1");
-    });
-}
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "PawPal API v1");
+});
 
 app.UseHttpsRedirection();
 

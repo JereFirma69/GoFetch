@@ -29,6 +29,21 @@ export default function ProfilePage() {
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  function openEditProfile() {
+    setShowEdit(true);
+    setDogFormMode(null);
+  }
+
+  function openDogForm(mode) {
+    setDogFormMode(mode);
+    setShowEdit(false);
+  }
+
+  function closeAllPanels() {
+    setShowEdit(false);
+    setDogFormMode(null);
+  }
+
   useEffect(() => {
     async function fetchProfile() {
       try {
@@ -83,7 +98,7 @@ export default function ProfilePage() {
 
   function handleDogSave() {
     setRefreshKey((k) => k + 1);
-    setDogFormMode(null);
+    closeAllPanels();
   }
 
   function handleRoleChange() {
@@ -107,20 +122,20 @@ export default function ProfilePage() {
               name: user?.displayName,
               email: user?.email,
             }}
-            onEdit={() => setShowEdit(true)} 
+            onEdit={openEditProfile} 
             onLogout={logout} 
           />
           
           <AddedDogs 
             dogs={addedDogs} 
-            onAddClick={() => setDogFormMode('add')}
-            onDogClick={(dog) => setDogFormMode({ dog })}
+            onAddClick={() => openDogForm('add')}
+            onDogClick={(dog) => openDogForm({ dog })}
           />
         </div>
         <div className="profile-main-content">
           {showEdit ? (
             <EditProfilePanel 
-              onBack={() => setShowEdit(false)} 
+              onBack={closeAllPanels} 
               profileData={profileData} 
               onRoleChange={handleRoleChange}
               onSaved={handleProfileSaved}
@@ -128,7 +143,7 @@ export default function ProfilePage() {
           ) : dogFormMode ? (
             <DogFormPanel
               dog={dogFormMode === 'add' ? null : dogFormMode.dog}
-              onBack={() => setDogFormMode(null)}
+              onBack={closeAllPanels}
               onSave={handleDogSave}
             />
           ) : (
