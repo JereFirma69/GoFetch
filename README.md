@@ -28,11 +28,10 @@ Jer svaki pas zaslužuje šetnju - GoFetch! omogućuje jednostavno, pouzdano i g
 | FZ-014 | Povijest šetnji | Korisnik može pregledati povijest svih obavljenih šetnji. | Srednji | Zahtjev dionika | Popis prikazuje datume, trajanje i ocjene svake šetnje. |
 | FZ-015 | Izvještaji i statistike | Šetač može pregledati statistiku svojih šetnji (broj, trajanje, zarada). | Nizak | Dokument projekta | Statistika se prikazuje grafički i ažurira automatski. |
 | FZ-016 | Resetiranje lozinke | Sustav omogućuje resetiranje lozinke putem e-maila. | Visok | Povratne informacije korisnika | Korisnik može postaviti novu lozinku putem sigurnosnog linka. |
-| FZ-017 | Geolokacijski prikaz | Sustav prikazuje šetače na interaktivnoj karti. | Srednji | Zahtjev dionika | Na karti se ispravno prikazuju svi dostupni šetači. |
-| FZ-018 | Višestruke uloge korisnika | Korisnik može imati i ulogu vlasnika i ulogu šetača. | Nizak | Dokument projekta | Korisnik može prebacivati između uloga u profilu. |
-| FZ-019 | Prijava problema i podrška | Korisnik može prijaviti tehnički problem ili nepravilnost putem obrasca. | Nizak | Povratne informacije korisnika | Poruka se sprema i administrator prima obavijest. |
-| FZ-020 | Povratne informacije sustavu | Korisnici mogu ostaviti prijedloge za poboljšanja aplikacije. | Nizak | Zahtjev dionika | Povratne informacije se bilježe i dostupne su administratoru. |
-| FZ-021 | Administratorski nadzor | Administrator može pregledavati korisnike, recenzije i rezervacije te ih uređivati ili brisati. | Srednji | Dokument projekta | Administrator ima pristup kontrolnoj ploči s funkcijama upravljanja. |
+| FZ-017 | Višestruke uloge korisnika | Korisnik može imati i ulogu vlasnika i ulogu šetača. | Nizak | Dokument projekta | Korisnik može prebacivati između uloga u profilu. |
+| FZ-018 | Prijava problema i podrška | Korisnik može prijaviti tehnički problem ili nepravilnost putem obrasca. | Nizak | Povratne informacije korisnika | Poruka se sprema i administrator prima obavijest. |
+| FZ-019 | Povratne informacije sustavu | Korisnici mogu ostaviti prijedloge za poboljšanja aplikacije. | Nizak | Zahtjev dionika | Povratne informacije se bilježe i dostupne su administratoru. |
+| FZ-020 | Administratorski nadzor | Administrator može pregledavati korisnike, recenzije i rezervacije te ih uređivati ili brisati. | Srednji | Dokument projekta | Administrator ima pristup kontrolnoj ploči s funkcijama upravljanja. |
 
 <br>
 
