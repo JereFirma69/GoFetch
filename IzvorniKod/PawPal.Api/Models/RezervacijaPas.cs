@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PawPal.Api.Models;
 
-// Junction table for many-to-many relationship between Rezervacija and Pas
 public class RezervacijaPas
 {
     [ForeignKey(nameof(Rezervacija))]

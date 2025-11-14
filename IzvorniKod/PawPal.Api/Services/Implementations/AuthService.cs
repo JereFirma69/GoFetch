@@ -27,7 +27,7 @@ public class AuthService : IAuthService
         _db = db;
         _jwtOptions = jwtOptions;
         _passwordHasher = new PasswordHasher<Korisnik>();
-        _googleClientId = configuration["Google:ClientId"]; // e.g., set via env var Google__ClientId
+        _googleClientId = configuration["Google:ClientId"]; 
     }
 
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request, CancellationToken ct = default)
@@ -91,7 +91,6 @@ public class AuthService : IAuthService
         string? firstName = null;
         string? lastName = null;
 
-        // Validate OAuth token based on provider
         switch (request.Provider.ToLowerInvariant())
         {
             case "google":
@@ -106,10 +105,8 @@ public class AuthService : IAuthService
                 }
                 else
                 {
-                    // Fallback: validate without audience constraint (not recommended for production)
                     payload = await GoogleJsonWebSignature.ValidateAsync(request.Token);
                 }
-                // Extra hardening checks
                 if (!(payload.Issuer == "accounts.google.com" || payload.Issuer == "https://accounts.google.com"))
                 {
                     throw new UnauthorizedAccessException("Invalid token issuer.");
@@ -129,7 +126,6 @@ public class AuthService : IAuthService
                 throw new InvalidOperationException($"Unsupported OAuth provider: {request.Provider}");
         }
 
-        // Find or create user
         var user = await _db.Korisnici
             .Include(k => k.Vlasnik)
             .Include(k => k.Setac)
@@ -138,7 +134,6 @@ public class AuthService : IAuthService
 
         if (user == null)
         {
-            // Create new user from OAuth
             user = new Korisnik
             {
                 EmailKorisnik = email,
@@ -153,13 +148,11 @@ public class AuthService : IAuthService
         }
         else
         {
-            // If account exists with a password and no OAuth provider, do NOT auto-link
             if (user.LozinkaHashKorisnik != null && string.IsNullOrEmpty(user.AuthProvider))
             {
                 throw new UnauthorizedAccessException("Email already registered with password. Use email/password login.");
             }
 
-            // Update OAuth info if not set
             if (string.IsNullOrEmpty(user.AuthProvider))
             {
                 user.AuthProvider = request.Provider.ToLowerInvariant();
@@ -167,7 +160,6 @@ public class AuthService : IAuthService
                 await _db.SaveChangesAsync(ct);
             }
             
-            // Update name if not set
             if (string.IsNullOrEmpty(user.Ime) && !string.IsNullOrEmpty(firstName))
             {
                 user.Ime = firstName;

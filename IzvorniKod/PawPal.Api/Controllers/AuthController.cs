@@ -17,7 +17,6 @@ public class AuthController : ControllerBase
         _authService = authService;
     }
 
-    /// Register a new user with email and password
     [HttpPost("register")]
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -34,7 +33,6 @@ public class AuthController : ControllerBase
         }
     }
 
-    /// Login with email and password
     [HttpPost("login")]
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -51,7 +49,6 @@ public class AuthController : ControllerBase
         }
     }
 
-    /// Login or register using OAuth provider (Google)
     [HttpPost("oauth-login")]
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -68,7 +65,6 @@ public class AuthController : ControllerBase
         }
     }
 
-    /// Register a role (owner or walker) for an authenticated user
     [Authorize]
     [HttpPost("register-role")]
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
@@ -88,7 +84,6 @@ public class AuthController : ControllerBase
         }
     }
 
-    /// Remove a role (owner or walker) from an authenticated user
     [Authorize]
     [HttpPost("remove-role")]
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
