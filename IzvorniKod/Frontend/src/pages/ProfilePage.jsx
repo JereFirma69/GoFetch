@@ -15,25 +15,30 @@ export default function ProfilePage() {
 
   const favoriteDogs = [
     { id: 1, name: "Max", image: gD1 },
-    { id: 2, name: "Luna", image: gD2},
+    { id: 2, name: "Luna", image: gD2 },
     { id: 3, name: "Roki", image: p1 },
   ];
 
   const addedDogs = [
     { id: 1, name: "Rex", breed: "Pug", image: p1 },
-    { id: 2, name: "Bela", breed: "Golden Retriever", image: gD1},
+    { id: 2, name: "Bela", breed: "Golden Retriever", image: gD1 },
   ];
 
   const reviews = [
     { id: 1, dogName: "Rex", rating: 5, text: "Lorem ipsum dolor sit amet." },
-    { id: 2, dogName: "Max", rating: 4, text: "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." },
+    {
+      id: 2,
+      dogName: "Max",
+      rating: 4,
+      text: "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+    },
   ];
 
   const handleLogout = () => alert("Logged out!");
 
   return (
     <div className="min-h-screen bg-gray-50">
-
+      <button onClick={() => navigate("/calendar")}>Kalendar</button>
 
       <div className="max-w-7xl mx-auto px-6 py-8 flex gap-8">
         <div className="w-80 flex-shrink-0">
