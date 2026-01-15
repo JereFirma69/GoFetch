@@ -69,8 +69,12 @@ public class EmailService : IEmailService
     {
         try
         {
+            var senderAddress = string.IsNullOrEmpty(_options.FromName) 
+                ? _options.FromEmail 
+                : $"{_options.FromName} <{_options.FromEmail}>";
+                
             var emailMessage = new EmailMessage(
-                senderAddress: _options.FromEmail,
+                senderAddress: senderAddress,
                 recipientAddress: toEmail,
                 content: new EmailContent(subject)
                 {
