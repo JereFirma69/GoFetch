@@ -66,6 +66,7 @@ public class ProfileService : IProfileService
             user.EmailKorisnik,
             user.Ime,
             user.Prezime,
+            user.ProfilnaKorisnik,
             ownerProfile,
             walkerProfile
         );

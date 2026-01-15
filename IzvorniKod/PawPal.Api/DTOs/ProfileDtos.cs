@@ -6,6 +6,7 @@ public record ProfileResponse(
     string Email,
     string? FirstName,
     string? LastName,
+    string? ProfilePicture,
     OwnerProfileDto? Owner,
     WalkerProfileDto? Walker);
 

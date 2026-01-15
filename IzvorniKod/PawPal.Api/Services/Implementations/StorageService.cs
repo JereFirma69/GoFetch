@@ -9,8 +9,8 @@ public class StorageService : IStorageService
 {
     private readonly Client _supabase;
     private readonly Configuration.SupabaseOptions _options;
-    private const string AvatarsBucket = "avatars";
-    private const string DogImagesBucket = "dog-images";
+    private const string AvatarsBucket = "Avatar";
+    private const string DogImagesBucket = "DogPhotos";
 
     public StorageService(IOptions<Configuration.SupabaseOptions> options)
     {

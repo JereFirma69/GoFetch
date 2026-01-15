@@ -222,10 +222,12 @@ export default function EditProfilePanel({ onBack, profileData, onRoleChange, on
             onUpload={async (file) => {
               const data = await api.upload("/upload/avatar", file);
               setFormData((prev) => ({ ...prev, profilePicture: data.url }));
+              if (onSaved) await onSaved();
             }}
             onDelete={async () => {
               await api.delete("/upload/avatar");
               setFormData((prev) => ({ ...prev, profilePicture: "" }));
+              if (onSaved) await onSaved();
             }}
           />
         </section>

@@ -25,7 +25,7 @@ public class Korisnik
     [MaxLength(50)]
     public string? Prezime { get; set; }
 
-    [MaxLength(100)]
+    [MaxLength(500)]
     public string? ProfilnaKorisnik { get; set; }
 
     public Vlasnik? Vlasnik { get; set; }

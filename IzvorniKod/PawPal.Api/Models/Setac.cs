@@ -15,7 +15,7 @@ public class Setac
     [Required, MaxLength(50)]
     public string PrezimeSetac { get; set; } = string.Empty;
 
-    [Required, MaxLength(100)]
+    [Required, MaxLength(500)]
     public string ProfilnaSetac { get; set; } = string.Empty;
 
     [Required, MaxLength(100)]
