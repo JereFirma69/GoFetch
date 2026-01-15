@@ -16,7 +16,8 @@ public class EmailService : IEmailService
         _options = options.Value;
         _logger = logger;
 
-        if (_options.Provider == "AzureCommunication" && !string.IsNullOrEmpty(_options.ConnectionString))
+        if ((_options.Provider == "AzureCommunication") 
+            && !string.IsNullOrEmpty(_options.ConnectionString))
         {
             _emailClient = new EmailClient(_options.ConnectionString);
         }
@@ -51,7 +52,8 @@ public class EmailService : IEmailService
 
     public async Task SendEmailAsync(string toEmail, string subject, string htmlBody, CancellationToken ct = default)
     {
-        if (_options.Provider == "AzureCommunication" && _emailClient != null)
+        if ((_options.Provider == "AzureCommunication" || _options.Provider == "AzureCommunicationServices") 
+            && _emailClient != null)
         {
             await SendWithAzureAsync(toEmail, subject, htmlBody, ct);
         }

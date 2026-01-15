@@ -20,22 +20,32 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
     {
-        var allowedOrigins = new List<string>();
-        
-        var productionUrl = config["FrontendUrl"];
-        if (!string.IsNullOrEmpty(productionUrl))
+        policy.SetIsOriginAllowed(origin =>
         {
-            allowedOrigins.Add(productionUrl);
-        }
-        
-        allowedOrigins.Add("http://localhost:5173");
-        allowedOrigins.Add("http://localhost:5174");
-        allowedOrigins.Add("http://localhost:3000");
-        
-        policy.WithOrigins(allowedOrigins.ToArray())
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
+            // Allow localhost for development
+            if (origin.StartsWith("http://localhost:"))
+            {
+                return true;
+            }
+            
+            // Allow production URL from config
+            var productionUrl = config["FrontendUrl"];
+            if (!string.IsNullOrEmpty(productionUrl) && origin == productionUrl)
+            {
+                return true;
+            }
+            
+            // Allow all Vercel preview deployments
+            if (origin.EndsWith(".vercel.app"))
+            {
+                return true;
+            }
+            
+            return false;
+        })
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials();
     });
 });
 
