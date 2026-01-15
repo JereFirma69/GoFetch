@@ -121,7 +121,9 @@ export default function ProfilePage() {
             user={{
               name: user?.displayName,
               email: user?.email,
+              role: user?.role,
             }}
+            profileData={profileData}
             onEdit={openEditProfile} 
             onLogout={logout} 
           />

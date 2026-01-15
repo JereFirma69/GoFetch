@@ -39,7 +39,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-// JWT Authentication
+// JWT Authentication with Cookie support
 builder.Services.Configure<JwtOptions>(config.GetSection("Jwt"));
 var jwtOptions = config.GetSection("Jwt").Get<JwtOptions>()!;
 
@@ -57,13 +57,35 @@ builder.Services
             ValidAudience = jwtOptions.Audience,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key))
         };
+        
+        // Read JWT from httpOnly cookie if Authorization header is not present
+        options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                // First check Authorization header (for backward compatibility and API testing)
+                if (string.IsNullOrEmpty(context.Token))
+                {
+                    // Try to get token from cookie
+                    context.Token = context.Request.Cookies["auth_token"];
+                }
+                return Task.CompletedTask;
+            }
+        };
     });
 
 builder.Services.AddAuthorization();
 
+// Configuration
+builder.Services.Configure<SupabaseOptions>(config.GetSection("Supabase"));
+builder.Services.Configure<EmailOptions>(config.GetSection("Email"));
+
 // Services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IStorageService, StorageService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Controllers
 builder.Services.AddControllers();

@@ -19,7 +19,9 @@ public record WalkerProfileDto(
     string LastName,
     string Location,
     string Phone,
-    string ProfilePicture);
+    string ProfilePicture,
+    string VerificationStatus,
+    bool IsVerified);
 
 public record UpdateOwnerRequest(
     string FirstName,
@@ -74,3 +76,30 @@ public record UpdateDogRequest(
     int Starost,
     string Pasmina,
     string ProfilnaPas);
+
+// Admin Verification DTOs
+public record PendingWalkerDto(
+    int WalkerId,
+    string Email,
+    string FirstName,
+    string LastName,
+    string Location,
+    string Phone,
+    string ProfilePicture);
+
+public record ApproveWalkerRequest(
+    int WalkerId);
+
+public record RejectWalkerRequest(
+    int WalkerId);
+
+public record VerificationResultDto(
+    int WalkerId,
+    bool Success,
+    string Message);
+
+public record WalkerVerificationStatusDto(
+    int WalkerId,
+    string Email,
+    string VerificationStatus,
+    bool IsVerified);

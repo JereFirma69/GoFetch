@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { api } from "../../utils/api";
+import ImageUpload from "../../shared_components/ImageUpload";
 import defaultDogPic from "../../assets/profileDog.jpg";
 
 export default function DogFormPanel({ dog, onBack, onSave }) {
@@ -111,15 +112,29 @@ export default function DogFormPanel({ dog, onBack, onSave }) {
               <span>Breed *</span>
               <input required value={breed} onChange={(e) => setBreed(e.target.value)} />
             </label>
-            <label className="form-field full">
-              <span>Profile Picture URL (optional)</span>
-              <input
-                placeholder="NYI (leave empty for default)"
-                value={profilePicture}
-                onChange={(e) => setProfilePicture(e.target.value)}
-              />
-            </label>
           </div>
+          <ImageUpload
+            label="Profile Picture"
+            currentUrl={profilePicture}
+            onUpload={async (file) => {
+              if (!dog?.idPas) {
+                // For new dogs, just store temporarily
+                const reader = new FileReader();
+                reader.onloadend = () => setProfilePicture(reader.result);
+                reader.readAsDataURL(file);
+              } else {
+                // For existing dogs, upload immediately
+                const data = await api.upload(`/upload/dog/${dog.idPas}`, file);
+                setProfilePicture(data.url);
+              }
+            }}
+            onDelete={async () => {
+              if (dog?.idPas) {
+                await api.delete(`/upload/dog/${dog.idPas}`);
+              }
+              setProfilePicture("");
+            }}
+          />
         </section>
 
         <section className="form-section">

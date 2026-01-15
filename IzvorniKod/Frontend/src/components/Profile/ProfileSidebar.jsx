@@ -1,6 +1,36 @@
 import React from "react";
 
-export default function ProfileSidebar({ user, onLogout, onEdit }) {
+export default function ProfileSidebar({ user, profileData, onLogout, onEdit }) {
+  const walkerStatus = profileData?.walker?.verificationStatus;
+  const isWalker = user.role === "walker" || user.role === "both";
+
+  const getStatusBadge = () => {
+    if (!isWalker || !walkerStatus) return null;
+
+    const statusConfig = {
+      pending: {
+        text: "Verification Pending",
+        className: "bg-yellow-100 text-yellow-800 border-yellow-300"
+      },
+      approved: {
+        text: "Verified Walker",
+        className: "bg-green-100 text-green-800 border-green-300"
+      },
+      rejected: {
+        text: "Verification Declined",
+        className: "bg-red-100 text-red-800 border-red-300"
+      }
+    };
+
+    const config = statusConfig[walkerStatus] || statusConfig.pending;
+
+    return (
+      <div className={`w-full px-3 py-2 rounded-lg border text-sm font-medium mb-3 text-center ${config.className}`}>
+        {config.text}
+      </div>
+    );
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
       <div className="flex flex-col items-center">
@@ -11,6 +41,8 @@ export default function ProfileSidebar({ user, onLogout, onEdit }) {
         />
         <h2 className="text-xl font-bold text-gray-800 mb-1">{user.name}</h2>
         <p className="text-gray-500 text-sm mb-4">{user.email}</p>
+
+        {getStatusBadge()}
 
         <button
           onClick={onEdit}

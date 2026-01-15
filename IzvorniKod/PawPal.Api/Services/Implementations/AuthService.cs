@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Google.Apis.Auth;
 using Microsoft.AspNetCore.Identity;
@@ -21,13 +22,15 @@ public class AuthService : IAuthService
     private readonly IOptions<JwtOptions> _jwtOptions;
     private readonly PasswordHasher<Korisnik> _passwordHasher;
     private readonly string? _googleClientId;
+    private readonly IEmailService _emailService;
 
-    public AuthService(AppDbContext db, IOptions<JwtOptions> jwtOptions, IConfiguration configuration)
+    public AuthService(AppDbContext db, IOptions<JwtOptions> jwtOptions, IConfiguration configuration, IEmailService emailService)
     {
         _db = db;
         _jwtOptions = jwtOptions;
         _passwordHasher = new PasswordHasher<Korisnik>();
-        _googleClientId = configuration["Google:ClientId"]; 
+        _googleClientId = configuration["Google:ClientId"];
+        _emailService = emailService;
     }
 
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request, CancellationToken ct = default)
@@ -316,5 +319,74 @@ public class AuthService : IAuthService
             signingCredentials: creds);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    public async Task<PasswordResetResponse> ForgotPasswordAsync(ForgotPasswordRequest request, string frontendUrl, CancellationToken ct = default)
+    {
+        var user = await _db.Korisnici.FirstOrDefaultAsync(k => k.EmailKorisnik == request.Email, ct);
+        
+        // Always return success to prevent email enumeration
+        if (user == null)
+        {
+            return new PasswordResetResponse(true, "If the email exists, a password reset link has been sent.");
+        }
+
+        // Invalidate any existing tokens for this user
+        var existingTokens = await _db.PasswordResetTokens
+            .Where(t => t.IdKorisnik == user.IdKorisnik && !t.IsUsed)
+            .ToListAsync(ct);
+        
+        foreach (var t in existingTokens)
+        {
+            t.IsUsed = true;
+        }
+
+        // Generate new token
+        var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+        var resetToken = new PasswordResetToken
+        {
+            Token = token,
+            IdKorisnik = user.IdKorisnik,
+            ExpiresAt = DateTime.UtcNow.AddHours(1),
+            IsUsed = false,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _db.PasswordResetTokens.Add(resetToken);
+        await _db.SaveChangesAsync(ct);
+
+        // Send email with reset link
+        var resetUrl = $"{frontendUrl}/reset-password?token={Uri.EscapeDataString(token)}";
+        await _emailService.SendPasswordResetEmailAsync(user.EmailKorisnik, resetUrl);
+
+        return new PasswordResetResponse(true, "If the email exists, a password reset link has been sent.");
+    }
+
+    public async Task<PasswordResetResponse> ResetPasswordAsync(ResetPasswordRequest request, CancellationToken ct = default)
+    {
+        var resetToken = await _db.PasswordResetTokens
+            .Include(t => t.Korisnik)
+            .FirstOrDefaultAsync(t => t.Token == request.Token && !t.IsUsed, ct);
+
+        if (resetToken == null)
+        {
+            return new PasswordResetResponse(false, "Invalid or expired reset token.");
+        }
+
+        if (resetToken.ExpiresAt < DateTime.UtcNow)
+        {
+            return new PasswordResetResponse(false, "Reset token has expired.");
+        }
+
+        // Update password
+        var user = resetToken.Korisnik;
+        user.LozinkaHashKorisnik = _passwordHasher.HashPassword(user, request.NewPassword);
+        
+        // Mark token as used
+        resetToken.IsUsed = true;
+
+        await _db.SaveChangesAsync(ct);
+
+        return new PasswordResetResponse(true, "Password has been reset successfully.");
     }
 }

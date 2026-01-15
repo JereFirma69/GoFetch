@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using PawPal.Api.Configuration;
 using PawPal.Api.DTOs;
 using PawPal.Api.Services;
 using System.Security.Claims;
@@ -11,10 +13,39 @@ namespace PawPal.Api.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
+    private readonly IConfiguration _configuration;
+    private readonly JwtOptions _jwtOptions;
 
-    public AuthController(IAuthService authService)
+    public AuthController(IAuthService authService, IConfiguration configuration, IOptions<JwtOptions> jwtOptions)
     {
         _authService = authService;
+        _configuration = configuration;
+        _jwtOptions = jwtOptions.Value;
+    }
+
+    private void SetAuthCookie(string token)
+    {
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true, // Always use Secure (HTTPS)
+            SameSite = SameSiteMode.None, // Required for cross-origin requests
+            Expires = DateTime.UtcNow.AddMinutes(_jwtOptions.ExpiresMinutes),
+            Path = "/"
+        };
+        
+        Response.Cookies.Append("auth_token", token, cookieOptions);
+    }
+
+    private void ClearAuthCookie()
+    {
+        Response.Cookies.Delete("auth_token", new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            Path = "/"
+        });
     }
 
     [HttpPost("register")]
@@ -25,6 +56,7 @@ public class AuthController : ControllerBase
         try
         {
             var response = await _authService.RegisterAsync(request, ct);
+            SetAuthCookie(response.Jwt);
             return Ok(response);
         }
         catch (InvalidOperationException ex)
@@ -41,6 +73,7 @@ public class AuthController : ControllerBase
         try
         {
             var response = await _authService.LoginAsync(request, ct);
+            SetAuthCookie(response.Jwt);
             return Ok(response);
         }
         catch (UnauthorizedAccessException ex)
@@ -57,12 +90,21 @@ public class AuthController : ControllerBase
         try
         {
             var response = await _authService.OAuthLoginAsync(request, ct);
+            SetAuthCookie(response.Jwt);
             return Ok(response);
         }
         catch (Exception ex)
         {
             return BadRequest(new { error = ex.Message });
         }
+    }
+
+    [HttpPost("logout")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public ActionResult Logout()
+    {
+        ClearAuthCookie();
+        return Ok(new { message = "Logged out successfully" });
     }
 
     [Authorize]
@@ -76,6 +118,7 @@ public class AuthController : ControllerBase
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var response = await _authService.RegisterRoleAsync(userId, request.Role, ct);
+            SetAuthCookie(response.Jwt);
             return Ok(response);
         }
         catch (InvalidOperationException ex)
@@ -95,11 +138,35 @@ public class AuthController : ControllerBase
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var response = await _authService.RemoveRoleAsync(userId, request.Role, ct);
+            SetAuthCookie(response.Jwt);
             return Ok(response);
         }
         catch (InvalidOperationException ex)
         {
             return BadRequest(new { error = ex.Message });
         }
+    }
+
+    [HttpPost("forgot-password")]
+    [ProducesResponseType(typeof(PasswordResetResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult<PasswordResetResponse>> ForgotPassword([FromBody] ForgotPasswordRequest request, CancellationToken ct)
+    {
+        // Get frontend URL from configuration, fallback to localhost for dev
+        var frontendUrl = _configuration["FrontendUrl"] ?? "http://localhost:5173";
+        var response = await _authService.ForgotPasswordAsync(request, frontendUrl, ct);
+        return Ok(response);
+    }
+
+    [HttpPost("reset-password")]
+    [ProducesResponseType(typeof(PasswordResetResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<PasswordResetResponse>> ResetPassword([FromBody] ResetPasswordRequest request, CancellationToken ct)
+    {
+        var response = await _authService.ResetPasswordAsync(request, ct);
+        if (!response.Success)
+        {
+            return BadRequest(response);
+        }
+        return Ok(response);
     }
 }

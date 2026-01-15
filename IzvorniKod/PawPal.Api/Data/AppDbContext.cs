@@ -22,6 +22,7 @@ public class AppDbContext : DbContext
     public DbSet<Recenzija> Recenzije => Set<Recenzija>();
     public DbSet<Poruka> Poruke => Set<Poruka>();
     public DbSet<RezervacijaPas> RezervacijePsi => Set<RezervacijaPas>();
+    public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

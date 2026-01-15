@@ -24,6 +24,12 @@ public class Setac
     [Required, MaxLength(20)]
     public string TelefonSetac { get; set; } = string.Empty;
 
+    // Verification fields
+    [MaxLength(20)]
+    public string VerificationStatus { get; set; } = "pending"; // pending, approved, rejected
+
+    public bool IsVerified { get; set; } = false;
+
     public Korisnik Korisnik { get; set; } = null!;
     public List<Clanarina> Clanarine { get; set; } = new();
     public List<Termin> Termini { get; set; } = new();
