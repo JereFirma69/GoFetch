@@ -3,10 +3,12 @@ import logoImg from '../assets/logo.png'
 import bannerImg from '../assets/banner.jpg';
 import aboutW from '../assets/aboutWalker.jpg';
 import aboutO from '../assets/aboutOwner.jpg';
+import ChatWidget from '../components/ChatWidget';
 
 function LandingPage(){
     return (
         <div>
+        <ChatWidget />
         <div className='landing-container'>
             <section className='banner'
              style={{backgroundImage: `url(${bannerImg})`}}>
