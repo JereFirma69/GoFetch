@@ -10,7 +10,7 @@ export default function GoogleSignInButton({
   size = "large",
   theme = "outline",
   shape = "rectangular",
-  onSuccessNavigate = "/profile",
+  onSuccessNavigate = "/homepage",
 }) {
   const containerRef = useRef(null);
   const navigate = useNavigate();
@@ -43,11 +43,23 @@ export default function GoogleSignInButton({
           size,
           text, 
           shape,
+          width: 320,
+          logo_alignment: "left",
         });
       }
     } catch (e) {
     }
   }, [googleLogin, navigate, text, size, theme, shape, onSuccessNavigate]);
 
-  return <div ref={containerRef} style={{ marginBottom: 8 }} />;
+  return (
+    <div
+      ref={containerRef}
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        minWidth: 320,
+        width: "100%",
+      }}
+    />
+  );
 }

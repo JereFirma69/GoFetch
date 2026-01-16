@@ -20,7 +20,7 @@ function LoginPage() {
       return;
     }
     const ok = await login(email, password);
-    if (ok) navigate("/profile");
+    if (ok) navigate("/homepage");
   }
 
   return (
@@ -34,7 +34,7 @@ function LoginPage() {
       <p>ili</p>
 
       <form onSubmit={handleLogin}>
-        {(formError || error) && <p style={{ color: "red" }}>{formError || error}</p>}
+        {(formError || error) && <p className="form-error">{formError || error}</p>}
         <input
           type="email"
           placeholder="E-mail"
@@ -51,6 +51,8 @@ function LoginPage() {
           {loading ? "Prijava..." : "Prijava"}
         </button>
       </form>
+
+      <p><Link to="/forgot-password">Zaboravljena lozinka?</Link></p>
 
       <p>Nemaš račun? <Link to="/signup">Registracija</Link></p>
     </div>

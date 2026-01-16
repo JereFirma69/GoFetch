@@ -1,10 +1,25 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
+import { api } from "../utils/api";
+import ChatWidget from "../components/ChatWidget";
 
 export default function HomePage() {
   const { user, logout } = useContext(AuthContext);
+  const [name, setName] = useState("");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    async function fetchName() {
+      try {
+        const data = await api.get("/profile/me");
+        setName(data.firstName || "User");
+      } catch {
+        setName(user?.firstName || "User");
+      }
+    }
+    if (user) fetchName();
+  }, [user]);
 
   if (!user) {
     return (
@@ -22,10 +37,11 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
+      <ChatWidget />
       {/* Main content */}
       <main className="flex-1 flex flex-col items-center justify-center text-center px-6">
         <h2 className="text-3xl font-semibold text-gray-800 mb-2">
-          Welcome back, {user.username || user.name || "User"}!
+          Welcome back, {name}!
         </h2>
         <p className="text-gray-500 mb-8">{user.email}</p>
 

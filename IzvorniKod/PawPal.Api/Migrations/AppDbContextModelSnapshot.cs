@@ -95,6 +95,10 @@ namespace PawPal.Api.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<string>("ProfilnaKorisnik")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<string>("ProviderUserId")
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
@@ -135,8 +139,8 @@ namespace PawPal.Api.Migrations
 
                     b.Property<string>("ProfilnaPas")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<int>("RazinaEnergije")
                         .HasColumnType("integer");
@@ -157,6 +161,37 @@ namespace PawPal.Api.Migrations
                     b.HasIndex("IdKorisnik");
 
                     b.ToTable("Psi");
+                });
+
+            modelBuilder.Entity("PawPal.Api.Models.PasswordResetToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("IdKorisnik")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdKorisnik");
+
+                    b.ToTable("PasswordResetTokens");
                 });
 
             modelBuilder.Entity("PawPal.Api.Models.Placanje", b =>
@@ -337,6 +372,9 @@ namespace PawPal.Api.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<bool>("IsVerified")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("LokacijaSetac")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -349,10 +387,15 @@ namespace PawPal.Api.Migrations
 
                     b.Property<string>("ProfilnaSetac")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("TelefonSetac")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("VerificationStatus")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
@@ -444,6 +487,17 @@ namespace PawPal.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("Vlasnik");
+                });
+
+            modelBuilder.Entity("PawPal.Api.Models.PasswordResetToken", b =>
+                {
+                    b.HasOne("PawPal.Api.Models.Korisnik", "Korisnik")
+                        .WithMany()
+                        .HasForeignKey("IdKorisnik")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Korisnik");
                 });
 
             modelBuilder.Entity("PawPal.Api.Models.Placanje", b =>

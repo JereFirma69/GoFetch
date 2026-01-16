@@ -20,7 +20,9 @@ export default function Header() {
   if (
     location.pathname === "/" ||
     location.pathname === "/login" ||
-    location.pathname === "/signup"
+    location.pathname === "/signup" ||
+    location.pathname === "/forgot-password" ||
+    location.pathname === "/reset-password"
   ) {
     return (
       <header className="bg-white border-b border-gray-200 px-6 py-4 shadow-sm">

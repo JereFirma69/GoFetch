@@ -5,6 +5,7 @@ namespace PawPal.Api.Services;
 public interface IProfileService
 {
     Task<ProfileResponse> GetProfileAsync(int userId, CancellationToken ct = default);
+    Task<AuthResponse> UpdateProfileAsync(int userId, UpdateProfileRequest request, CancellationToken ct = default);
     Task UpdateOwnerProfileAsync(int userId, UpdateOwnerRequest request, CancellationToken ct = default);
     Task UpdateWalkerProfileAsync(int userId, UpdateWalkerRequest request, CancellationToken ct = default);
 

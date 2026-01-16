@@ -20,8 +20,14 @@ export function AuthProvider({ children }) {
     setError("");
     try {
       const data = await api.post("/auth/login", { email, password });
-      localStorage.setItem("jwt", data.jwt);
-      const userObj = { userId: data.userId, email: data.email, role: data.role, displayName: data.displayName };
+      const userObj = { 
+        userId: data.userId, 
+        email: data.email, 
+        role: data.role, 
+        displayName: data.displayName,
+        firstName: data.firstName,
+        lastName: data.lastName
+      };
       localStorage.setItem("user", JSON.stringify(userObj));
       setUser(userObj);
       return true;
@@ -33,17 +39,19 @@ export function AuthProvider({ children }) {
     }
   }
 
-  async function signup(firstName, lastName, email, password, role = "owner") {
+  async function signup(firstName, lastName, email, password) {
     setLoading(true);
     setError("");
     try {
       const data = await api.post("/auth/register", { firstName, lastName, email, password });
-      localStorage.setItem("jwt", data.jwt);
-      try {
-        await api.post("/auth/register-role", { role });
-      } catch (e) {
-      }
-      const userObj = { userId: data.userId, email: data.email, role: role || data.role, displayName: data.displayName };
+      const userObj = { 
+        userId: data.userId, 
+        email: data.email, 
+        role: data.role, 
+        displayName: data.displayName,
+        firstName: data.firstName,
+        lastName: data.lastName
+      };
       localStorage.setItem("user", JSON.stringify(userObj));
       setUser(userObj);
       return true;
@@ -60,8 +68,14 @@ export function AuthProvider({ children }) {
     setError("");
     try {
       const data = await api.post("/auth/oauth-login", { provider: "google", token: credential });
-      localStorage.setItem("jwt", data.jwt);
-      const userObj = { userId: data.userId, email: data.email, role: data.role, displayName: data.displayName };
+      const userObj = { 
+        userId: data.userId, 
+        email: data.email, 
+        role: data.role, 
+        displayName: data.displayName,
+        firstName: data.firstName,
+        lastName: data.lastName
+      };
       localStorage.setItem("user", JSON.stringify(userObj));
       setUser(userObj);
       return true;
@@ -73,15 +87,19 @@ export function AuthProvider({ children }) {
     }
   }
 
-  function logout() {
-    localStorage.removeItem("jwt");
+  async function logout() {
+    try {
+      await api.post("/auth/logout", {});
+    } catch (e) {
+      console.error('Logout error:', e);
+    }
     localStorage.removeItem("user");
     setUser(null);
     navigate("/", { replace: true });
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, login, signup, googleLogin, logout }}>
+    <AuthContext.Provider value={{ user, setUser, loading, error, login, signup, googleLogin, logout }}>
       {children}
     </AuthContext.Provider>
   );

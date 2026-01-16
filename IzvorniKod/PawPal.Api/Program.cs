@@ -15,17 +15,41 @@ var config = builder.Configuration;
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(config.GetConnectionString("DefaultConnection")));
 
-// CORS - Allow React frontend
+// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
-        policy.WithOrigins(config["FrontendUrl"] ?? "http://localhost:5173")
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials());
+    {
+        policy.SetIsOriginAllowed(origin =>
+        {
+            // Allow localhost for development
+            if (origin.StartsWith("http://localhost:"))
+            {
+                return true;
+            }
+            
+            // Allow production URL from config
+            var productionUrl = config["FrontendUrl"];
+            if (!string.IsNullOrEmpty(productionUrl) && origin == productionUrl)
+            {
+                return true;
+            }
+            
+            // Allow all Vercel preview deployments
+            if (origin.EndsWith(".vercel.app"))
+            {
+                return true;
+            }
+            
+            return false;
+        })
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials();
+    });
 });
 
-// JWT Authentication
+// JWT Authentication with Cookie support
 builder.Services.Configure<JwtOptions>(config.GetSection("Jwt"));
 var jwtOptions = config.GetSection("Jwt").Get<JwtOptions>()!;
 
@@ -43,13 +67,35 @@ builder.Services
             ValidAudience = jwtOptions.Audience,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key))
         };
+        
+        // Read JWT from httpOnly cookie if Authorization header is not present
+        options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                // First check Authorization header (for backward compatibility and API testing)
+                if (string.IsNullOrEmpty(context.Token))
+                {
+                    // Try to get token from cookie
+                    context.Token = context.Request.Cookies["auth_token"];
+                }
+                return Task.CompletedTask;
+            }
+        };
     });
 
 builder.Services.AddAuthorization();
 
+// Configuration
+builder.Services.Configure<SupabaseOptions>(config.GetSection("Supabase"));
+builder.Services.Configure<EmailOptions>(config.GetSection("Email"));
+
 // Services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IStorageService, StorageService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Controllers
 builder.Services.AddControllers();
@@ -60,7 +106,6 @@ builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new() { Title = "PawPal API", Version = "v1" });
     
-    // Add JWT authentication to Swagger
     options.AddSecurityDefinition("Bearer", new()
     {
         Name = "Authorization",
@@ -89,15 +134,11 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-// Configure HTTP for swagger
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(options =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "PawPal API v1");
-    });
-}
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "PawPal API v1");
+});
 
 app.UseHttpsRedirection();
 

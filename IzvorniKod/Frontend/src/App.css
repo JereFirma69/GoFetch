@@ -92,7 +92,7 @@ body {
 }
 .about-box .overlay {
   position: absolute;
-  inset: 0; /* pokriva cijelu sliku */
+  inset: 0;
   background-color: rgba(0, 0, 0, 0);
   display: flex;
   align-items: center;
@@ -105,8 +105,8 @@ body {
 }
 
 .about-box:hover .overlay {
-  background-color: rgba(0, 0, 0, 0.5); /* zatamni */
-  opacity: 1; /* prikaži tekst */
+  background-color: rgba(0, 0, 0, 0.5);
+  opacity: 1;
 }
 
 /*----LOGIN PAGE----*/
@@ -198,4 +198,466 @@ form button {
   background:#0ea5a0; 
   color:#fff;
   border-color:#0ea5a0;
+}
+
+/*----PROFILE PAGE----*/
+.profile-page {
+  min-height: 100vh;
+  background-color: #f9fafb;
+}
+
+.profile-container {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  display: flex;
+  gap: 2rem;
+}
+
+.profile-sidebar-container {
+  width: 20rem;
+  flex-shrink: 0;
+}
+
+.profile-main-content {
+  flex: 1;
+}
+
+/* Role Selection Section */
+.role-section {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.role-section-title {
+  font-weight: 600;
+  font-size: 1.125rem;
+  margin-bottom: 1rem;
+}
+
+.role-info-message {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 0.25rem;
+}
+
+.role-info-text {
+  font-size: 0.875rem;
+  color: #1e40af;
+}
+
+.role-error-message {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 0.25rem;
+}
+
+.role-error-text {
+  font-size: 0.875rem;
+  color: #991b1b;
+}
+
+.role-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.role-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.role-label {
+  font-weight: 500;
+}
+
+.role-toggle-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.role-toggle-btn.enabled {
+  background-color: #22c55e;
+  color: white;
+}
+
+.role-toggle-btn.enabled:hover {
+  background-color: #16a34a;
+}
+
+.role-toggle-btn.disabled {
+  background-color: #e5e7eb;
+  color: #374151;
+}
+
+.role-toggle-btn.disabled:hover {
+  background-color: #d1d5db;
+}
+
+.role-toggle-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---- EDIT PROFILE---- */
+.overlay-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.overlay-modal {
+  background: #fff;
+  width: 100%;
+  max-width: 760px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  overflow: hidden;
+}
+
+.overlay-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.overlay-back {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.overlay-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.overlay-content {
+  padding: 16px;
+}
+
+/* ---- EDIT PROFILE PANEL ---- */
+.edit-panel {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.edit-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.back-arrow {
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  line-height: 1;
+  color: #111827;
+}
+
+.edit-panel-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.edit-panel-content {
+  padding: 20px;
+}
+
+.edit-panel-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 8px;
+}
+
+.form-section {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.section-title {
+  margin: 0 0 12px 0;
+  font-weight: 700;
+}
+
+.helper-text {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 12px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-field.full {
+  grid-column: 1 / -1;
+}
+
+.form-field input {
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+}
+
+.form-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.role-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.role-toggle-row .role-toggle-btn {
+  padding: 0.5rem 1rem;
+  min-width: auto;
+  width: auto;
+}
+
+.overlay-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.btn-secondary {
+  background: #fff;
+  border: 1px solid #d1d5db;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: #0ea5a0;
+  color: #fff;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-danger {
+  background: #ef4444;
+  color: #fff;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-danger:hover {
+  background: #dc2626;
+}
+
+/* Small utility classes to avoid inline styles */
+.mb-2 { margin-bottom: 8px; }
+.flex-1 { flex: 1; }
+
+/* Energy slider */
+.energy-slider {
+  width: 100%;
+  height: 6px;
+  border-radius: 5px;
+  background: #d1d5db;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.energy-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #0ea5a0;
+  cursor: pointer;
+}
+
+.energy-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #0ea5a0;
+  cursor: pointer;
+  border: none;
+}
+
+.slider-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.form-field select,
+.form-field textarea {
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-family: inherit;
+}
+
+.form-field textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+/* Image Upload Component */
+.image-upload-field {
+  margin: 16px 0;
+}
+
+.form-field-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #1f2937;
+}
+
+.image-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.image-preview img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid #e5e7eb;
+}
+
+.btn-danger-small {
+  padding: 6px 12px;
+  font-size: 0.875rem;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.btn-danger-small:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.btn-danger-small:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.file-input-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.file-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  background: white;
+  transition: border-color 0.2s;
+}
+
+.file-input:hover:not(:disabled) {
+  border-color: #0ea5a0;
+}
+
+.file-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #f3f4f6;
+}
+
+.file-input-label {
+  pointer-events: none;
+  color: #6b7280;
+}
+
+.field-error {
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-top: 4px;
+}
+
+/* Success Message */
+.success-message {
+  padding: 20px;
+  background: #d1fae5;
+  border: 1px solid #10b981;
+  border-radius: 8px;
+  color: #065f46;
+  margin: 20px 0;
+  text-align: center;
+}
+
+.success-message p {
+  margin-bottom: 16px;
+}
+
+.success-message .primary-btn {
+  display: inline-block;
+  margin-top: 8px;
 }

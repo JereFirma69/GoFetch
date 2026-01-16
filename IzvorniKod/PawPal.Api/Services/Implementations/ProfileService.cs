@@ -55,7 +55,9 @@ public class ProfileService : IProfileService
                 user.Setac.PrezimeSetac,
                 user.Setac.LokacijaSetac,
                 user.Setac.TelefonSetac,
-                user.Setac.ProfilnaSetac
+                user.Setac.ProfilnaSetac,
+                user.Setac.VerificationStatus,
+                user.Setac.IsVerified
             );
         }
 
@@ -64,9 +66,100 @@ public class ProfileService : IProfileService
             user.EmailKorisnik,
             user.Ime,
             user.Prezime,
+            user.ProfilnaKorisnik,
             ownerProfile,
             walkerProfile
         );
+    }
+
+    public async Task<AuthResponse> UpdateProfileAsync(int userId, UpdateProfileRequest request, CancellationToken ct = default)
+    {
+        var user = await _db.Korisnici
+            .Include(k => k.Vlasnik)
+            .Include(k => k.Setac)
+            .Include(k => k.Administrator)
+            .FirstOrDefaultAsync(k => k.IdKorisnik == userId, ct);
+
+        if (user == null)
+        {
+            throw new InvalidOperationException("User not found.");
+        }
+
+        if (request.FirstName != null)
+        {
+            user.Ime = request.FirstName;
+            if (user.Setac != null)
+            {
+                user.Setac.ImeSetac = request.FirstName;
+            }
+        }
+
+        if (request.LastName != null)
+        {
+            user.Prezime = request.LastName;
+            if (user.Setac != null)
+            {
+                user.Setac.PrezimeSetac = request.LastName;
+            }
+        }
+
+        if (request.ProfilePicture != null)
+        {
+            user.ProfilnaKorisnik = request.ProfilePicture;
+        }
+
+        if (request.WalkerDetails != null && user.Setac != null)
+        {
+            user.Setac.LokacijaSetac = request.WalkerDetails.Location;
+            user.Setac.TelefonSetac = request.WalkerDetails.Phone;
+            
+            if (request.WalkerDetails.WalkerProfilePicture != null)
+            {
+                user.Setac.ProfilnaSetac = request.WalkerDetails.WalkerProfilePicture;
+            }
+            else if (user.ProfilnaKorisnik != null)
+            {
+                user.Setac.ProfilnaSetac = user.ProfilnaKorisnik;
+            }
+        }
+
+        await _db.SaveChangesAsync(ct);
+
+     
+        var role = DetermineUserRole(user);
+        return GenerateAuthResponse(user, role);
+    }
+
+    private string DetermineUserRole(Korisnik user)
+    {
+        if (user.Administrator != null) return "admin";
+        
+        bool isOwner = user.Vlasnik != null;
+        bool isWalker = user.Setac != null;
+        
+        if (isOwner && isWalker) return "both";
+        if (isOwner) return "owner";
+        if (isWalker) return "walker";
+        return "none";
+    }
+
+    private AuthResponse GenerateAuthResponse(Korisnik user, string role)
+    {
+  
+        var displayName = $"{user.Ime} {user.Prezime}".Trim();
+        if (string.IsNullOrEmpty(displayName))
+        {
+            displayName = user.EmailKorisnik.Split('@')[0];
+        }
+
+        return new AuthResponse(
+            "", 
+            user.IdKorisnik, 
+            user.EmailKorisnik, 
+            role, 
+            displayName,
+            user.Ime,
+            user.Prezime);
     }
 
     public async Task UpdateOwnerProfileAsync(int userId, UpdateOwnerRequest request, CancellationToken ct = default)
@@ -77,7 +170,6 @@ public class ProfileService : IProfileService
             throw new InvalidOperationException("Owner profile not found.");
         }
 
-        // Update user info
         var user = await _db.Korisnici.FindAsync([userId], ct);
         if (user != null)
         {
@@ -96,7 +188,6 @@ public class ProfileService : IProfileService
             throw new InvalidOperationException("Walker profile not found.");
         }
 
-        // Update user info
         var user = await _db.Korisnici.FindAsync([userId], ct);
         if (user != null)
         {
@@ -104,7 +195,6 @@ public class ProfileService : IProfileService
             user.Prezime = request.LastName;
         }
 
-        // Update walker-specific info
         walker.ImeSetac = request.FirstName;
         walker.PrezimeSetac = request.LastName;
         walker.LokacijaSetac = request.Location;

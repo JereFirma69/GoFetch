@@ -1,5 +1,6 @@
 # GoFetch! - Moderna platforma za pronalazak pouzdanih šetača pasa u vašoj blizini
-
+[PawPal](https://gofetch-pawpal.vercel.app)
+Note za testiranje, za dodavanje psa treba si u profilu staviti owner role inace se nemogu dodavati psi.
 # Opis projekta
 Ovaj projekt je reultat timskog rada u sklopu projeknog zadatka kolegija [Programsko inženjerstvo](https://www.fer.unizg.hr/predmet/proinz) na Fakultetu elektrotehnike i računarstva Sveučilišta u Zagrebu.
 
@@ -26,13 +27,10 @@ Jer svaki pas zaslužuje šetnju - GoFetch! omogućuje jednostavno, pouzdano i g
 | FZ-012 | Upravljanje kućnim ljubimcima | Vlasnik može dodavati, uređivati i brisati podatke o svojim psima (ime, pasmina, napomene). | Visok | Povratne informacije korisnika | Pas je povezan s profilom vlasnika i može se koristiti u rezervacijama. |
 | FZ-013 | Verifikacija šetača | Šetači moraju potvrditi identitet (npr. dokument ili potvrda administratora). | Srednji | Dokument projekta | Status verifikacije prikazan u profilu šetača. |
 | FZ-014 | Povijest šetnji | Korisnik može pregledati povijest svih obavljenih šetnji. | Srednji | Zahtjev dionika | Popis prikazuje datume, trajanje i ocjene svake šetnje. |
-| FZ-015 | Izvještaji i statistike | Šetač može pregledati statistiku svojih šetnji (broj, trajanje, zarada). | Nizak | Dokument projekta | Statistika se prikazuje grafički i ažurira automatski. |
-| FZ-016 | Resetiranje lozinke | Sustav omogućuje resetiranje lozinke putem e-maila. | Visok | Povratne informacije korisnika | Korisnik može postaviti novu lozinku putem sigurnosnog linka. |
-| FZ-017 | Geolokacijski prikaz | Sustav prikazuje šetače na interaktivnoj karti. | Srednji | Zahtjev dionika | Na karti se ispravno prikazuju svi dostupni šetači. |
-| FZ-018 | Višestruke uloge korisnika | Korisnik može imati i ulogu vlasnika i ulogu šetača. | Nizak | Dokument projekta | Korisnik može prebacivati između uloga u profilu. |
-| FZ-019 | Prijava problema i podrška | Korisnik može prijaviti tehnički problem ili nepravilnost putem obrasca. | Nizak | Povratne informacije korisnika | Poruka se sprema i administrator prima obavijest. |
-| FZ-020 | Povratne informacije sustavu | Korisnici mogu ostaviti prijedloge za poboljšanja aplikacije. | Nizak | Zahtjev dionika | Povratne informacije se bilježe i dostupne su administratoru. |
-| FZ-021 | Administratorski nadzor | Administrator može pregledavati korisnike, recenzije i rezervacije te ih uređivati ili brisati. | Srednji | Dokument projekta | Administrator ima pristup kontrolnoj ploči s funkcijama upravljanja. |
+| FZ-015 | Resetiranje lozinke | Sustav omogućuje resetiranje lozinke putem e-maila. | Visok | Povratne informacije korisnika | Korisnik može postaviti novu lozinku putem sigurnosnog linka. |
+| FZ-016 | Višestruke uloge korisnika | Korisnik može imati i ulogu vlasnika i ulogu šetača. | Nizak | Dokument projekta | Korisnik može prebacivati između uloga u profilu. |
+| FZ-017 | Prijava problema i podrška | Korisnik može prijaviti tehnički problem ili nepravilnost putem obrasca. | Nizak | Povratne informacije korisnika | Poruka se sprema i administrator prima obavijest. |
+| FZ-018 | Administratorski nadzor | Administrator može pregledavati korisnike, recenzije i rezervacije te ih uređivati ili brisati. | Srednji | Dokument projekta | Administrator ima pristup kontrolnoj ploči s funkcijama upravljanja. |
 
 <br>
 

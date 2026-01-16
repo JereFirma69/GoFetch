@@ -1,8 +1,10 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Google.Apis.Auth;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -19,32 +21,38 @@ public class AuthService : IAuthService
     private readonly AppDbContext _db;
     private readonly IOptions<JwtOptions> _jwtOptions;
     private readonly PasswordHasher<Korisnik> _passwordHasher;
+    private readonly string? _googleClientId;
+    private readonly IEmailService _emailService;
 
-    public AuthService(AppDbContext db, IOptions<JwtOptions> jwtOptions)
+    public AuthService(AppDbContext db, IOptions<JwtOptions> jwtOptions, IConfiguration configuration, IEmailService emailService)
     {
         _db = db;
         _jwtOptions = jwtOptions;
         _passwordHasher = new PasswordHasher<Korisnik>();
+        _googleClientId = configuration["Google:ClientId"];
+        _emailService = emailService;
     }
 
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request, CancellationToken ct = default)
     {
-        // Check if user already exists
-        var exists = await _db.Korisnici.AnyAsync(k => k.EmailKorisnik == request.Email, ct);
+        var normalizedEmail = request.Email.Trim().ToLowerInvariant();
+
+        var exists = await _db.Korisnici
+            .AnyAsync(k => k.EmailKorisnik.ToLower() == normalizedEmail, ct);
         if (exists)
         {
             throw new InvalidOperationException("User with this email already exists.");
         }
 
-        // Create new user
+        
         var user = new Korisnik
         {
-            EmailKorisnik = request.Email,
+            EmailKorisnik = normalizedEmail,
             Ime = request.FirstName,
             Prezime = request.LastName
         };
 
-        // Hash password
+        
         user.LozinkaHashKorisnik = _passwordHasher.HashPassword(user, request.Password);
 
         _db.Korisnici.Add(user);
@@ -55,18 +63,20 @@ public class AuthService : IAuthService
 
     public async Task<AuthResponse> LoginAsync(LoginRequest request, CancellationToken ct = default)
     {
+        var normalizedEmail = request.Email.Trim().ToLowerInvariant();
+
         var user = await _db.Korisnici
             .Include(k => k.Vlasnik)
             .Include(k => k.Setac)
             .Include(k => k.Administrator)
-            .FirstOrDefaultAsync(k => k.EmailKorisnik == request.Email, ct);
+            .FirstOrDefaultAsync(k => k.EmailKorisnik.ToLower() == normalizedEmail, ct);
 
         if (user == null || user.LozinkaHashKorisnik == null)
         {
             throw new UnauthorizedAccessException("Invalid email or password.");
         }
 
-        // Verify password
+    
         var result = _passwordHasher.VerifyHashedPassword(user, user.LozinkaHashKorisnik, request.Password);
         if (result == PasswordVerificationResult.Failed)
         {
@@ -81,35 +91,59 @@ public class AuthService : IAuthService
     {
         string email;
         string providerUserId;
+        string? firstName = null;
+        string? lastName = null;
 
-        // Validate OAuth token based on provider
         switch (request.Provider.ToLowerInvariant())
         {
             case "google":
-                var payload = await GoogleJsonWebSignature.ValidateAsync(request.Token);
-                email = payload.Email;
+                GoogleJsonWebSignature.Payload payload;
+                if (!string.IsNullOrWhiteSpace(_googleClientId))
+                {
+                    var settings = new GoogleJsonWebSignature.ValidationSettings
+                    {
+                        Audience = new[] { _googleClientId }
+                    };
+                    payload = await GoogleJsonWebSignature.ValidateAsync(request.Token, settings);
+                }
+                else
+                {
+                    payload = await GoogleJsonWebSignature.ValidateAsync(request.Token);
+                }
+                if (!(payload.Issuer == "accounts.google.com" || payload.Issuer == "https://accounts.google.com"))
+                {
+                    throw new UnauthorizedAccessException("Invalid token issuer.");
+                }
+                if (string.IsNullOrEmpty(payload.Email) || payload.EmailVerified != true)
+                {
+                    throw new UnauthorizedAccessException("Unverified Google account.");
+                }
+
+                email = payload.Email.Trim().ToLowerInvariant();
                 providerUserId = payload.Subject;
+                firstName = payload.GivenName;
+                lastName = payload.FamilyName;
                 break;
 
             default:
                 throw new InvalidOperationException($"Unsupported OAuth provider: {request.Provider}");
         }
 
-        // Find or create user
         var user = await _db.Korisnici
             .Include(k => k.Vlasnik)
             .Include(k => k.Setac)
             .Include(k => k.Administrator)
-            .FirstOrDefaultAsync(k => k.EmailKorisnik == email, ct);
+            .FirstOrDefaultAsync(k => k.EmailKorisnik.ToLower() == email, ct);
 
         if (user == null)
         {
-            // Create new user from OAuth
             user = new Korisnik
             {
                 EmailKorisnik = email,
                 AuthProvider = request.Provider.ToLowerInvariant(),
-                ProviderUserId = providerUserId
+                ProviderUserId = providerUserId,
+                Ime = firstName,
+                Prezime = lastName
             };
 
             _db.Korisnici.Add(user);
@@ -117,11 +151,22 @@ public class AuthService : IAuthService
         }
         else
         {
-            // Update OAuth info if not set
+            if (user.LozinkaHashKorisnik != null && string.IsNullOrEmpty(user.AuthProvider))
+            {
+                throw new UnauthorizedAccessException("Email already registered with password. Use email/password login.");
+            }
+
             if (string.IsNullOrEmpty(user.AuthProvider))
             {
                 user.AuthProvider = request.Provider.ToLowerInvariant();
                 user.ProviderUserId = providerUserId;
+                await _db.SaveChangesAsync(ct);
+            }
+            
+            if (string.IsNullOrEmpty(user.Ime) && !string.IsNullOrEmpty(firstName))
+            {
+                user.Ime = firstName;
+                user.Prezime = lastName;
                 await _db.SaveChangesAsync(ct);
             }
         }
@@ -130,7 +175,55 @@ public class AuthService : IAuthService
         return GenerateAuthResponse(user, role);
     }
 
-    public async Task RegisterRoleAsync(int userId, string role, CancellationToken ct = default)
+    public async Task<AuthResponse> RegisterRoleAsync(int userId, string role, CancellationToken ct = default)
+    {
+        var user = await _db.Korisnici
+            .Include(k => k.Vlasnik)
+            .Include(k => k.Setac)
+            .FirstOrDefaultAsync(k => k.IdKorisnik == userId, ct);
+
+        if (user == null)
+        {
+            throw new InvalidOperationException("User not found.");
+        }
+        switch (role.ToLowerInvariant())
+        {
+            case "owner":
+                if (user.Vlasnik == null)
+                {
+                    user.Vlasnik = new Vlasnik { IdKorisnik = userId };
+                }
+                break;
+
+            case "walker":
+                if (user.Setac == null)
+                {
+                    user.Setac = new Setac
+                    {
+                        IdKorisnik = userId,
+                        ImeSetac = user.Ime ?? "",
+                        PrezimeSetac = user.Prezime ?? "",
+                        LokacijaSetac = "",
+                        TelefonSetac = "",
+                        ProfilnaSetac = ""
+                    };
+                }
+                break;
+
+            default:
+                throw new InvalidOperationException($"Invalid role: {role}. Must be 'owner' or 'walker'.");
+        }
+
+        await _db.SaveChangesAsync(ct);
+        
+
+        await _db.Entry(user).ReloadAsync(ct);
+        
+        var updatedRole = DetermineUserRole(user);
+        return GenerateAuthResponse(user, updatedRole);
+    }
+
+    public async Task<AuthResponse> RemoveRoleAsync(int userId, string role, CancellationToken ct = default)
     {
         var user = await _db.Korisnici
             .Include(k => k.Vlasnik)
@@ -142,28 +235,20 @@ public class AuthService : IAuthService
             throw new InvalidOperationException("User not found.");
         }
 
-        // Prevent changing role if already set
-        if (user.Vlasnik != null || user.Setac != null)
-        {
-            throw new InvalidOperationException("User role is already set.");
-        }
-
         switch (role.ToLowerInvariant())
         {
             case "owner":
-                user.Vlasnik = new Vlasnik { IdKorisnik = userId };
+                if (user.Vlasnik != null)
+                {
+                    _db.Vlasnici.Remove(user.Vlasnik);
+                }
                 break;
 
             case "walker":
-                user.Setac = new Setac
+                if (user.Setac != null)
                 {
-                    IdKorisnik = userId,
-                    ImeSetac = user.Ime ?? "",
-                    PrezimeSetac = user.Prezime ?? "",
-                    LokacijaSetac = "",
-                    TelefonSetac = "",
-                    ProfilnaSetac = ""
-                };
+                    _db.Setaci.Remove(user.Setac);
+                }
                 break;
 
             default:
@@ -171,14 +256,24 @@ public class AuthService : IAuthService
         }
 
         await _db.SaveChangesAsync(ct);
+        
+        await _db.Entry(user).ReloadAsync(ct);
+        
+        var updatedRole = DetermineUserRole(user);
+        return GenerateAuthResponse(user, updatedRole);
     }
 
 
     private string DetermineUserRole(Korisnik user)
     {
         if (user.Administrator != null) return "admin";
-        if (user.Vlasnik != null) return "owner";
-        if (user.Setac != null) return "walker";
+        
+        bool isOwner = user.Vlasnik != null;
+        bool isWalker = user.Setac != null;
+        
+        if (isOwner && isWalker) return "both";
+        if (isOwner) return "owner";
+        if (isWalker) return "walker";
         return "none";
     }
 
@@ -191,7 +286,14 @@ public class AuthService : IAuthService
             displayName = user.EmailKorisnik.Split('@')[0];
         }
 
-        return new AuthResponse(jwt, user.IdKorisnik, user.EmailKorisnik, role, displayName);
+        return new AuthResponse(
+            jwt, 
+            user.IdKorisnik, 
+            user.EmailKorisnik, 
+            role, 
+            displayName,
+            user.Ime,
+            user.Prezime);
     }
 
     private string GenerateJwt(Korisnik user, string role)
@@ -217,5 +319,74 @@ public class AuthService : IAuthService
             signingCredentials: creds);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    public async Task<PasswordResetResponse> ForgotPasswordAsync(ForgotPasswordRequest request, string frontendUrl, CancellationToken ct = default)
+    {
+        var user = await _db.Korisnici.FirstOrDefaultAsync(k => k.EmailKorisnik == request.Email, ct);
+        
+        // Always return success to prevent email enumeration
+        if (user == null)
+        {
+            return new PasswordResetResponse(true, "If the email exists, a password reset link has been sent.");
+        }
+
+        // Invalidate any existing tokens for this user
+        var existingTokens = await _db.PasswordResetTokens
+            .Where(t => t.IdKorisnik == user.IdKorisnik && !t.IsUsed)
+            .ToListAsync(ct);
+        
+        foreach (var t in existingTokens)
+        {
+            t.IsUsed = true;
+        }
+
+        // Generate new token
+        var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+        var resetToken = new PasswordResetToken
+        {
+            Token = token,
+            IdKorisnik = user.IdKorisnik,
+            ExpiresAt = DateTime.UtcNow.AddHours(1),
+            IsUsed = false,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _db.PasswordResetTokens.Add(resetToken);
+        await _db.SaveChangesAsync(ct);
+
+        // Send email with reset link
+        var resetUrl = $"{frontendUrl}/reset-password?token={Uri.EscapeDataString(token)}";
+        await _emailService.SendPasswordResetEmailAsync(user.EmailKorisnik, resetUrl);
+
+        return new PasswordResetResponse(true, "If the email exists, a password reset link has been sent.");
+    }
+
+    public async Task<PasswordResetResponse> ResetPasswordAsync(ResetPasswordRequest request, CancellationToken ct = default)
+    {
+        var resetToken = await _db.PasswordResetTokens
+            .Include(t => t.Korisnik)
+            .FirstOrDefaultAsync(t => t.Token == request.Token && !t.IsUsed, ct);
+
+        if (resetToken == null)
+        {
+            return new PasswordResetResponse(false, "Invalid or expired reset token.");
+        }
+
+        if (resetToken.ExpiresAt < DateTime.UtcNow)
+        {
+            return new PasswordResetResponse(false, "Reset token has expired.");
+        }
+
+        // Update password
+        var user = resetToken.Korisnik;
+        user.LozinkaHashKorisnik = _passwordHasher.HashPassword(user, request.NewPassword);
+        
+        // Mark token as used
+        resetToken.IsUsed = true;
+
+        await _db.SaveChangesAsync(ct);
+
+        return new PasswordResetResponse(true, "Password has been reset successfully.");
     }
 }

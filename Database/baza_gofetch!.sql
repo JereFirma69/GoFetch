@@ -8,6 +8,16 @@ CREATE TABLE Korisnik
 
   lozinka_korisnik VARCHAR(20) NOT NULL,
 
+  ime VARCHAR(50),
+
+  prezime VARCHAR(50),
+
+  profilna_korisnik VARCHAR(100),
+
+  auth_provider VARCHAR(20),
+
+  provider_user_id VARCHAR(255),
+
   PRIMARY KEY (id_korisnik),
 
   UNIQUE (email_korisnik)

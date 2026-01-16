@@ -22,4 +22,15 @@ public record AuthResponse(
     int UserId,
     string Email,
     string Role, // "owner", "walker", "admin", or "none"
-    string? DisplayName);
+    string? DisplayName,
+    string? FirstName,
+    string? LastName);
+
+// Password Reset DTOs
+public record ForgotPasswordRequest(string Email);
+
+public record ResetPasswordRequest(
+    string Token,
+    string NewPassword);
+
+public record PasswordResetResponse(bool Success, string Message);
