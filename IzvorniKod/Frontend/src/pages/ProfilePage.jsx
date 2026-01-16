@@ -3,6 +3,7 @@ import ProfileSidebar from "../components/Profile/ProfileSidebar";
 import FavoriteDogs from "../components/Profile/FavoriteDogs";
 import AddedDogs from "../components/Profile/AddedDogs";
 import Reviews from "../components/Profile/Reviews";
+import { Calendar } from "./CalendarPage";
 import gD1 from "../assets/dogImages/goldenRetriver1.jpg";
 import gD2 from "../assets/dogImages/goldenRetriver2.jpg";
 import p1 from "../assets/dogImages/pug1.jpg";
@@ -38,14 +39,15 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <button onClick={() => navigate("/calendar")}>Kalendar</button>
-
       <div className="max-w-7xl mx-auto px-6 py-8 flex gap-8">
         <div className="w-80 flex-shrink-0">
           <ProfileSidebar user={user} onLogout={handleLogout} />
           <AddedDogs dogs={addedDogs} />
         </div>
         <div className="flex-1">
+          <div className="mb-6">
+            <Calendar compact={true} />
+          </div>
           <FavoriteDogs dogs={favoriteDogs} />
           <Reviews reviews={reviews} />
         </div>
