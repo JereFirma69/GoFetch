@@ -78,7 +78,7 @@ export default function ProfilePage() {
   }, [showEdit, dogFormMode, setSearchParams]);
 
   const favoriteDogs = [
-    { id: 1, name: "Max", image: gD1 },
+    { id: 1, name: "Maxxxx", image: gD1 },
     { id: 2, name: "Luna", image: gD2},
     { id: 3, name: "Roki", image: p1 },
   ];
