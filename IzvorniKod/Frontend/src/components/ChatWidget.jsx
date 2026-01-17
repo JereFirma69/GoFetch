@@ -12,12 +12,11 @@ function ChatWidget() {
       if (window.start && window.start.init) {
         window.start.init({
           title: "Spremni za šetnju?",
-          message: "Pozdrav!\nUkoliko ti ili tvoj krznati prijatelj imate pitanja, slobodno nam pišite.\nNaš tim stoji Vam na raspolaganju.",
-          color: "#000000",
+          message: "Pozdrav!\nUkoliko ti ili tvoj krzneni prijatelj imate pitanja, slobodno nam pišite.\nNaš tim Vam stoji na raspolaganju.",
+          color: "#14b8a6",
           position: "left",
           placeholder: "Enter your message",
           withText: "Write with",
-          viaWhatsapp: "Or write us directly via Whatsapp",
           gty: "Go to your",
           awu: "and write us",
           connect: "Connect now",
@@ -25,7 +24,7 @@ function ChatWidget() {
           device: "desktop",
           logo: "https://d2r80wdbkwti6l.cloudfront.net/4JsEbdlt153wlYxTKqheuYZ8EsURIPBS.jpg",
           person: "https://d2r80wdbkwti6l.cloudfront.net/EQavnKtKH10OAhZznVwvzSNoJ2LjqUl1.jpg",
-          services: [{ name: "mail", content: "hirokul.es@gmail.com" }]
+          services: [{ name: "mail", content: "gofetchapp@protonmail.com" }]
         });
       }
     };
