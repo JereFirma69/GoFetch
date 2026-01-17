@@ -44,7 +44,7 @@ export default function App() {
             </PrivateRoute>
           }
         />
-      </Routes>
+        </Routes>
     </AuthProvider>
   );
 }
