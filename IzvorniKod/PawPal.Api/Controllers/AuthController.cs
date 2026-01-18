@@ -187,8 +187,21 @@ public class AuthController : ControllerBase
     [ProducesResponseType(typeof(PasswordResetResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<PasswordResetResponse>> ForgotPassword([FromBody] ForgotPasswordRequest request, CancellationToken ct)
     {
-        // Get frontend URL from configuration, fallback to localhost for dev
-        var frontendUrl = _configuration["FrontendUrl"] ?? "http://localhost:5173";
+        // Detect frontend URL from referer or use config
+        var referer = Request.Headers.Referer.ToString();
+        string frontendUrl;
+        
+        if (!string.IsNullOrEmpty(referer) && Uri.TryCreate(referer, UriKind.Absolute, out var refererUri))
+        {
+            // Use the origin from where the request came
+            frontendUrl = $"{refererUri.Scheme}://{refererUri.Authority}";
+        }
+        else
+        {
+            // Fallback to config/env
+            frontendUrl = _configuration["FrontendUrl"] ?? "http://localhost:5173";
+        }
+        
         var response = await _authService.ForgotPasswordAsync(request, frontendUrl, ct);
         return Ok(response);
     }

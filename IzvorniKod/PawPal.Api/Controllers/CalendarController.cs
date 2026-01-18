@@ -51,8 +51,23 @@ public class CalendarController : ControllerBase
         {
             await _googleCalendarService.SaveOAuthTokensAsync(walkerId, code, ct);
             
-            // Redirect to frontend success page
-            var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL") ?? "http://localhost:5173";
+            // Redirect to frontend - detect from referer or use config
+            var referer = Request.Headers.Referer.ToString();
+            string frontendUrl;
+            
+            if (!string.IsNullOrEmpty(referer) && Uri.TryCreate(referer, UriKind.Absolute, out var refererUri))
+            {
+                // Use the origin from where the auth request came
+                frontendUrl = $"{refererUri.Scheme}://{refererUri.Authority}";
+            }
+            else
+            {
+                // Fallback to config/env
+                frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL") 
+                    ?? HttpContext.RequestServices.GetService<IConfiguration>()?["FrontendUrl"] 
+                    ?? "http://localhost:5173";
+            }
+            
             return Redirect($"{frontendUrl}/profile?calendar=connected");
         }
         catch (Exception ex)
