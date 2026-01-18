@@ -14,20 +14,23 @@ import p1 from "../assets/dogImages/pug1.jpg";
 
 export default function ProfilePage() {
   const { user, logout } = useContext(AuthContext);
-  
+
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialView = searchParams.get('view') || 'default';
-  const initialDogId = searchParams.get('dogId');
-  
-  const [showEdit, setShowEdit] = useState(initialView === 'edit');
+
+
+  const [showEdit, setShowEdit] = useState(initialView === "edit");
   const [dogFormMode, setDogFormMode] = useState(
-    initialView === 'add-dog' ? 'add' : 
-    initialDogId ? { dog: { idPas: parseInt(initialDogId) } } : 
-    null
+    initialView === "add-dog"
+      ? "add"
+      : initialDogId
+      ? { dog: { idPas: parseInt(initialDogId) } }
+      : null
   );
+
   const [refreshKey, setRefreshKey] = useState(0);
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("reviews");
 
   function openEditProfile() {
     setShowEdit(true);
@@ -49,9 +52,11 @@ export default function ProfilePage() {
       try {
         const data = await api.get("/profile/me");
         setProfileData(data);
-        
+
         if (initialDogId && data?.owner?.dogs) {
-          const dog = data.owner.dogs.find(d => d.idPas === parseInt(initialDogId));
+          const dog = data.owner.dogs.find(
+            (d) => d.idPas === parseInt(initialDogId)
+          );
           if (dog) {
             setDogFormMode({ dog });
           }
@@ -67,33 +72,33 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (showEdit) {
-      setSearchParams({ view: 'edit' });
-    } else if (dogFormMode === 'add') {
-      setSearchParams({ view: 'add-dog' });
+      setSearchParams({ view: "edit" });
+    } else if (dogFormMode === "add") {
+      setSearchParams({ view: "add-dog" });
     } else if (dogFormMode?.dog) {
-      setSearchParams({ view: 'edit-dog', dogId: dogFormMode.dog.idPas });
+      setSearchParams({ view: "edit-dog", dogId: dogFormMode.dog.idPas });
     } else {
       setSearchParams({});
     }
   }, [showEdit, dogFormMode, setSearchParams]);
 
-  const favoriteDogs = [
-    { id: 1, name: "Maxxxx", image: gD1 },
-    { id: 2, name: "Luna", image: gD2},
-    { id: 3, name: "Roki", image: p1 },
-  ];
 
   const addedDogs = profileData?.owner?.dogs?.map(dog => ({
-    id: dog.idPas,
-    name: dog.imePas,
-    breed: dog.pasmina,
-    image: dog.profilnaPas,
-    ...dog
-  })) || [];
+      id: dog.idPas,
+      name: dog.imePas,
+      breed: dog.pasmina,
+      image: dog.profilnaPas,
+      ...dog,
+    })) || [];
 
   const reviews = [
     { id: 1, dogName: "Rex", rating: 5, text: "Lorem ipsum dolor sit amet." },
-    { id: 2, dogName: "Max", rating: 4, text: "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." },
+    {
+      id: 2,
+      dogName: "Max",
+      rating: 4,
+      text: "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+    },
   ];
 
   function handleDogSave() {
@@ -117,42 +122,72 @@ export default function ProfilePage() {
     <div className="profile-page">
       <div className="profile-container">
         <div className="profile-sidebar-container">
-          <ProfileSidebar 
+          <ProfileSidebar
             user={{
               name: user?.displayName,
               email: user?.email,
               role: user?.role,
             }}
             profileData={profileData}
-            onEdit={openEditProfile} 
-            onLogout={logout} 
+            onEdit={openEditProfile}
+            onLogout={logout}
           />
-          
-          <AddedDogs 
-            dogs={addedDogs} 
-            onAddClick={() => openDogForm('add')}
+
+          <AddedDogs
+            dogs={addedDogs}
+            onAddClick={() => openDogForm("add")}
             onDogClick={(dog) => openDogForm({ dog })}
           />
         </div>
+
         <div className="profile-main-content">
           {showEdit ? (
-            <EditProfilePanel 
-              onBack={closeAllPanels} 
-              profileData={profileData} 
+            <EditProfilePanel
+              onBack={closeAllPanels}
+              profileData={profileData}
               onRoleChange={handleRoleChange}
               onSaved={handleProfileSaved}
             />
           ) : dogFormMode ? (
             <DogFormPanel
-              dog={dogFormMode === 'add' ? null : dogFormMode.dog}
+              dog={dogFormMode === "add" ? null : dogFormMode.dog}
               onBack={closeAllPanels}
               onSave={handleDogSave}
             />
           ) : (
-            <>
-              <FavoriteDogs dogs={favoriteDogs} />
-              <Reviews reviews={reviews} />
-            </>
+            <div className="bg-white rounded-xl shadow-sm">
+              {/* Tabs */}
+              <div className="border-b">
+                <div className="flex">
+                  {[
+                    { key: "reviews", label: "⭐ Reviews" },
+                    { key: "settings", label: "⚙️ Settings" },
+                    { key: "payment", label: "💳 Payment" },
+                  ].map((tab) => (
+                    <button
+                      key={tab.key}
+                      onClick={() => setActiveTab(tab.key)}
+                      className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${
+                        activeTab === tab.key
+                          ? "text-teal-600 border-b-2 border-teal-500 bg-teal-50/50"
+                          : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Tab Content */}
+              <div className="p-6">
+                {activeTab === "reviews" && <Reviews reviews={reviews} />}
+
+                {activeTab === "settings" && <div>Settings - coming soon</div>}
+
+                {activeTab === "payment" && <div>Payment - coming soon</div>}
+              </div>
+            </div>
           )}
         </div>
       </div>
