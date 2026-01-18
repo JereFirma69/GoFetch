@@ -12,6 +12,7 @@ import HomePage from "./pages/Homepage";
 import Header from "./shared_components/Header";
 import { CalendarPage } from "./pages/CalendarPage";
 import { ChatWidget } from "./components/chat/ChatWidget";
+import { ChatProvider } from "./components/chat/ChatContext";
 
 function PrivateRoute({ children }) {
   const { user } = useContext(AuthContext);
@@ -30,7 +31,7 @@ export default function App() {
   return (
     <AuthProvider>
       <Header />
-
+      <ChatProvider>
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -69,6 +70,7 @@ export default function App() {
           }
         />
       </Routes>
+      </ChatProvider>
     </AuthProvider>
   );
 }
