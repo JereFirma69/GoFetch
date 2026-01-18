@@ -72,7 +72,6 @@ export default function HomePage() {
           <h2 className="text-3xl font-semibold text-gray-800">
             Welcome back, {name}! 🐕
           </h2>
-          <p className="text-gray-500">{user.email}</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
