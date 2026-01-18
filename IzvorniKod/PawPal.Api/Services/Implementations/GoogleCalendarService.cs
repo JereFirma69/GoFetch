@@ -42,16 +42,29 @@ public class GoogleCalendarService : IGoogleCalendarService
         });
     }
 
-    public string GetAuthorizationUrl(int walkerId)
+    public string GetAuthorizationUrl(int walkerId, string state = "")
     {
         var flow = CreateFlow();
-        var authUri = flow.CreateAuthorizationCodeRequest(_options.RedirectUri);
-        authUri.State = walkerId.ToString(); // Pass walkerId in state for callback
-        var baseUrl = authUri.Build().ToString();
-        // Append parameters to force account selection and consent, and request offline access
-        var separator = baseUrl.Contains('?') ? '&' : '?';
-        var extras = "access_type=offline&prompt=consent%20select_account&include_granted_scopes=true";
-        return baseUrl + separator + extras;
+        var authReq = flow.CreateAuthorizationCodeRequest(_options.RedirectUri);
+        authReq.State = !string.IsNullOrEmpty(state) ? state : walkerId.ToString();
+        var built = authReq.Build().ToString();
+
+        var uri = new Uri(built);
+        var basePath = uri.GetLeftPart(UriPartial.Path);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+
+        var dict = new System.Collections.Generic.Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var kvp in query)
+        {
+            dict[kvp.Key] = kvp.Value.ToString();
+        }
+
+        dict["access_type"] = "offline";
+        dict["include_granted_scopes"] = "true";
+        dict["prompt"] = "consent select_account";
+
+        var finalUrl = Microsoft.AspNetCore.WebUtilities.QueryHelpers.AddQueryString(basePath, dict);
+        return finalUrl;
     }
 
     public async Task SaveOAuthTokensAsync(int walkerId, string authCode, CancellationToken ct = default)

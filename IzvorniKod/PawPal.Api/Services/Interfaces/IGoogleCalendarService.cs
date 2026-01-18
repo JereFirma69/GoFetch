@@ -6,7 +6,7 @@ namespace PawPal.Api.Services;
 public interface IGoogleCalendarService
 {
     // OAuth Authorization
-    string GetAuthorizationUrl(int walkerId);
+    string GetAuthorizationUrl(int walkerId, string state = "");
     Task SaveOAuthTokensAsync(int walkerId, string authCode, CancellationToken ct = default);
     Task<GoogleCalendarAuthStatusResponse> GetAuthStatusAsync(int walkerId, CancellationToken ct = default);
     Task DisconnectAsync(int walkerId, CancellationToken ct = default);

@@ -10,7 +10,10 @@ import { api } from './api';
  * Get the URL to initiate Google Calendar OAuth flow
  */
 export const getGoogleAuthUrl = async () => {
-  return api.get('/calendar/google/auth-url');
+  const frontendOrigin = window.location.origin;
+  return api.get('/calendar/google/auth-url', {
+    params: { frontendOrigin }
+  });
 };
 
 /**

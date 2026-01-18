@@ -26,10 +26,14 @@ public class CalendarController : ControllerBase
 
     [HttpGet("google/auth-url")]
     [ProducesResponseType(typeof(GoogleCalendarAuthUrlResponse), StatusCodes.Status200OK)]
-    public ActionResult<GoogleCalendarAuthUrlResponse> GetGoogleAuthUrl()
+    public ActionResult<GoogleCalendarAuthUrlResponse> GetGoogleAuthUrl([FromQuery] string frontendOrigin = "")
     {
         var userId = GetUserId();
-        var url = _googleCalendarService.GetAuthorizationUrl(userId);
+        // Encode both userId and frontendOrigin in state
+        var state = frontendOrigin != "" 
+            ? Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes($"{userId}|{frontendOrigin}"))
+            : userId.ToString();
+        var url = _googleCalendarService.GetAuthorizationUrl(userId, state);
         return Ok(new GoogleCalendarAuthUrlResponse(url));
     }
 
@@ -42,33 +46,67 @@ public class CalendarController : ControllerBase
             return BadRequest(new { error = "Missing authorization code or state" });
         }
 
-        if (!int.TryParse(state, out var walkerId))
+        int walkerId;
+        string frontendUrl = "";
+
+        // Try to decode state as base64 (new format with frontend origin)
+        try
         {
-            return BadRequest(new { error = "Invalid state parameter" });
+            var decodedState = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(state));
+            var parts = decodedState.Split('|');
+            if (parts.Length == 2 && int.TryParse(parts[0], out var userId))
+            {
+                walkerId = userId;
+                frontendUrl = parts[1];
+            }
+            else if (int.TryParse(state, out var simpleId))
+            {
+                // Fallback to simple userId format
+                walkerId = simpleId;
+                frontendUrl = "";
+            }
+            else
+            {
+                return BadRequest(new { error = "Invalid state parameter" });
+            }
+        }
+        catch
+        {
+            // Fallback: state is just userId as string
+            if (!int.TryParse(state, out walkerId))
+            {
+                return BadRequest(new { error = "Invalid state parameter" });
+            }
         }
 
         try
         {
             await _googleCalendarService.SaveOAuthTokensAsync(walkerId, code, ct);
             
-            // Redirect to frontend - detect from referer or use config
-            var referer = Request.Headers.Referer.ToString();
-            string frontendUrl;
-            
-            if (!string.IsNullOrEmpty(referer) && Uri.TryCreate(referer, UriKind.Absolute, out var refererUri))
+            // Use frontend URL from state if available, otherwise fall back to config
+            if (string.IsNullOrEmpty(frontendUrl))
             {
-                // Use the origin from where the auth request came
-                frontendUrl = $"{refererUri.Scheme}://{refererUri.Authority}";
-            }
-            else
-            {
-                // Fallback to config/env
                 frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL") 
                     ?? HttpContext.RequestServices.GetService<IConfiguration>()?["FrontendUrl"] 
                     ?? "http://localhost:5173";
             }
             
-            return Redirect($"{frontendUrl}/profile?calendar=connected");
+            // Return HTML that redirects on client side
+            var redirectUrl = $"{frontendUrl}/profile?calendar=connected";
+            var html = $@"<!DOCTYPE html>
+<html>
+<head>
+    <title>Redirecting...</title>
+    <script>
+        window.location.href = '{redirectUrl}';
+    </script>
+</head>
+<body>
+    <p>Redirecting to app... <a href=""{redirectUrl}"">Click here if not redirected</a></p>
+</body>
+</html>";
+            
+            return Content(html, "text/html");
         }
         catch (Exception ex)
         {
