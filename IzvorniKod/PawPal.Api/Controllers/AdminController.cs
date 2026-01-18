@@ -23,9 +23,6 @@ public class AdminController : ControllerBase
         return int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
     }
 
-    /// <summary>
-    /// Get list of pending walker verifications (admin only)
-    /// </summary>
     [HttpGet("walkers/pending")]
     [ProducesResponseType(typeof(IEnumerable<PendingWalkerDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -44,9 +41,6 @@ public class AdminController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Approve a walker's verification (admin only)
-    /// </summary>
     [HttpPost("walkers/approve")]
     [ProducesResponseType(typeof(VerificationResultDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -72,9 +66,6 @@ public class AdminController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Reject a walker's verification (admin only)
-    /// </summary>
     [HttpPost("walkers/reject")]
     [ProducesResponseType(typeof(VerificationResultDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -100,9 +91,6 @@ public class AdminController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Get verification status for a specific walker
-    /// </summary>
     [HttpGet("walkers/{walkerId}/verification")]
     [ProducesResponseType(typeof(WalkerVerificationStatusDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

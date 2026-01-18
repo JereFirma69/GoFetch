@@ -23,6 +23,13 @@ public class Termin
     [ForeignKey(nameof(Setac))]
     public int IdKorisnik { get; set; }
 
+    // Google Calendar integration
+    [MaxLength(255)]
+    public string? GoogleCalendarEventId { get; set; }
+
+    // For group walks: max number of dogs
+    public int MaxDogs { get; set; } = 5;
+
     public Setac Setac { get; set; } = null!;
     public List<Rezervacija> Rezervacije { get; set; } = new();
 }

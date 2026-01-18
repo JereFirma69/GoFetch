@@ -89,6 +89,7 @@ builder.Services.AddAuthorization();
 // Configuration
 builder.Services.Configure<SupabaseOptions>(config.GetSection("Supabase"));
 builder.Services.Configure<EmailOptions>(config.GetSection("Email"));
+builder.Services.Configure<GoogleCalendarOptions>(config.GetSection("GoogleCalendar"));
 
 // Services
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -96,6 +97,8 @@ builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IStorageService, StorageService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IGoogleCalendarService, GoogleCalendarService>();
+builder.Services.AddScoped<ICalendarService, CalendarService>();
 
 // Controllers
 builder.Services.AddControllers();

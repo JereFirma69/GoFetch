@@ -24,6 +24,7 @@ public class AppDbContext : DbContext
     public DbSet<RezervacijaPas> RezervacijePsi => Set<RezervacijaPas>();
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<WalkerGoogleAuth> WalkerGoogleAuths => Set<WalkerGoogleAuth>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -107,6 +108,19 @@ public class AppDbContext : DbContext
             entity.HasOne(r => r.Termin)
                 .WithMany(t => t.Rezervacije)
                 .HasForeignKey(r => r.IdTermin)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(r => r.Vlasnik)
+                .WithMany(v => v.Rezervacije)
+                .HasForeignKey(r => r.IdVlasnik)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<WalkerGoogleAuth>(entity =>
+        {
+            entity.HasOne(w => w.Setac)
+                .WithOne(s => s.GoogleAuth)
+                .HasForeignKey<WalkerGoogleAuth>(w => w.IdKorisnik)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
