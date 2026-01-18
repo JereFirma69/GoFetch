@@ -13,7 +13,7 @@ import Header from "./shared_components/Header";
 import { ChatProvider } from "./components/chat/ChatContext";
 import ChatWidget from "./components/chat/ChatWidget";
 import { CalendarPage } from "./pages/CalendarPage";
-
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 function PrivateRoute({ children }) {
   const { user } = useContext(AuthContext);
@@ -70,5 +70,6 @@ export default function App() {
       </Routes>
       </ChatProvider>
     </AuthProvider>
+
   );
 }
