@@ -16,7 +16,8 @@ export default function ProfilePage() {
   const { user, logout } = useContext(AuthContext);
 
   const [searchParams, setSearchParams] = useSearchParams();
-
+  const initialView = searchParams.get('view') || 'default';
+  const initialDogId = searchParams.get('dogId');
 
   const [showEdit, setShowEdit] = useState(initialView === "edit");
   const [dogFormMode, setDogFormMode] = useState(
