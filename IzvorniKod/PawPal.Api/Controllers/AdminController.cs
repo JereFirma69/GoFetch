@@ -38,7 +38,7 @@ public class AdminController : ControllerBase
             var pendingWalkers = await _adminService.GetPendingWalkersAsync(ct);
             return Ok(pendingWalkers);
         }
-        catch (InvalidOperationException ex)
+        catch (InvalidOperationException)
         {
             return Forbid();
         }

@@ -37,9 +37,34 @@ public class AuthController : ControllerBase
         Response.Cookies.Append("auth_token", token, cookieOptions);
     }
 
+    private void SetRefreshCookie(string token)
+    {
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            Expires = DateTime.UtcNow.AddDays(_jwtOptions.RefreshTokenExpiresDays),
+            Path = "/"
+        };
+
+        Response.Cookies.Append("refresh_token", token, cookieOptions);
+    }
+
     private void ClearAuthCookie()
     {
         Response.Cookies.Delete("auth_token", new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            Path = "/"
+        });
+    }
+
+    private void ClearRefreshCookie()
+    {
+        Response.Cookies.Delete("refresh_token", new CookieOptions
         {
             HttpOnly = true,
             Secure = true,
@@ -57,6 +82,7 @@ public class AuthController : ControllerBase
         {
             var response = await _authService.RegisterAsync(request, ct);
             SetAuthCookie(response.Jwt);
+            SetRefreshCookie(response.RefreshToken);
             return Ok(response);
         }
         catch (InvalidOperationException ex)
@@ -74,6 +100,7 @@ public class AuthController : ControllerBase
         {
             var response = await _authService.LoginAsync(request, ct);
             SetAuthCookie(response.Jwt);
+            SetRefreshCookie(response.RefreshToken);
             return Ok(response);
         }
         catch (UnauthorizedAccessException ex)
@@ -91,6 +118,7 @@ public class AuthController : ControllerBase
         {
             var response = await _authService.OAuthLoginAsync(request, ct);
             SetAuthCookie(response.Jwt);
+            SetRefreshCookie(response.RefreshToken);
             return Ok(response);
         }
         catch (Exception ex)
@@ -101,9 +129,15 @@ public class AuthController : ControllerBase
 
     [HttpPost("logout")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public ActionResult Logout()
+    public async Task<ActionResult> Logout(CancellationToken ct)
     {
+        var refresh = Request.Cookies["refresh_token"];
+        if (!string.IsNullOrEmpty(refresh))
+        {
+            await _authService.RevokeRefreshTokenAsync(refresh, ct);
+        }
         ClearAuthCookie();
+        ClearRefreshCookie();
         return Ok(new { message = "Logged out successfully" });
     }
 
@@ -119,6 +153,7 @@ public class AuthController : ControllerBase
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var response = await _authService.RegisterRoleAsync(userId, request.Role, ct);
             SetAuthCookie(response.Jwt);
+            SetRefreshCookie(response.RefreshToken);
             return Ok(response);
         }
         catch (InvalidOperationException ex)
@@ -139,6 +174,7 @@ public class AuthController : ControllerBase
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var response = await _authService.RemoveRoleAsync(userId, request.Role, ct);
             SetAuthCookie(response.Jwt);
+            SetRefreshCookie(response.RefreshToken);
             return Ok(response);
         }
         catch (InvalidOperationException ex)
@@ -168,5 +204,29 @@ public class AuthController : ControllerBase
             return BadRequest(response);
         }
         return Ok(response);
+    }
+
+    [HttpPost("refresh")]
+    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<AuthResponse>> Refresh(CancellationToken ct)
+    {
+        var refresh = Request.Cookies["refresh_token"];
+        if (string.IsNullOrEmpty(refresh))
+        {
+            return Unauthorized(new { error = "Missing refresh token" });
+        }
+
+        try
+        {
+            var response = await _authService.RefreshAsync(refresh, ct);
+            SetAuthCookie(response.Jwt);
+            SetRefreshCookie(response.RefreshToken);
+            return Ok(response);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { error = ex.Message });
+        }
     }
 }

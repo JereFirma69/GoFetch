@@ -85,17 +85,21 @@ public class StorageService : IStorageService
 
     public async Task DeleteDogImageAsync(int ownerId, int dogId, CancellationToken ct = default)
     {
-        var files = await _supabase.Storage
+        var storage = _supabase.Storage ?? throw new InvalidOperationException("Supabase storage not initialized.");
+        var files = await storage
             .From(DogImagesBucket)
             .List($"{ownerId}");
 
         if (files != null)
         {
-            var dogFiles = files.Where(f => f.Name.StartsWith($"{dogId}")).ToList();
+            var dogFiles = files
+                .Where(f => f?.Name != null && f.Name.StartsWith($"{dogId}", StringComparison.Ordinal))
+                .ToList();
+
             if (dogFiles.Count > 0)
             {
-                var paths = dogFiles.Select(f => $"{ownerId}/{f.Name}").ToList();
-                await _supabase.Storage
+                var paths = dogFiles.Select(f => $"{ownerId}/{f!.Name}").ToList();
+                await storage
                     .From(DogImagesBucket)
                     .Remove(paths);
             }

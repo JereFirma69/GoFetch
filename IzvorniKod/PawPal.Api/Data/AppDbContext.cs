@@ -23,6 +23,7 @@ public class AppDbContext : DbContext
     public DbSet<Poruka> Poruke => Set<Poruka>();
     public DbSet<RezervacijaPas> RezervacijePsi => Set<RezervacijaPas>();
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -140,6 +141,15 @@ public class AppDbContext : DbContext
             entity.HasOne(p => p.Rezervacija)
                 .WithMany(r => r.Poruke)
                 .HasForeignKey(p => p.IdRezervacija)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.HasIndex(r => r.Token).IsUnique();
+            entity.HasOne(r => r.User)
+                .WithMany(k => k.RefreshTokens)
+                .HasForeignKey(r => r.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

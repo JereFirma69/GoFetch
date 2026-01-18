@@ -31,8 +31,28 @@ export default function DogFormPanel({ dog, onBack, onSave }) {
       setAge(dog.starost || "");
       setBreed(dog.pasmina || "");
       setProfilePicture(dog.profilnaPas || "");
+      setPendingFile(null);
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+      setPreviewUrl("");
+    } else {
+      // Reset form when opening "Add Dog"
+      setName("");
+      setTreats("");
+      setSocialization("Friendly");
+      setEnergyLevel(3);
+      setHealthNotes("");
+      setAge("");
+      setBreed("");
+      setProfilePicture("");
+      setPendingFile(null);
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+      setPreviewUrl("");
     }
-  }, [dog]);
+  }, [dog, previewUrl]);
 
   async function handleSave(e) {
     e.preventDefault();

@@ -63,6 +63,11 @@ export default function ProfilePage() {
           }
         }
       } catch (e) {
+        if (e?.status === 401) {
+          // Session expired or unauthorized; logout to clear stale state
+          logout();
+          return;
+        }
         console.error("Failed to load profile:", e);
       } finally {
         setLoading(false);
@@ -151,6 +156,7 @@ export default function ProfilePage() {
             />
           ) : dogFormMode ? (
             <DogFormPanel
+              key={dogFormMode === "add" ? "new" : dogFormMode.dog.idPas}
               dog={dogFormMode === "add" ? null : dogFormMode.dog}
               onBack={closeAllPanels}
               onSave={handleDogSave}

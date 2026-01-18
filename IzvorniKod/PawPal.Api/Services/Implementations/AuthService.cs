@@ -23,6 +23,7 @@ public class AuthService : IAuthService
     private readonly PasswordHasher<Korisnik> _passwordHasher;
     private readonly string? _googleClientId;
     private readonly IEmailService _emailService;
+    private readonly RandomNumberGenerator _rng = RandomNumberGenerator.Create();
 
     public AuthService(AppDbContext db, IOptions<JwtOptions> jwtOptions, IConfiguration configuration, IEmailService emailService)
     {
@@ -58,7 +59,7 @@ public class AuthService : IAuthService
         _db.Korisnici.Add(user);
         await _db.SaveChangesAsync(ct);
 
-        return GenerateAuthResponse(user, "none");
+        return await GenerateAuthResponseAsync(user, "none", ct);
     }
 
     public async Task<AuthResponse> LoginAsync(LoginRequest request, CancellationToken ct = default)
@@ -84,7 +85,7 @@ public class AuthService : IAuthService
         }
 
         var role = DetermineUserRole(user);
-        return GenerateAuthResponse(user, role);
+        return await GenerateAuthResponseAsync(user, role, ct);
     }
 
     public async Task<AuthResponse> OAuthLoginAsync(OAuthLoginRequest request, CancellationToken ct = default)
@@ -172,7 +173,7 @@ public class AuthService : IAuthService
         }
 
         var role = DetermineUserRole(user);
-        return GenerateAuthResponse(user, role);
+        return await GenerateAuthResponseAsync(user, role, ct);
     }
 
     public async Task<AuthResponse> RegisterRoleAsync(int userId, string role, CancellationToken ct = default)
@@ -220,7 +221,7 @@ public class AuthService : IAuthService
         await _db.Entry(user).ReloadAsync(ct);
         
         var updatedRole = DetermineUserRole(user);
-        return GenerateAuthResponse(user, updatedRole);
+        return await GenerateAuthResponseAsync(user, updatedRole, ct);
     }
 
     public async Task<AuthResponse> RemoveRoleAsync(int userId, string role, CancellationToken ct = default)
@@ -260,7 +261,7 @@ public class AuthService : IAuthService
         await _db.Entry(user).ReloadAsync(ct);
         
         var updatedRole = DetermineUserRole(user);
-        return GenerateAuthResponse(user, updatedRole);
+        return await GenerateAuthResponseAsync(user, updatedRole, ct);
     }
 
 
@@ -277,9 +278,10 @@ public class AuthService : IAuthService
         return "none";
     }
 
-    private AuthResponse GenerateAuthResponse(Korisnik user, string role)
+    private async Task<AuthResponse> GenerateAuthResponseAsync(Korisnik user, string role, CancellationToken ct)
     {
         var jwt = GenerateJwt(user, role);
+        var refresh = await CreateRefreshTokenAsync(user.IdKorisnik, ct);
         var displayName = $"{user.Ime} {user.Prezime}".Trim();
         if (string.IsNullOrEmpty(displayName))
         {
@@ -288,12 +290,33 @@ public class AuthService : IAuthService
 
         return new AuthResponse(
             jwt, 
+            refresh,
             user.IdKorisnik, 
             user.EmailKorisnik, 
             role, 
             displayName,
             user.Ime,
             user.Prezime);
+    }
+
+    private async Task<string> CreateRefreshTokenAsync(int userId, CancellationToken ct)
+    {
+        var bytes = new byte[64];
+        _rng.GetBytes(bytes);
+        var token = Convert.ToBase64String(bytes);
+
+        var options = _jwtOptions.Value;
+        var refresh = new RefreshToken
+        {
+            Token = token,
+            UserId = userId,
+            ExpiresAt = DateTime.UtcNow.AddDays(options.RefreshTokenExpiresDays),
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _db.RefreshTokens.Add(refresh);
+        await _db.SaveChangesAsync(ct);
+        return token;
     }
 
     private string GenerateJwt(Korisnik user, string role)
@@ -319,6 +342,43 @@ public class AuthService : IAuthService
             signingCredentials: creds);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    private async Task<RefreshToken?> GetValidRefreshTokenAsync(string refreshToken, CancellationToken ct)
+    {
+        var token = await _db.RefreshTokens
+            .Include(r => r.User)
+            .FirstOrDefaultAsync(r => r.Token == refreshToken, ct);
+
+        if (token == null) return null;
+        if (token.RevokedAt.HasValue) return null;
+        if (token.ExpiresAt < DateTime.UtcNow) return null;
+        return token;
+    }
+
+    public async Task<AuthResponse> RefreshAsync(string refreshToken, CancellationToken ct = default)
+    {
+        var existing = await GetValidRefreshTokenAsync(refreshToken, ct);
+        if (existing == null)
+        {
+            throw new UnauthorizedAccessException("Invalid refresh token.");
+        }
+
+        // Rotate: revoke old, issue new
+        existing.RevokedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync(ct);
+
+        var user = existing.User;
+        var role = DetermineUserRole(user);
+        return await GenerateAuthResponseAsync(user, role, ct);
+    }
+
+    public async Task RevokeRefreshTokenAsync(string refreshToken, CancellationToken ct = default)
+    {
+        var existing = await _db.RefreshTokens.FirstOrDefaultAsync(r => r.Token == refreshToken, ct);
+        if (existing == null) return;
+        existing.RevokedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync(ct);
     }
 
     public async Task<PasswordResetResponse> ForgotPasswordAsync(ForgotPasswordRequest request, string frontendUrl, CancellationToken ct = default)
