@@ -55,7 +55,9 @@ public class ProfileService : IProfileService
                 user.Setac.PrezimeSetac,
                 user.Setac.LokacijaSetac,
                 user.Setac.TelefonSetac,
-                user.Setac.ProfilnaSetac
+                user.Setac.ProfilnaSetac,
+                user.Setac.VerificationStatus,
+                user.Setac.IsVerified
             );
         }
 
@@ -64,6 +66,7 @@ public class ProfileService : IProfileService
             user.EmailKorisnik,
             user.Ime,
             user.Prezime,
+            user.ProfilnaKorisnik,
             ownerProfile,
             walkerProfile
         );

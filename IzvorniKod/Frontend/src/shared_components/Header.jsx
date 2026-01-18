@@ -3,7 +3,6 @@ import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import logoImg from "../assets/logo.png";
 
-
 // koristim ovdje lokacije da odredim koji header prikazati ovisno o stranici
 
 export default function Header() {
@@ -17,11 +16,13 @@ export default function Header() {
   }
 
   // jednostavan header za login/signup stranice
-  
+
   if (
     location.pathname === "/" ||
     location.pathname === "/login" ||
-    location.pathname === "/signup"
+    location.pathname === "/signup" ||
+    location.pathname === "/forgot-password" ||
+    location.pathname === "/reset-password"
   ) {
     return (
       <header className="bg-white border-b border-gray-200 px-6 py-4 shadow-sm">
@@ -67,9 +68,7 @@ export default function Header() {
     );
   }
 
-  
-{/* header za ulogiranog korisnika */}
-
+  // header za ulogiranog korisnika
   if (user) {
     return (
       <header className="bg-white border-b border-gray-200 px-6 py-4">

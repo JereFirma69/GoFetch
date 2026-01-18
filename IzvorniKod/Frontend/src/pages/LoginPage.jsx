@@ -52,6 +52,8 @@ function LoginPage() {
         </button>
       </form>
 
+      <p><Link to="/forgot-password">Zaboravljena lozinka?</Link></p>
+
       <p>Nemaš račun? <Link to="/signup">Registracija</Link></p>
     </div>
   );

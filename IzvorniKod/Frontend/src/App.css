@@ -552,3 +552,112 @@ form button {
   resize: vertical;
   min-height: 60px;
 }
+
+/* Image Upload Component */
+.image-upload-field {
+  margin: 16px 0;
+}
+
+.form-field-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #1f2937;
+}
+
+.image-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.image-preview img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid #e5e7eb;
+}
+
+.btn-danger-small {
+  padding: 6px 12px;
+  font-size: 0.875rem;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.btn-danger-small:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.btn-danger-small:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.file-input-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.file-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  background: white;
+  transition: border-color 0.2s;
+}
+
+.file-input:hover:not(:disabled) {
+  border-color: #0ea5a0;
+}
+
+.file-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #f3f4f6;
+}
+
+.file-input-label {
+  pointer-events: none;
+  color: #6b7280;
+}
+
+.field-error {
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-top: 4px;
+}
+
+/* Success Message */
+.success-message {
+  padding: 20px;
+  background: #d1fae5;
+  border: 1px solid #10b981;
+  border-radius: 8px;
+  color: #065f46;
+  margin: 20px 0;
+  text-align: center;
+}
+
+.success-message p {
+  margin-bottom: 16px;
+}
+
+.success-message .primary-btn {
+  display: inline-block;
+  margin-top: 8px;
+}

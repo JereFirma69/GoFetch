@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PawPal.Api.Data;
@@ -11,9 +12,11 @@ using PawPal.Api.Data;
 namespace PawPal.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260115165133_AddPasswordResetToken")]
+    partial class AddPasswordResetToken
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -96,8 +99,8 @@ namespace PawPal.Api.Migrations
                         .HasColumnType("character varying(50)");
 
                     b.Property<string>("ProfilnaKorisnik")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("ProviderUserId")
                         .HasMaxLength(255)
@@ -139,8 +142,8 @@ namespace PawPal.Api.Migrations
 
                     b.Property<string>("ProfilnaPas")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<int>("RazinaEnergije")
                         .HasColumnType("integer");
@@ -387,8 +390,8 @@ namespace PawPal.Api.Migrations
 
                     b.Property<string>("ProfilnaSetac")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("TelefonSetac")
                         .IsRequired()

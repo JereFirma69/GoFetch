@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { api } from "../../utils/api";
+import ImageUpload from "../../shared_components/ImageUpload";
 
 export default function EditProfilePanel({ onBack, profileData, onRoleChange, onSaved }) {
   const { user, setUser } = useContext(AuthContext);
@@ -162,7 +163,6 @@ export default function EditProfilePanel({ onBack, profileData, onRoleChange, on
         firstName: user.firstName,
         lastName: user.lastName,
       };
-      if (data?.jwt) localStorage.setItem("jwt", data.jwt);
       localStorage.setItem("user", JSON.stringify(updatedUser));
       setUser(updatedUser);
 
@@ -215,17 +215,21 @@ export default function EditProfilePanel({ onBack, profileData, onRoleChange, on
               <span>Email</span>
               <input value={formData.email} disabled readOnly />
             </label>
-            <label className="form-field full">
-              <span>Profile Picture URL</span>
-              <input
-                placeholder="NYI"
-                value={formData.profilePicture}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, profilePicture: e.target.value }))
-                }
-              />
-            </label>
           </div>
+          <ImageUpload
+            label="Profile Picture"
+            currentUrl={formData.profilePicture}
+            onUpload={async (file) => {
+              const data = await api.upload("/upload/avatar", file);
+              setFormData((prev) => ({ ...prev, profilePicture: data.url }));
+              if (onSaved) await onSaved();
+            }}
+            onDelete={async () => {
+              await api.delete("/upload/avatar");
+              setFormData((prev) => ({ ...prev, profilePicture: "" }));
+              if (onSaved) await onSaved();
+            }}
+          />
         </section>
 
         {walkerEnabled && (
@@ -259,20 +263,25 @@ export default function EditProfilePanel({ onBack, profileData, onRoleChange, on
                   }
                 />
               </label>
-              <label className="form-field full">
-                <span>Walker Profile Picture URL (optional)</span>
-                <input
-                  placeholder="NYI"
-                  value={formData.walker.profilePicture}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      walker: { ...prev.walker, profilePicture: e.target.value },
-                    }))
-                  }
-                />
-              </label>
-            </div>
+          </div>
+          <ImageUpload
+            label="Walker Profile Picture (optional)"
+            currentUrl={formData.walker.profilePicture}
+            onUpload={async (file) => {
+              const data = await api.upload("/upload/walker-avatar", file);
+              setFormData((prev) => ({
+                ...prev,
+                walker: { ...prev.walker, profilePicture: data.url },
+              }));
+            }}
+            onDelete={async () => {
+              await api.delete("/upload/avatar");
+              setFormData((prev) => ({
+                ...prev,
+                walker: { ...prev.walker, profilePicture: "" },
+              }));
+            }}
+          />
           </section>
         )}
 

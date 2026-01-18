@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { api } from "../../utils/api";
+import ImageUpload from "../../shared_components/ImageUpload";
 import defaultDogPic from "../../assets/profileDog.jpg";
 
 export default function DogFormPanel({ dog, onBack, onSave }) {
@@ -13,6 +14,8 @@ export default function DogFormPanel({ dog, onBack, onSave }) {
   const [age, setAge] = useState("");
   const [breed, setBreed] = useState("");
   const [profilePicture, setProfilePicture] = useState("");
+  const [pendingFile, setPendingFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState("");
 
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -44,13 +47,20 @@ export default function DogFormPanel({ dog, onBack, onSave }) {
         zdravstveneNapomene: healthNotes || null,
         starost: parseInt(age),
         pasmina: breed,
-        profilnaPas: profilePicture || defaultDogPic,
+        // For new dogs, avoid sending base64 or temp preview URL
+        // The real image will be uploaded after the dog is created
+        profilnaPas: isEditing ? (profilePicture || "") : "",
       };
 
       if (isEditing) {
         await api.put(`/profile/dogs/${dog.idPas}`, payload);
       } else {
-        await api.post("/profile/dogs", payload);
+        const created = await api.post("/profile/dogs", payload);
+        // If user selected an image before creating, upload it now
+        if (pendingFile && created?.idPas) {
+          const data = await api.upload(`/upload/dog/${created.idPas}`, pendingFile);
+          setProfilePicture(data.url);
+        }
       }
 
       onSave?.();
@@ -111,15 +121,34 @@ export default function DogFormPanel({ dog, onBack, onSave }) {
               <span>Breed *</span>
               <input required value={breed} onChange={(e) => setBreed(e.target.value)} />
             </label>
-            <label className="form-field full">
-              <span>Profile Picture URL (optional)</span>
-              <input
-                placeholder="NYI (leave empty for default)"
-                value={profilePicture}
-                onChange={(e) => setProfilePicture(e.target.value)}
-              />
-            </label>
           </div>
+          <ImageUpload
+            label="Profile Picture"
+            currentUrl={previewUrl || profilePicture}
+            onUpload={async (file) => {
+              if (!dog?.idPas) {
+                // For new dogs, store file and show a local preview
+                setPendingFile(file);
+                const url = URL.createObjectURL(file);
+                setPreviewUrl(url);
+              } else {
+                // For existing dogs, upload immediately
+                const data = await api.upload(`/upload/dog/${dog.idPas}`, file);
+                setProfilePicture(data.url);
+              }
+            }}
+            onDelete={async () => {
+              if (dog?.idPas) {
+                await api.delete(`/upload/dog/${dog.idPas}`);
+              }
+              setProfilePicture("");
+              setPendingFile(null);
+              if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+                setPreviewUrl("");
+              }
+            }}
+          />
         </section>
 
         <section className="form-section">

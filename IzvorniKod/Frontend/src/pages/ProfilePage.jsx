@@ -25,9 +25,11 @@ export default function ProfilePage() {
     initialDogId ? { dog: { idPas: parseInt(initialDogId) } } : 
     null
   );
+
   const [refreshKey, setRefreshKey] = useState(0);
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("reviews");
 
   function openEditProfile() {
     setShowEdit(true);
@@ -77,11 +79,6 @@ export default function ProfilePage() {
     }
   }, [showEdit, dogFormMode, setSearchParams]);
 
-  const favoriteDogs = [
-    { id: 1, name: "Max", image: gD1 },
-    { id: 2, name: "Luna", image: gD2},
-    { id: 3, name: "Roki", image: p1 },
-  ];
 
   const addedDogs = profileData?.owner?.dogs?.map(dog => ({
     id: dog.idPas,
@@ -121,7 +118,9 @@ export default function ProfilePage() {
             user={{
               name: user?.displayName,
               email: user?.email,
+              role: user?.role,
             }}
+            profileData={profileData}
             onEdit={openEditProfile} 
             onLogout={logout} 
           />
@@ -132,6 +131,7 @@ export default function ProfilePage() {
             onDogClick={(dog) => openDogForm({ dog })}
           />
         </div>
+        
         <div className="profile-main-content">
           {showEdit ? (
             <EditProfilePanel 
@@ -147,11 +147,46 @@ export default function ProfilePage() {
               onSave={handleDogSave}
             />
           ) : (
-            <>
-              <FavoriteDogs dogs={favoriteDogs} />
-              <Reviews reviews={reviews} />
-            </>
-          )}
+  <div className="bg-white rounded-xl shadow-sm">
+    {/* Tabs */}
+    <div className="border-b">
+      <div className="flex">
+        {[
+          { key: "reviews", label: "⭐ Reviews" },
+          { key: "settings", label: "⚙️ Settings" },
+          { key: "payment", label: "💳 Payment" },
+        ].map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${
+              activeTab === tab.key
+                ? "text-teal-600 border-b-2 border-teal-500 bg-teal-50/50"
+                : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+    </div>
+
+    {/* Tab Content */}
+    <div className="p-6">
+      {activeTab === "reviews" && (
+        <Reviews reviews={reviews} />
+      )}
+
+      {activeTab === "settings" && (
+        <div>Settings - coming soon</div>
+      )}
+
+      {activeTab === "payment" && (
+        <div>Payment - coming soon</div>
+      )}
+    </div>
+  </div>
+)}
         </div>
       </div>
     </div>

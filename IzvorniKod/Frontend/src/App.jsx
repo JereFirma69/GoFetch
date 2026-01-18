@@ -4,18 +4,21 @@ import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import ProfilePage from "./pages/ProfilePage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import { AuthProvider, AuthContext } from "./context/AuthContext";
 import { useContext } from "react";
 import HomePage from "./pages/Homepage";
 import Header from "./shared_components/Header";
 import { ChatProvider } from "./components/chat/ChatContext";
 import ChatWidget from "./components/chat/ChatWidget";
+import { CalendarPage } from "./pages/CalendarPage";
 
 
 function PrivateRoute({ children }) {
   const { user } = useContext(AuthContext);
   const hasStoredUser = localStorage.getItem("user");
-  return (user || hasStoredUser) ? children : <Navigate to="/login" />;
+  return user || hasStoredUser ? children : <Navigate to="/login" />;
 }
 
 export default function App() {
@@ -35,6 +38,8 @@ export default function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route
           path="/profile"
           element={
@@ -44,6 +49,15 @@ export default function App() {
             </PrivateRoute>
           }
         />
+        <Route
+          path="/calendar"
+          element={
+            <PrivateRoute>
+              <CalendarPage />
+            </PrivateRoute>
+          }
+        />
+
         <Route
           path="/homepage"
           element={

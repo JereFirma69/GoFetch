@@ -20,7 +20,6 @@ export function AuthProvider({ children }) {
     setError("");
     try {
       const data = await api.post("/auth/login", { email, password });
-      localStorage.setItem("jwt", data.jwt);
       const userObj = { 
         userId: data.userId, 
         email: data.email, 
@@ -45,7 +44,6 @@ export function AuthProvider({ children }) {
     setError("");
     try {
       const data = await api.post("/auth/register", { firstName, lastName, email, password });
-      localStorage.setItem("jwt", data.jwt);
       const userObj = { 
         userId: data.userId, 
         email: data.email, 
@@ -70,7 +68,6 @@ export function AuthProvider({ children }) {
     setError("");
     try {
       const data = await api.post("/auth/oauth-login", { provider: "google", token: credential });
-      localStorage.setItem("jwt", data.jwt);
       const userObj = { 
         userId: data.userId, 
         email: data.email, 
@@ -90,8 +87,12 @@ export function AuthProvider({ children }) {
     }
   }
 
-  function logout() {
-    localStorage.removeItem("jwt");
+  async function logout() {
+    try {
+      await api.post("/auth/logout", {});
+    } catch (e) {
+      console.error('Logout error:', e);
+    }
     localStorage.removeItem("user");
     setUser(null);
     navigate("/", { replace: true });

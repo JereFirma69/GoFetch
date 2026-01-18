@@ -28,7 +28,7 @@ public class Pas
     [Required, MaxLength(50)]
     public string Pasmina { get; set; } = string.Empty;
 
-    [Required, MaxLength(100)]
+    [Required, MaxLength(500)]
     public string ProfilnaPas { get; set; } = string.Empty;
 
     [ForeignKey(nameof(Vlasnik))]

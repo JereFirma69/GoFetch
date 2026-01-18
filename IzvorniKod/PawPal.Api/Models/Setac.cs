@@ -15,7 +15,7 @@ public class Setac
     [Required, MaxLength(50)]
     public string PrezimeSetac { get; set; } = string.Empty;
 
-    [Required, MaxLength(100)]
+    [Required, MaxLength(500)]
     public string ProfilnaSetac { get; set; } = string.Empty;
 
     [Required, MaxLength(100)]
@@ -23,6 +23,12 @@ public class Setac
 
     [Required, MaxLength(20)]
     public string TelefonSetac { get; set; } = string.Empty;
+
+    // Verification fields
+    [MaxLength(20)]
+    public string VerificationStatus { get; set; } = "pending"; // pending, approved, rejected
+
+    public bool IsVerified { get; set; } = false;
 
     public Korisnik Korisnik { get; set; } = null!;
     public List<Clanarina> Clanarine { get; set; } = new();
