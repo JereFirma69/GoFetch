@@ -610,14 +610,12 @@ function DayView({ selectedDate, termini, rezervacije, onNewTermin, onTerminClic
         <div className="bg-white rounded-lg border">
           <div className="p-4 border-b bg-gray-50 flex items-center justify-between">
             <h3 className="font-semibold text-gray-800">Appointments ({dayTermini.length})</h3>
-            {isWalker && (
-              <button
-                onClick={onNewTermin}
-                className="px-3 py-1 bg-teal-500 text-white text-sm rounded-lg hover:bg-teal-600"
-              >
-                + New
-              </button>
-            )}
+            <button
+              onClick={onNewTermin}
+              className="px-3 py-1 bg-teal-500 text-white text-sm rounded-lg hover:bg-teal-600"
+            >
+              + New
+            </button>
           </div>
           <div className="divide-y max-h-[250px] overflow-auto">
             {dayTermini.length === 0 ? (
@@ -667,7 +665,14 @@ function DayView({ selectedDate, termini, rezervacije, onNewTermin, onTerminClic
 // ==================== Main Calendar Component ====================
 export function Calendar({ compact = false }) {
   const { user } = useContext(AuthContext);
-  const isWalker = user?.role === "walker" || user?.role === "setac";
+  // Allow calendar management for walkers and admins
+  const isWalker = user && (
+    user.role === "walker" || 
+    user.role === "setac" || 
+    user.role === "both" ||
+    user.role?.toLowerCase() === "admin" ||
+    user.email?.includes("admin")
+  );
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState("month");
@@ -695,22 +700,17 @@ export function Calendar({ compact = false }) {
     "July", "August", "September", "October", "November", "December",
   ];
 
-  // Check Google Calendar connection status
+  // Check Google Calendar connection status (available to all roles)
   const checkGoogleConnection = useCallback(async () => {
-    if (!isWalker) {
-      setGoogleLoading(false);
-      return;
-    }
-    
     try {
       const status = await getGoogleConnectionStatus();
-      setGoogleConnected(status.isConnected);
+      setGoogleConnected(Boolean(status?.isConnected));
     } catch (err) {
       console.error("Error checking Google Calendar status:", err);
     } finally {
       setGoogleLoading(false);
     }
-  }, [isWalker]);
+  }, []);
 
   // Fetch termini and rezervacije
   const fetchData = useCallback(async () => {
@@ -802,16 +802,12 @@ export function Calendar({ compact = false }) {
 
   const handleTimeSlotClick = (dateStr, time) => {
     setSelectedDate(dateStr);
-    if (isWalker) {
-      setShowModal(true);
-    }
+    setShowModal(true);
   };
 
   const handleTerminClick = (termin) => {
-    if (isWalker) {
-      setEditingTermin(termin);
-      setShowModal(true);
-    }
+    setEditingTermin(termin);
+    setShowModal(true);
   };
 
   const handleModalClose = () => {
@@ -836,8 +832,8 @@ export function Calendar({ compact = false }) {
 
   return (
     <div className={`bg-white rounded-xl shadow-sm ${compact ? "p-4" : "p-6"}`}>
-      {/* Google Calendar Connection (only for walkers) */}
-      {isWalker && !compact && (
+      {/* Google Calendar Connection - Available for all users in full view */}
+      {!compact && (
         <GoogleCalendarConnection
           isConnected={googleConnected}
           onConnect={handleConnectGoogle}
@@ -895,10 +891,10 @@ export function Calendar({ compact = false }) {
           )}
 
           <button onClick={goToToday} className="px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-50">
-            Danas
+            Today
           </button>
 
-          {!compact && isWalker && (
+          {!compact && (
             <button
               onClick={() => {
                 setEditingTermin(null);
@@ -906,7 +902,7 @@ export function Calendar({ compact = false }) {
               }}
               className="px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors"
             >
-              + Novi termin
+              + New appointment
             </button>
           )}
         </div>
@@ -966,16 +962,14 @@ export function Calendar({ compact = false }) {
         </div>
       )}
 
-      {/* Modal for new/edit termin (only for walkers) */}
-      {isWalker && (
-        <NewTerminModal
-          isOpen={showModal}
-          onClose={handleModalClose}
-          onSave={handleTerminSaved}
-          selectedDate={selectedDate}
-          editingTermin={editingTermin}
-        />
-      )}
+      {/* Modal for new/edit termin (available for all roles) */}
+      <NewTerminModal
+        isOpen={showModal}
+        onClose={handleModalClose}
+        onSave={handleTerminSaved}
+        selectedDate={selectedDate}
+        editingTermin={editingTermin}
+      />
     </div>
   );
 }
