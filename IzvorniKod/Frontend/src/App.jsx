@@ -11,7 +11,7 @@ import { useContext } from "react";
 import HomePage from "./pages/Homepage";
 import Header from "./shared_components/Header";
 import { CalendarPage } from "./pages/CalendarPage";
-import { ChatWidget } from "./components/chat/ChatWidget";
+import  ChatWidget from "./components/chat/ChatWidget";
 import { ChatProvider } from "./components/chat/ChatContext";
 
 function PrivateRoute({ children }) {
