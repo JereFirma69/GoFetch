@@ -30,8 +30,8 @@ export default function App() {
 
   return (
     <AuthProvider>
+      <ChatProvider walk={walk}>
       <Header />
-      <ChatProvider>
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
