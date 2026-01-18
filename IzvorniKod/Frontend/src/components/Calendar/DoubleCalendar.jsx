@@ -52,7 +52,7 @@ export default function DoubleCalendar() {
           }
         }
       } catch (e) {
-        // Cross-origin error - popup još nije redirectan
+
       }
       
       if (popup.closed) {
@@ -145,8 +145,11 @@ export default function DoubleCalendar() {
       console.error("Error:", error);
     }
   };
+    const canCancel = (eventStart) => {
+    return (new Date(eventStart) - new Date()) / (1000 * 60 * 60) >= 24;
+  };
 
-  // ========== NIJE SPOJEN ==========
+
   if (!isConnected) {
     return (
       <div className="space-y-4">
@@ -170,82 +173,106 @@ export default function DoubleCalendar() {
   }
 
   // ========== SPOJEN ==========
-  return (
-    <div className="bg-white rounded-xl shadow-sm p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-800">📅 Google Calendar</h3>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">
-            ✓ Connected
-          </span>
-          <button
-            onClick={() => setShowNewEvent(true)}
-            className="px-3 py-1 bg-teal-500 text-white text-sm rounded-lg hover:bg-teal-600"
-          >
-            + Book
-          </button>
+ return (
+    <div className="space-y-4">
+      {/* Header s connect statusom */}
+      <div className="bg-white rounded-xl shadow-sm p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">📅</span>
+            <div>
+              <h3 className="font-semibold text-gray-800">Google Calendar</h3>
+              <p className="text-sm text-gray-500">Synced with your account</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">
+              ✓ Connected
+            </span>
+            <button
+              onClick={() => setShowNewEvent(true)}
+              className="px-3 py-1.5 bg-teal-500 text-white text-sm rounded-lg hover:bg-teal-600"
+            >
+              + Book
+            </button>
+            <button
+              onClick={handleDisconnect}
+              className="text-sm text-gray-400 hover:text-gray-600"
+            >
+              Disconnect
+            </button>
+          </div>
         </div>
       </div>
 
+      {/* Nova rezervacija forma */}
       {showNewEvent && (
-        <form onSubmit={createGoogleEvent} className="mb-4 p-4 bg-gray-50 rounded-lg">
-          <div className="space-y-3">
-            <input
-              type="text"
-              placeholder="Title (e.g., Walk with Max)"
-              value={newEvent.summary}
-              onChange={(e) => setNewEvent({ ...newEvent, summary: e.target.value })}
-              className="w-full px-3 py-2 border rounded-lg"
-              required
-            />
-            <input
-              type="date"
-              value={newEvent.date}
-              onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
-              className="w-full px-3 py-2 border rounded-lg"
-              required
-            />
-            <div className="grid grid-cols-2 gap-2">
+        <div className="bg-white rounded-xl shadow-sm p-4">
+          <form onSubmit={createGoogleEvent}>
+            <h4 className="font-medium mb-3">New Appointment</h4>
+            <div className="space-y-3">
               <input
-                type="time"
-                value={newEvent.startTime}
-                onChange={(e) => setNewEvent({ ...newEvent, startTime: e.target.value })}
-                className="px-3 py-2 border rounded-lg"
+                type="text"
+                placeholder="Title (e.g., Walk with Max)"
+                value={newEvent.summary}
+                onChange={(e) => setNewEvent({ ...newEvent, summary: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg"
                 required
               />
               <input
-                type="time"
-                value={newEvent.endTime}
-                onChange={(e) => setNewEvent({ ...newEvent, endTime: e.target.value })}
-                className="px-3 py-2 border rounded-lg"
+                type="date"
+                value={newEvent.date}
+                onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg"
                 required
               />
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="time"
+                  value={newEvent.startTime}
+                  onChange={(e) => setNewEvent({ ...newEvent, startTime: e.target.value })}
+                  className="px-3 py-2 border rounded-lg"
+                  required
+                />
+                <input
+                  type="time"
+                  value={newEvent.endTime}
+                  onChange={(e) => setNewEvent({ ...newEvent, endTime: e.target.value })}
+                  className="px-3 py-2 border rounded-lg"
+                  required
+                />
+              </div>
+              <div className="flex gap-2">
+                <button type="button" onClick={() => setShowNewEvent(false)} className="flex-1 py-2 border rounded-lg hover:bg-gray-50">
+                  Cancel
+                </button>
+                <button type="submit" className="flex-1 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600">
+                  Book
+                </button>
+              </div>
             </div>
-            <div className="flex gap-2">
-              <button type="button" onClick={() => setShowNewEvent(false)} className="flex-1 py-2 border rounded-lg">
-                Cancel
-              </button>
-              <button type="submit" className="flex-1 py-2 bg-teal-500 text-white rounded-lg">
-                Book
-              </button>
-            </div>
-          </div>
-        </form>
+          </form>
+        </div>
       )}
 
-      {loading ? (
-        <p className="text-gray-500 text-center py-4">Loading...</p>
-      ) : googleEvents.length === 0 ? (
-        <p className="text-gray-500 text-center py-8">No upcoming appointments</p>
-      ) : (
-        <div className="space-y-3 max-h-[400px] overflow-auto">
-          {googleEvents.map((event) => {
-            const canCancel = (new Date(event.start?.dateTime) - new Date()) / (1000 * 60 * 60) >= 24;
-            return (
+      {/* Kalendar prikaz */}
+      <Calendar compact={false} />
+
+      {/* Upcoming Appointments lista */}
+      <div className="bg-white rounded-xl shadow-sm p-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">📋 Upcoming Appointments</h3>
+        
+        {loading ? (
+          <p className="text-gray-500 text-center py-4">Loading...</p>
+        ) : googleEvents.length === 0 ? (
+          <p className="text-gray-500 text-center py-4">No upcoming appointments</p>
+        ) : (
+          <div className="space-y-3 max-h-[300px] overflow-auto">
+            {googleEvents.map((event) => (
               <div key={event.id} className="p-3 bg-gray-50 rounded-lg border-l-4 border-teal-500">
                 <div className="flex justify-between items-start">
                   <div className="font-medium text-gray-800">{event.summary || "No title"}</div>
-                  {canCancel ? (
+                  {canCancel(event.start?.dateTime || event.start?.date) ? (
                     <button
                       onClick={() => cancelGoogleEvent(event.id, event.start?.dateTime)}
                       className="text-xs text-red-500 hover:text-red-700"
@@ -253,23 +280,23 @@ export default function DoubleCalendar() {
                       Cancel
                     </button>
                   ) : (
-                    <span className="text-xs text-gray-400">Cannot cancel</span>
+                    <span className="text-xs text-gray-400">Cannot cancel (&lt;24h)</span>
                   )}
                 </div>
                 <div className="text-sm text-gray-500 mt-1">
                   {new Date(event.start?.dateTime || event.start?.date).toLocaleString("en-US", {
-                    weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
                   })}
                 </div>
               </div>
-            );
-          })}
-        </div>
-      )}
-
-      <button onClick={handleDisconnect} className="mt-4 text-sm text-gray-500 hover:text-gray-700">
-        Disconnect
-      </button>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
