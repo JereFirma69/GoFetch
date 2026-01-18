@@ -1,14 +1,58 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import { AuthContext } from "../../context/AuthContext";
 import { Calendar } from "../../pages/CalendarPage";
-import { getMyRezervacije } from "../../utils/calendarApi";
+import { 
+  getMyRezervacije, 
+  getGoogleAuthUrl, 
+  getGoogleConnectionStatus, 
+  disconnectGoogleCalendar 
+} from "../../utils/calendarApi";
 
 export default function DoubleCalendar() {
+  const { user } = useContext(AuthContext);
   const [upcomingAppointments, setUpcomingAppointments] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [googleConnected, setGoogleConnected] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(true);
+  const isWalker = user?.role === "walker" || user?.role === "both";
 
   useEffect(() => {
     fetchAppointments();
-  }, []);
+    if (isWalker) {
+      checkGoogleConnection();
+    }
+  }, [isWalker]);
+
+  const checkGoogleConnection = async () => {
+    setGoogleLoading(true);
+    try {
+      const status = await getGoogleConnectionStatus();
+      setGoogleConnected(status.isConnected);
+    } catch (error) {
+      console.error("Error checking Google connection:", error);
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  const handleConnectGoogle = async () => {
+    try {
+      const data = await getGoogleAuthUrl();
+      window.location.href = data.authUrl;
+    } catch (error) {
+      console.error("Error getting Google auth URL:", error);
+    }
+  };
+
+  const handleDisconnectGoogle = async () => {
+    if (!confirm("Are you sure you want to disconnect Google Calendar?")) return;
+    try {
+      await disconnectGoogleCalendar();
+      setGoogleConnected(false);
+    } catch (error) {
+      console.error("Error disconnecting Google Calendar:", error);
+    }
+  };
 
   const fetchAppointments = async () => {
     setLoading(true);
@@ -30,6 +74,49 @@ export default function DoubleCalendar() {
 
   return (
     <div className="space-y-4">
+      {/* Google Calendar Connection (only for walkers) */}
+      {isWalker && (
+        <div className={`rounded-lg border p-4 ${googleConnected ? "bg-green-50 border-green-300" : "bg-teal-50 border-teal-300"}`}>
+          {googleLoading ? (
+            <div className="flex items-center gap-3">
+              <div className="animate-spin w-5 h-5 border-2 border-teal-500 border-t-transparent rounded-full" />
+              <span className="text-gray-600">Checking connection...</span>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <svg className="w-8 h-8" viewBox="0 0 24 24">
+                  <path fill="#1a73e8" d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM5 8V6h14v2H5z"/>
+                </svg>
+                <div>
+                  <h3 className="font-semibold text-gray-800">🔗 Connect Google Calendar</h3>
+                  <p className="text-sm text-gray-600">
+                    {googleConnected
+                      ? "Sync appointments across devices"
+                      : "Sync appointments across devices"}
+                  </p>
+                </div>
+              </div>
+              {googleConnected ? (
+                <button
+                  onClick={handleDisconnectGoogle}
+                  className="px-4 py-2 text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
+                >
+                  Disconnect
+                </button>
+              ) : (
+                <button
+                  onClick={handleConnectGoogle}
+                  className="px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors"
+                >
+                  Connect
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Kalendar prikaz */}
       <Calendar compact={false} />
 

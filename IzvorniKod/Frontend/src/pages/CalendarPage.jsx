@@ -14,10 +14,9 @@ import {
 
 // Status colors and labels
 const statusConfig = {
-  prihvacena: { bg: "bg-emerald-100", border: "border-emerald-400", text: "text-emerald-700", label: "Potvrđeno" },
-  "na cekanju": { bg: "bg-amber-100", border: "border-amber-400", text: "text-amber-700", label: "Na čekanju" },
-  otkazana: { bg: "bg-red-100", border: "border-red-400", text: "text-red-700", label: "Otkazano" },
-  available: { bg: "bg-blue-100", border: "border-blue-400", text: "text-blue-700", label: "Slobodno" },
+  prihvacena: { bg: "bg-emerald-100", border: "border-emerald-400", text: "text-emerald-700", label: "Confirmed" },
+  "na cekanju": { bg: "bg-amber-100", border: "border-amber-400", text: "text-amber-700", label: "Pending" },
+  otkazana: { bg: "bg-red-100", border: "border-red-400", text: "text-red-700", label: "Cancelled" },
 };
 
 // Helper functions
@@ -40,26 +39,24 @@ function GoogleCalendarConnection({ isConnected, onConnect, onDisconnect, loadin
     return (
       <div className="bg-white rounded-lg border p-4 mb-4 flex items-center gap-3">
         <div className="animate-spin w-5 h-5 border-2 border-teal-500 border-t-transparent rounded-full" />
-        <span className="text-gray-600">Provjera Google Calendar povezanosti...</span>
+        <span className="text-gray-600">Checking Google Calendar connection...</span>
       </div>
     );
   }
 
   return (
-    <div className={`rounded-lg border p-4 mb-4 ${isConnected ? "bg-green-50 border-green-300" : "bg-yellow-50 border-yellow-300"}`}>
+    <div className={`rounded-lg border p-4 mb-4 ${isConnected ? "bg-green-50 border-green-300" : "bg-teal-50 border-teal-300"}`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <img 
-            src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg" 
-            alt="Google Calendar" 
-            className="w-8 h-8" 
-          />
+          <svg className="w-8 h-8" viewBox="0 0 24 24">
+            <path fill="#1a73e8" d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM5 8V6h14v2H5z"/>
+          </svg>
           <div>
-            <h3 className="font-semibold text-gray-800">Google Calendar</h3>
+            <h3 className="font-semibold text-gray-800">🔗 Connect Google Calendar</h3>
             <p className="text-sm text-gray-600">
               {isConnected
-                ? "✓ Povezano - vaši termini se automatski sinkroniziraju"
-                : "Povežite Google Calendar za automatsku sinkronizaciju termina"}
+                ? "✓ Connected - your appointments sync automatically"
+                : "Sync appointments across devices"}
             </p>
           </div>
         </div>
@@ -68,17 +65,14 @@ function GoogleCalendarConnection({ isConnected, onConnect, onDisconnect, loadin
             onClick={onDisconnect}
             className="px-4 py-2 text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
           >
-            Odspoji
+            Disconnect
           </button>
         ) : (
           <button
             onClick={onConnect}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2"
+            className="px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors flex items-center gap-2"
           >
-            <svg className="w-5 h-5" viewBox="0 0 24 24">
-              <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-            </svg>
-            Poveži
+            Connect
           </button>
         )}
       </div>
@@ -91,11 +85,9 @@ function TerminBadge({ termin, compact = false, onClick }) {
   const hasBookings = termin.bookedDogs > 0;
   const isFull = termin.availableSlots <= 0;
   
-  let status = "available";
+  let status = "na cekanju";
   if (isFull) {
     status = "prihvacena";
-  } else if (hasBookings) {
-    status = "na cekanju";
   }
 
   const config = statusConfig[status];
@@ -123,7 +115,7 @@ function TerminBadge({ termin, compact = false, onClick }) {
         <span className="text-xs px-2 py-0.5 rounded-full bg-white/50">{config.label}</span>
       </div>
       <div className="mt-1 text-sm">
-        <div>🐕 {termin.bookedDogs}/{termin.maxDogs} pasa</div>
+        <div>🐕 {termin.bookedDogs}/{termin.maxDogs} dogs</div>
         <div>📍 {termin.lokacijaTermin}</div>
         <div>💰 {termin.cijena} €</div>
       </div>
@@ -161,13 +153,13 @@ function RezervacijaBadge({ rezervacija, onStatusChange, isWalker }) {
             onClick={() => onStatusChange(rezervacija.idRezervacija, "prihvacena")}
             className="flex-1 px-3 py-1.5 bg-emerald-500 text-white text-sm rounded-lg hover:bg-emerald-600"
           >
-            ✓ Potvrdi
+            ✓ Confirm
           </button>
           <button
             onClick={() => onStatusChange(rezervacija.idRezervacija, "otkazana")}
             className="flex-1 px-3 py-1.5 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600"
           >
-            ✗ Odbij
+            ✗ Reject
           </button>
         </div>
       )}
@@ -223,7 +215,7 @@ function NewTerminModal({ isOpen, onClose, onSave, selectedDate, editingTermin }
       const trajanjeMins = Math.round((endDateTime - startDateTime) / (1000 * 60));
 
       if (trajanjeMins <= 0) {
-        throw new Error("Vrijeme završetka mora biti nakon početka");
+        throw new Error("End time must be after start time");
       }
 
       const terminData = {
@@ -244,14 +236,14 @@ function NewTerminModal({ isOpen, onClose, onSave, selectedDate, editingTermin }
       onSave();
       onClose();
     } catch (err) {
-      setError(err.message || "Greška pri spremanju termina");
+      setError(err.message || "Error saving appointment");
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!editingTermin || !window.confirm("Jeste li sigurni da želite obrisati ovaj termin?")) return;
+    if (!editingTermin || !window.confirm("Are you sure you want to delete this appointment?")) return;
     
     setLoading(true);
     try {
@@ -259,7 +251,7 @@ function NewTerminModal({ isOpen, onClose, onSave, selectedDate, editingTermin }
       onSave();
       onClose();
     } catch (err) {
-      setError(err.message || "Greška pri brisanju termina");
+      setError(err.message || "Error deleting appointment");
     } finally {
       setLoading(false);
     }
@@ -270,7 +262,7 @@ function NewTerminModal({ isOpen, onClose, onSave, selectedDate, editingTermin }
       <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-auto">
         <div className="flex items-center justify-between p-4 border-b">
           <h3 className="text-lg font-semibold">
-            {editingTermin ? "Uredi termin" : "Novi termin"}
+            {editingTermin ? "Edit Appointment" : "New Appointment"}
           </h3>
           <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded text-xl">×</button>
         </div>
@@ -282,7 +274,7 @@ function NewTerminModal({ isOpen, onClose, onSave, selectedDate, editingTermin }
           )}
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Datum</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
             <input
               type="date"
               value={date}
@@ -294,7 +286,7 @@ function NewTerminModal({ isOpen, onClose, onSave, selectedDate, editingTermin }
           
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Početak</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
               <input
                 type="time"
                 value={startTime}
@@ -304,7 +296,7 @@ function NewTerminModal({ isOpen, onClose, onSave, selectedDate, editingTermin }
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Kraj</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
               <input
                 type="time"
                 value={endTime}
@@ -316,20 +308,20 @@ function NewTerminModal({ isOpen, onClose, onSave, selectedDate, editingTermin }
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Vrsta šetnje</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Walk Type</label>
             <select
               value={vrstaSetnje}
               onChange={(e) => setVrstaSetnje(e.target.value)}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500"
             >
-              <option value="individualna">Individualna</option>
-              <option value="grupna">Grupna</option>
+              <option value="individualna">Individual</option>
+              <option value="grupna">Group</option>
             </select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Cijena (€)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Price (€)</label>
               <input
                 type="number"
                 min="0"
@@ -341,7 +333,7 @@ function NewTerminModal({ isOpen, onClose, onSave, selectedDate, editingTermin }
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Max pasa</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Max Dogs</label>
               <select
                 value={maxDogs}
                 onChange={(e) => setMaxDogs(e.target.value)}
@@ -357,12 +349,12 @@ function NewTerminModal({ isOpen, onClose, onSave, selectedDate, editingTermin }
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Lokacija</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
             <input
               type="text"
               value={lokacija}
               onChange={(e) => setLokacija(e.target.value)}
-              placeholder="npr. Park Maksimir, Zagreb"
+              placeholder="e.g. Maksimir Park, Zagreb"
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500"
               required
             />
@@ -376,7 +368,7 @@ function NewTerminModal({ isOpen, onClose, onSave, selectedDate, editingTermin }
                 disabled={loading}
                 className="px-4 py-2 text-red-600 border border-red-300 rounded-lg hover:bg-red-50 disabled:opacity-50"
               >
-                Obriši
+                Delete
               </button>
             )}
             <button
@@ -384,14 +376,14 @@ function NewTerminModal({ isOpen, onClose, onSave, selectedDate, editingTermin }
               onClick={onClose}
               className="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50"
             >
-              Odustani
+              Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
               className="flex-1 px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 disabled:opacity-50"
             >
-              {loading ? "Spremanje..." : "Spremi"}
+              {loading ? "Saving..." : "Save"}
             </button>
           </div>
         </form>
@@ -451,7 +443,7 @@ function MonthView({ currentDate, termini, onDayClick, compact }) {
                 <TerminBadge key={termin.idTermin} termin={termin} compact />
               ))}
               {dayTermini.length > 2 && (
-                <div className="text-xs text-gray-500">+{dayTermini.length - 2} više</div>
+                <div className="text-xs text-gray-500">+{dayTermini.length - 2} more</div>
               )}
             </div>
           )}
@@ -614,16 +606,16 @@ function DayView({ selectedDate, termini, rezervacije, onNewTermin, onTerminClic
 
       {/* Sidebar */}
       <div className="space-y-4">
-        {/* Termini */}
+        {/* Appointments */}
         <div className="bg-white rounded-lg border">
           <div className="p-4 border-b bg-gray-50 flex items-center justify-between">
-            <h3 className="font-semibold text-gray-800">Termini ({dayTermini.length})</h3>
+            <h3 className="font-semibold text-gray-800">Appointments ({dayTermini.length})</h3>
             {isWalker && (
               <button
                 onClick={onNewTermin}
                 className="px-3 py-1 bg-teal-500 text-white text-sm rounded-lg hover:bg-teal-600"
               >
-                + Novi
+                + New
               </button>
             )}
           </div>
@@ -631,7 +623,7 @@ function DayView({ selectedDate, termini, rezervacije, onNewTermin, onTerminClic
             {dayTermini.length === 0 ? (
               <div className="p-6 text-center text-gray-500">
                 <div className="text-3xl mb-2">📅</div>
-                <p>Nema termina za ovaj dan</p>
+                <p>No appointments for this day</p>
               </div>
             ) : (
               dayTermini.map((termin) => (
@@ -643,16 +635,16 @@ function DayView({ selectedDate, termini, rezervacije, onNewTermin, onTerminClic
           </div>
         </div>
 
-        {/* Rezervacije */}
+        {/* Bookings */}
         <div className="bg-white rounded-lg border">
           <div className="p-4 border-b bg-gray-50">
-            <h3 className="font-semibold text-gray-800">Rezervacije ({dayRezervacije.length})</h3>
+            <h3 className="font-semibold text-gray-800">Bookings ({dayRezervacije.length})</h3>
           </div>
           <div className="divide-y max-h-[300px] overflow-auto">
             {dayRezervacije.length === 0 ? (
               <div className="p-6 text-center text-gray-500">
                 <div className="text-3xl mb-2">🐕</div>
-                <p>Nema rezervacija za ovaj dan</p>
+                <p>No bookings for this day</p>
               </div>
             ) : (
               dayRezervacije.map((rez) => (
@@ -699,8 +691,8 @@ export function Calendar({ compact = false }) {
   const month = currentDate.getMonth();
 
   const monthNames = [
-    "Siječanj", "Veljača", "Ožujak", "Travanj", "Svibanj", "Lipanj",
-    "Srpanj", "Kolovoz", "Rujan", "Listopad", "Studeni", "Prosinac",
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
   ];
 
   // Check Google Calendar connection status
@@ -739,7 +731,7 @@ export function Calendar({ compact = false }) {
       setRezervacije(rezervacijeData || []);
     } catch (err) {
       console.error("Error fetching calendar data:", err);
-      setError("Greška pri učitavanju kalendara");
+      setError("Error loading calendar");
     } finally {
       setLoading(false);
     }
@@ -769,19 +761,19 @@ export function Calendar({ compact = false }) {
       window.location.href = response.authorizationUrl;
     } catch (err) {
       console.error("Error getting Google auth URL:", err);
-      alert("Greška pri pokretanju Google autorizacije");
+      alert("Error starting Google authorization");
     }
   };
 
   const handleDisconnectGoogle = async () => {
-    if (!window.confirm("Jeste li sigurni da želite odspojiti Google Calendar?")) return;
+    if (!window.confirm("Are you sure you want to disconnect Google Calendar?")) return;
     
     try {
       await disconnectGoogleCalendar();
       setGoogleConnected(false);
     } catch (err) {
       console.error("Error disconnecting Google Calendar:", err);
-      alert("Greška pri odspajanju Google Calendara");
+      alert("Error disconnecting Google Calendar");
     }
   };
 
@@ -791,7 +783,7 @@ export function Calendar({ compact = false }) {
       fetchData(); // Refresh data
     } catch (err) {
       console.error("Error updating reservation status:", err);
-      alert("Greška pri ažuriranju statusa rezervacije");
+      alert("Error updating booking status");
     }
   };
 
@@ -836,7 +828,7 @@ export function Calendar({ compact = false }) {
       <div className={`bg-white rounded-xl shadow-sm ${compact ? "p-4" : "p-6"}`}>
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full" />
-          <span className="ml-3 text-gray-600">Učitavanje kalendara...</span>
+          <span className="ml-3 text-gray-600">Loading calendar...</span>
         </div>
       </div>
     );
@@ -885,9 +877,9 @@ export function Calendar({ compact = false }) {
           {!compact && (
             <div className="flex bg-gray-100 rounded-lg p-1">
               {[
-                { key: "month", label: "Mjesec" },
-                { key: "week", label: "Tjedan" },
-                { key: "day", label: "Dan" },
+                { key: "month", label: "Month" },
+                { key: "week", label: "Week" },
+                { key: "day", label: "Day" },
               ].map((v) => (
                 <button
                   key={v.key}
@@ -960,20 +952,16 @@ export function Calendar({ compact = false }) {
       {!compact && (
         <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-600">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded bg-blue-500" />
-            <span>Slobodno</span>
-          </div>
-          <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded bg-amber-500" />
-            <span>Na čekanju</span>
+            <span>Pending</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded bg-emerald-500" />
-            <span>Potvrđeno</span>
+            <span>Confirmed</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded bg-red-500" />
-            <span>Otkazano</span>
+            <span>Cancelled</span>
           </div>
         </div>
       )}
@@ -996,7 +984,7 @@ export function CalendarPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6">🐕 Šetnje pasa - Kalendar</h1>
+        <h1 className="text-3xl font-bold text-gray-800 mb-6">🐕 Dog Walking - Calendar</h1>
         <Calendar />
       </div>
     </div>
