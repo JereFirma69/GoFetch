@@ -52,7 +52,16 @@ export default function DogFormPanel({ dog, onBack, onSave }) {
       }
       setPreviewUrl("");
     }
-  }, [dog, previewUrl]);
+  }, [dog]);
+
+  // Cleanup blob URL on unmount
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   async function handleSave(e) {
     e.preventDefault();
