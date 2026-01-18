@@ -10,9 +10,16 @@ import { AuthProvider, AuthContext } from "./context/AuthContext";
 import { useContext } from "react";
 import HomePage from "./pages/Homepage";
 import Header from "./shared_components/Header";
+<<<<<<< HEAD
 import { CalendarPage } from "./pages/CalendarPage";
 import  ChatWidget from "./components/chat/ChatWidget";
 import { ChatProvider } from "./components/chat/ChatContext";
+=======
+import { ChatProvider } from "./components/chat/ChatContext";
+import ChatWidget from "./components/chat/ChatWidget";
+import { CalendarPage } from "./pages/CalendarPage";
+import { GoogleOAuthProvider } from "@react-oauth/google";
+>>>>>>> main
 
 function PrivateRoute({ children }) {
   const { user } = useContext(AuthContext);
@@ -72,5 +79,6 @@ export default function App() {
       </Routes>
       </ChatProvider>
     </AuthProvider>
+
   );
 }
