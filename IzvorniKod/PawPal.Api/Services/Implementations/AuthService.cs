@@ -160,6 +160,15 @@ public class AuthService : IAuthService
 
             _db.Korisnici.Add(user);
             await _db.SaveChangesAsync(ct);
+
+            // Auto-create owner profile for OAuth registrations
+            var vlasnik = new Vlasnik
+            {
+                IdKorisnik = user.IdKorisnik,
+                Korisnik = user
+            };
+            _db.Vlasnici.Add(vlasnik);
+            await _db.SaveChangesAsync(ct);
         }
         else
         {
@@ -180,6 +189,18 @@ public class AuthService : IAuthService
                 user.Ime = firstName;
                 user.Prezime = lastName;
                 await _db.SaveChangesAsync(ct);
+            }
+
+            // Ensure owner role exists if none set
+            await _db.Entry(user).ReloadAsync(ct);
+            if (user.Vlasnik == null && user.Setac == null && user.Administrator == null)
+            {
+                var vlasnikExisting = await _db.Vlasnici.FirstOrDefaultAsync(v => v.IdKorisnik == user.IdKorisnik, ct);
+                if (vlasnikExisting == null)
+                {
+                    _db.Vlasnici.Add(new Vlasnik { IdKorisnik = user.IdKorisnik });
+                    await _db.SaveChangesAsync(ct);
+                }
             }
         }
 
@@ -412,16 +433,9 @@ public class AuthService : IAuthService
             t.IsUsed = true;
         }
 
-        // Generate new token
+        // Generate new token (UTC timestamps)
         var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
-        
-        // Use local time converted to UTC to handle timezone issues
-        var localNow = DateTime.Now;
-        var utcNow = localNow.ToUniversalTime();
-        
-        _logger.LogInformation("Time Debug - LocalNow: {LocalNow}, UtcNow: {UtcNow}, Offset: {Offset} hours", 
-            localNow, utcNow, (localNow - utcNow).TotalHours);
-        
+        var utcNow = DateTime.UtcNow;
         var expiry = utcNow.AddHours(1);
         var resetToken = new PasswordResetToken
         {
@@ -453,7 +467,7 @@ public class AuthService : IAuthService
             return new PasswordResetResponse(false, "Invalid or expired reset token.");
         }
 
-        if (resetToken.ExpiresAt < DateTime.Now.ToUniversalTime())
+        if (resetToken.ExpiresAt < DateTime.UtcNow)
         {
             return new PasswordResetResponse(false, "Reset token has expired.");
         }

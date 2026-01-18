@@ -351,7 +351,7 @@ function MonthView({ currentDate, termini, onDayClick, compact }) {
   const daysInMonth = lastDayOfMonth.getDate();
   const startingDayOfWeek = firstDayOfMonth.getDay();
 
-  const dayNames = ["Ned", "Pon", "Uto", "Sri", "Čet", "Pet", "Sub"];
+  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   const getTerminiForDate = (day) => {
     const dateStr = formatDateString(year, month, day);
@@ -444,7 +444,7 @@ function WeekView({ currentDate, termini, onTimeSlotClick }) {
 
   const weekDays = getWeekDays();
   const hours = Array.from({ length: 12 }, (_, i) => i + 7);
-  const dayNames = ["Ned", "Pon", "Uto", "Sri", "Čet", "Pet", "Sub"];
+  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   const isToday = (date) => {
     const today = new Date();
@@ -454,7 +454,7 @@ function WeekView({ currentDate, termini, onTimeSlotClick }) {
   return (
     <div className="overflow-auto">
       <div className="grid grid-cols-8 min-w-[700px]">
-        <div className="sticky top-0 bg-gray-100 p-2 border-b font-medium text-gray-500 text-sm">Sat</div>
+        <div className="sticky top-0 bg-gray-100 p-2 border-b font-medium text-gray-500 text-sm">Hour</div>
         {weekDays.map((d, i) => {
           const today = isToday(d);
           return (
@@ -508,7 +508,7 @@ function DayView({ selectedDate, termini, rezervacije, onNewTermin, onTerminClic
   const hours = Array.from({ length: 12 }, (_, i) => i + 7);
 
   const dateObj = new Date(selectedDate + "T00:00:00");
-  const formattedDate = dateObj.toLocaleDateString("hr-HR", {
+  const formattedDate = dateObj.toLocaleDateString("en-US", {
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -524,7 +524,7 @@ function DayView({ selectedDate, termini, rezervacije, onNewTermin, onTerminClic
             onClick={onBack}
             className="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors text-gray-700 text-sm font-medium"
           >
-            ← Natrag
+            ← Back
           </button>
           <h3 className="font-semibold text-gray-800 capitalize">{formattedDate}</h3>
         </div>

@@ -47,7 +47,11 @@ public class GoogleCalendarService : IGoogleCalendarService
         var flow = CreateFlow();
         var authUri = flow.CreateAuthorizationCodeRequest(_options.RedirectUri);
         authUri.State = walkerId.ToString(); // Pass walkerId in state for callback
-        return authUri.Build().ToString();
+        var baseUrl = authUri.Build().ToString();
+        // Append parameters to force account selection and consent, and request offline access
+        var separator = baseUrl.Contains('?') ? '&' : '?';
+        var extras = "access_type=offline&prompt=consent%20select_account&include_granted_scopes=true";
+        return baseUrl + separator + extras;
     }
 
     public async Task SaveOAuthTokensAsync(int walkerId, string authCode, CancellationToken ct = default)
