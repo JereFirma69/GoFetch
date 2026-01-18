@@ -113,11 +113,18 @@ public class CalendarController : ControllerBase
         [FromQuery] DateTime? to, 
         CancellationToken ct)
     {
-        var userId = GetUserId();
-        var fromDate = from ?? DateTime.UtcNow.AddMonths(-1);
-        var toDate = to ?? DateTime.UtcNow.AddMonths(3);
-        var termini = await _calendarService.GetWalkerTerminiAsync(userId, fromDate, toDate, ct);
-        return Ok(termini);
+        try
+        {
+            var userId = GetUserId();
+            var fromDate = from.HasValue ? DateTime.SpecifyKind(from.Value, DateTimeKind.Utc) : DateTime.UtcNow.AddMonths(-1);
+            var toDate = to.HasValue ? DateTime.SpecifyKind(to.Value, DateTimeKind.Utc) : DateTime.UtcNow.AddMonths(3);
+            var termini = await _calendarService.GetWalkerTerminiAsync(userId, fromDate, toDate, ct);
+            return Ok(termini);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = ex.Message, details = ex.ToString() });
+        }
     }
 
     [HttpGet("termini/{terminId}")]
@@ -182,7 +189,9 @@ public class CalendarController : ControllerBase
         [FromQuery] string? vrstaSetnje,
         CancellationToken ct)
     {
-        var query = new AvailableSlotsQuery(from, to, location, maxPrice, vrstaSetnje);
+        var fromUtc = DateTime.SpecifyKind(from, DateTimeKind.Utc);
+        var toUtc = DateTime.SpecifyKind(to, DateTimeKind.Utc);
+        var query = new AvailableSlotsQuery(fromUtc, toUtc, location, maxPrice, vrstaSetnje);
         var slots = await _calendarService.GetAvailableSlotsAsync(query, ct);
         return Ok(slots);
     }
@@ -216,8 +225,8 @@ public class CalendarController : ControllerBase
         CancellationToken ct)
     {
         var userId = GetUserId();
-        var fromDate = from ?? DateTime.UtcNow.AddMonths(-1);
-        var toDate = to ?? DateTime.UtcNow.AddMonths(3);
+        var fromDate = from.HasValue ? DateTime.SpecifyKind(from.Value, DateTimeKind.Utc) : DateTime.UtcNow.AddMonths(-1);
+        var toDate = to.HasValue ? DateTime.SpecifyKind(to.Value, DateTimeKind.Utc) : DateTime.UtcNow.AddMonths(3);
         var rezervacije = await _calendarService.GetUserRezervacijeAsync(userId, fromDate, toDate, ct);
         
         // Filter by status if provided
