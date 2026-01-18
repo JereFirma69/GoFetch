@@ -118,8 +118,8 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<WalkerGoogleAuth>(entity =>
         {
-            entity.HasOne(w => w.Setac)
-                .WithOne(s => s.GoogleAuth)
+            entity.HasOne(w => w.Korisnik)
+                .WithOne(k => k.GoogleAuth)
                 .HasForeignKey<WalkerGoogleAuth>(w => w.IdKorisnik)
                 .OnDelete(DeleteBehavior.Cascade);
         });

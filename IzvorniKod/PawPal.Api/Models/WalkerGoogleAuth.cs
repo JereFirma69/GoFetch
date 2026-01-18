@@ -6,7 +6,7 @@ namespace PawPal.Api.Models;
 public class WalkerGoogleAuth
 {
     [Key]
-    [ForeignKey(nameof(Setac))]
+    [ForeignKey(nameof(Korisnik))]
     public int IdKorisnik { get; set; }
 
     [Required]
@@ -20,5 +20,5 @@ public class WalkerGoogleAuth
     [MaxLength(255)]
     public string CalendarId { get; set; } = "primary";
 
-    public Setac Setac { get; set; } = null!;
+    public Korisnik Korisnik { get; set; } = null!;
 }

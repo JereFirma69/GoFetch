@@ -28,6 +28,7 @@ public class Korisnik
     [MaxLength(500)]
     public string? ProfilnaKorisnik { get; set; }
 
+    public WalkerGoogleAuth? GoogleAuth { get; set; }
     public Vlasnik? Vlasnik { get; set; }
     public Setac? Setac { get; set; }
     public Administrator? Administrator { get; set; }

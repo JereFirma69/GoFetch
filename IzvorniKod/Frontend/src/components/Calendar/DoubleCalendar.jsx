@@ -1,16 +1,73 @@
 import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { Calendar } from "../../pages/CalendarPage";
-import { getMyRezervacije } from "../../utils/calendarApi";
+import { 
+  getMyRezervacije,
+  getGoogleAuthUrl,
+  getGoogleConnectionStatus,
+  disconnectGoogleCalendar
+} from "../../utils/calendarApi";
 
 export default function DoubleCalendar() {
   const { user } = useContext(AuthContext);
   const [upcomingAppointments, setUpcomingAppointments] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [googleConnected, setGoogleConnected] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(true);
 
   useEffect(() => {
     fetchAppointments();
+    checkGoogleConnection();
+    
+    // Check for OAuth callback
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("calendar") === "connected") {
+      // Refresh connection status after successful OAuth
+      setTimeout(() => {
+        checkGoogleConnection();
+      }, 500);
+      // Clean URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
   }, []);
+
+  const checkGoogleConnection = async () => {
+    setGoogleLoading(true);
+    try {
+      const status = await getGoogleConnectionStatus();
+      setGoogleConnected(status.isConnected);
+    } catch (error) {
+      console.error("Error checking Google connection:", error);
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  const handleConnectGoogle = async () => {
+    try {
+      const response = await getGoogleAuthUrl();
+      const url = response?.authorizationUrl;
+      if (url && typeof url === "string") {
+        window.location.href = url;
+      } else {
+        console.error("Missing authorizationUrl in response:", response);
+        alert("Could not start Google authorization. Please try again later.");
+      }
+    } catch (error) {
+      console.error("Error getting Google auth URL:", error);
+      alert("Error starting Google authorization");
+    }
+  };
+
+  const handleDisconnectGoogle = async () => {
+    if (!confirm("Are you sure you want to disconnect Google Calendar?")) return;
+    try {
+      await disconnectGoogleCalendar();
+      setGoogleConnected(false);
+    } catch (error) {
+      console.error("Error disconnecting Google Calendar:", error);
+    }
+  };
 
   const fetchAppointments = async () => {
     setLoading(true);
@@ -32,6 +89,51 @@ export default function DoubleCalendar() {
 
   return (
     <div className="space-y-4">
+      {/* Google Calendar Connection - Teal gradient box */}
+      {!googleConnected ? (
+        <div className="bg-gradient-to-r from-teal-500 to-teal-600 rounded-xl p-4 text-white">
+          {googleLoading ? (
+            <div className="flex items-center gap-3">
+              <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full" />
+              <span>Checking connection...</span>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="font-medium">🔗 Connect Google Calendar</h4>
+                <p className="text-sm text-teal-100">Sync appointments across devices</p>
+              </div>
+              <button
+                onClick={handleConnectGoogle}
+                className="px-4 py-2 bg-white text-teal-600 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+              >
+                Connect
+              </button>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="bg-green-50 border border-green-300 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <svg className="w-8 h-8" viewBox="0 0 24 24">
+                <path fill="#10b981" d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM5 8V6h14v2H5z"/>
+              </svg>
+              <div>
+                <h4 className="font-semibold text-gray-800">✓ Connected</h4>
+                <p className="text-sm text-gray-600">Your appointments sync automatically</p>
+              </div>
+            </div>
+            <button
+              onClick={handleDisconnectGoogle}
+              className="px-4 py-2 text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
+            >
+              Disconnect
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Kalendar prikaz */}
       <Calendar compact={false} />
 

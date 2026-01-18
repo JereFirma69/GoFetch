@@ -23,15 +23,17 @@ public class AuthService : IAuthService
     private readonly PasswordHasher<Korisnik> _passwordHasher;
     private readonly string? _googleClientId;
     private readonly IEmailService _emailService;
+    private readonly ILogger<AuthService> _logger;
     private readonly RandomNumberGenerator _rng = RandomNumberGenerator.Create();
 
-    public AuthService(AppDbContext db, IOptions<JwtOptions> jwtOptions, IConfiguration configuration, IEmailService emailService)
+    public AuthService(AppDbContext db, IOptions<JwtOptions> jwtOptions, IConfiguration configuration, IEmailService emailService, ILogger<AuthService> logger)
     {
         _db = db;
         _jwtOptions = jwtOptions;
         _passwordHasher = new PasswordHasher<Korisnik>();
         _googleClientId = configuration["Google:ClientId"];
         _emailService = emailService;
+        _logger = logger;
     }
 
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request, CancellationToken ct = default)
@@ -59,7 +61,16 @@ public class AuthService : IAuthService
         _db.Korisnici.Add(user);
         await _db.SaveChangesAsync(ct);
 
-        return await GenerateAuthResponseAsync(user, "none", ct);
+        // Auto-create Vlasnik (owner) profile for new user
+        var vlasnik = new Vlasnik
+        {
+            IdKorisnik = user.IdKorisnik,
+            Korisnik = user
+        };
+        _db.Vlasnici.Add(vlasnik);
+        await _db.SaveChangesAsync(ct);
+
+        return await GenerateAuthResponseAsync(user, "owner", ct);
     }
 
     public async Task<AuthResponse> LoginAsync(LoginRequest request, CancellationToken ct = default)
@@ -403,13 +414,22 @@ public class AuthService : IAuthService
 
         // Generate new token
         var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+        
+        // Use local time converted to UTC to handle timezone issues
+        var localNow = DateTime.Now;
+        var utcNow = localNow.ToUniversalTime();
+        
+        _logger.LogInformation("Time Debug - LocalNow: {LocalNow}, UtcNow: {UtcNow}, Offset: {Offset} hours", 
+            localNow, utcNow, (localNow - utcNow).TotalHours);
+        
+        var expiry = utcNow.AddHours(1);
         var resetToken = new PasswordResetToken
         {
             Token = token,
             IdKorisnik = user.IdKorisnik,
-            ExpiresAt = DateTime.UtcNow.AddHours(1),
+            ExpiresAt = expiry,
             IsUsed = false,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = utcNow
         };
 
         _db.PasswordResetTokens.Add(resetToken);
@@ -417,7 +437,7 @@ public class AuthService : IAuthService
 
         // Send email with reset link
         var resetUrl = $"{frontendUrl}/reset-password?token={Uri.EscapeDataString(token)}";
-        await _emailService.SendPasswordResetEmailAsync(user.EmailKorisnik, resetUrl);
+        await _emailService.SendPasswordResetEmailAsync(user.EmailKorisnik, resetUrl, ct);
 
         return new PasswordResetResponse(true, "If the email exists, a password reset link has been sent.");
     }
@@ -433,7 +453,7 @@ public class AuthService : IAuthService
             return new PasswordResetResponse(false, "Invalid or expired reset token.");
         }
 
-        if (resetToken.ExpiresAt < DateTime.UtcNow)
+        if (resetToken.ExpiresAt < DateTime.Now.ToUniversalTime())
         {
             return new PasswordResetResponse(false, "Reset token has expired.");
         }

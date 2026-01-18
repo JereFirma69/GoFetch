@@ -1,9 +1,6 @@
 import React, { useState, useEffect, useContext, useCallback } from "react";
 import { AuthContext } from "../context/AuthContext";
 import {
-  getGoogleAuthUrl,
-  getGoogleConnectionStatus,
-  disconnectGoogleCalendar,
   getMyTermini,
   createTermin,
   updateTermin,
@@ -32,53 +29,6 @@ const parseDateTime = (isoString) => {
     dateObj: date,
   };
 };
-
-// ==================== Google Calendar Connection Component ====================
-function GoogleCalendarConnection({ isConnected, onConnect, onDisconnect, loading }) {
-  if (loading) {
-    return (
-      <div className="bg-white rounded-lg border p-4 mb-4 flex items-center gap-3">
-        <div className="animate-spin w-5 h-5 border-2 border-teal-500 border-t-transparent rounded-full" />
-        <span className="text-gray-600">Checking Google Calendar connection...</span>
-      </div>
-    );
-  }
-
-  return (
-    <div className={`rounded-lg border p-4 mb-4 ${isConnected ? "bg-green-50 border-green-300" : "bg-teal-50 border-teal-300"}`}>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <svg className="w-8 h-8" viewBox="0 0 24 24">
-            <path fill="#1a73e8" d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM5 8V6h14v2H5z"/>
-          </svg>
-          <div>
-            <h3 className="font-semibold text-gray-800">🔗 Connect Google Calendar</h3>
-            <p className="text-sm text-gray-600">
-              {isConnected
-                ? "✓ Connected - your appointments sync automatically"
-                : "Sync appointments across devices"}
-            </p>
-          </div>
-        </div>
-        {isConnected ? (
-          <button
-            onClick={onDisconnect}
-            className="px-4 py-2 text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
-          >
-            Disconnect
-          </button>
-        ) : (
-          <button
-            onClick={onConnect}
-            className="px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors flex items-center gap-2"
-          >
-            Connect
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
 
 // ==================== Termin Badge Component ====================
 function TerminBadge({ termin, compact = false, onClick }) {
@@ -688,10 +638,6 @@ export function Calendar({ compact = false }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Google Calendar state
-  const [googleConnected, setGoogleConnected] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(true);
-
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
@@ -699,18 +645,6 @@ export function Calendar({ compact = false }) {
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December",
   ];
-
-  // Check Google Calendar connection status (available to all roles)
-  const checkGoogleConnection = useCallback(async () => {
-    try {
-      const status = await getGoogleConnectionStatus();
-      setGoogleConnected(Boolean(status?.isConnected));
-    } catch (err) {
-      console.error("Error checking Google Calendar status:", err);
-    } finally {
-      setGoogleLoading(false);
-    }
-  }, []);
 
   // Fetch termini and rezervacije
   const fetchData = useCallback(async () => {
@@ -738,44 +672,8 @@ export function Calendar({ compact = false }) {
   }, [year, month]);
 
   useEffect(() => {
-    checkGoogleConnection();
-  }, [checkGoogleConnection]);
-
-  useEffect(() => {
     fetchData();
   }, [fetchData]);
-
-  // Check for calendar connection callback
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get("calendar") === "connected") {
-      setGoogleConnected(true);
-      // Clean URL
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }, []);
-
-  const handleConnectGoogle = async () => {
-    try {
-      const response = await getGoogleAuthUrl();
-      window.location.href = response.authorizationUrl;
-    } catch (err) {
-      console.error("Error getting Google auth URL:", err);
-      alert("Error starting Google authorization");
-    }
-  };
-
-  const handleDisconnectGoogle = async () => {
-    if (!window.confirm("Are you sure you want to disconnect Google Calendar?")) return;
-    
-    try {
-      await disconnectGoogleCalendar();
-      setGoogleConnected(false);
-    } catch (err) {
-      console.error("Error disconnecting Google Calendar:", err);
-      alert("Error disconnecting Google Calendar");
-    }
-  };
 
   const handleStatusChange = async (rezervacijaId, newStatus) => {
     try {
@@ -832,16 +730,6 @@ export function Calendar({ compact = false }) {
 
   return (
     <div className={`bg-white rounded-xl shadow-sm ${compact ? "p-4" : "p-6"}`}>
-      {/* Google Calendar Connection - Available for all users in full view */}
-      {!compact && (
-        <GoogleCalendarConnection
-          isConnected={googleConnected}
-          onConnect={handleConnectGoogle}
-          onDisconnect={handleDisconnectGoogle}
-          loading={googleLoading}
-        />
-      )}
-
       {/* Error message */}
       {error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">

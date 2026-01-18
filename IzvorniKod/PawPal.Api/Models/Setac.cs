@@ -31,7 +31,7 @@ public class Setac
     public bool IsVerified { get; set; } = false;
 
     public Korisnik Korisnik { get; set; } = null!;
-    public WalkerGoogleAuth? GoogleAuth { get; set; }
+
     public List<Clanarina> Clanarine { get; set; } = new();
     public List<Termin> Termini { get; set; } = new();
 }

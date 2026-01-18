@@ -26,7 +26,8 @@ public class CalendarService : ICalendarService
     public async Task<TerminDto> CreateTerminAsync(int walkerId, CreateTerminRequest request, CancellationToken ct = default)
     {
         var walker = await _db.Setaci
-            .Include(s => s.GoogleAuth)
+            .Include(s => s.Korisnik)
+                .ThenInclude(k => k.GoogleAuth)
             .FirstOrDefaultAsync(s => s.IdKorisnik == walkerId, ct);
 
         if (walker == null)
@@ -46,7 +47,7 @@ public class CalendarService : ICalendarService
         };
 
         // Create Google Calendar event if connected
-        if (walker.GoogleAuth != null)
+        if (walker.Korisnik.GoogleAuth != null)
         {
             try
             {
@@ -576,10 +577,10 @@ public class CalendarService : ICalendarService
         // Get walkers who have at least one future termin OR have Google Calendar connected
         var query = _db.Setaci
             .Include(s => s.Korisnik)
-            .Include(s => s.GoogleAuth)
+                .ThenInclude(k => k.GoogleAuth)
             .Include(s => s.Termini)
             .Where(s => s.IsVerified && 
-                (s.GoogleAuth != null || s.Termini.Any(t => t.DatumVrijemePocetka > DateTime.UtcNow)))
+                (s.Korisnik.GoogleAuth != null || s.Termini.Any(t => t.DatumVrijemePocetka > DateTime.UtcNow)))
             .OrderBy(s => s.ImeSetac)
             .ThenBy(s => s.PrezimeSetac);
 
