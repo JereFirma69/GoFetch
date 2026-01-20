@@ -10,10 +10,10 @@ import { AuthProvider, AuthContext } from "./context/AuthContext";
 import { useContext } from "react";
 import HomePage from "./pages/Homepage";
 import Header from "./shared_components/Header";
-import { ChatProvider } from "./components/chat/ChatContext";
-import ChatWidget from "./components/chat/ChatWidget";
-import { CalendarPage } from "./pages/CalendarPage";
 
+import { CalendarPage } from "./pages/CalendarPage";
+import  ChatWidget from "./components/chat/ChatWidget";
+import { ChatProvider } from "./components/chat/ChatContext";
 
 function PrivateRoute({ children }) {
   const { user } = useContext(AuthContext);
@@ -31,9 +31,8 @@ export default function App() {
 
   return (
     <AuthProvider>
-      <ChatProvider walk = {walk}>
+      <ChatProvider walk={walk}>
       <Header />
-
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -44,8 +43,10 @@ export default function App() {
           path="/profile"
           element={
             <PrivateRoute>
+              <>
               <ProfilePage />
               <ChatWidget walk={walk}/>
+              </>
             </PrivateRoute>
           }
         />
@@ -62,13 +63,16 @@ export default function App() {
           path="/homepage"
           element={
             <PrivateRoute>
+              <>
               <HomePage />
               <ChatWidget walk = {walk}></ChatWidget>
+              </>
             </PrivateRoute>
           }
         />
       </Routes>
       </ChatProvider>
     </AuthProvider>
+
   );
 }

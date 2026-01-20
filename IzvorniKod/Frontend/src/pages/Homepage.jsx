@@ -3,14 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { api } from "../utils/api";
 import ChatWidget from "../components/ChatWidget";
-import { Calendar } from "./CalendarPage";
 import FavoriteDogs from "../components/Profile/FavoriteDogs";
 import AddedDogs from "../components/Profile/AddedDogs";
 import gD1 from "../assets/dogImages/goldenRetriver1.jpg";
 import gD2 from "../assets/dogImages/goldenRetriver2.jpg";
 import p1 from "../assets/dogImages/pug1.jpg";
 
-
+import DoubleCalendar from "../components/Calendar/DoubleCalendar";
 
 
 export default function HomePage() {
@@ -73,13 +72,12 @@ export default function HomePage() {
           <h2 className="text-3xl font-semibold text-gray-800">
             Welcome back, {name}! 🐕
           </h2>
-          <p className="text-gray-500">{user.email}</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left column - Calendar */}
           <div className="lg:col-span-2">
-            <Calendar compact={false} />
+            <DoubleCalendar/>
           </div>
 
           {/* Right column - Dogs & Quick Actions */}

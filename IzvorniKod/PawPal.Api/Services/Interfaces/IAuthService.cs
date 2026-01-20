@@ -9,6 +9,8 @@ public interface IAuthService
     Task<AuthResponse> OAuthLoginAsync(OAuthLoginRequest request, CancellationToken ct = default);
     Task<AuthResponse> RegisterRoleAsync(int userId, string role, CancellationToken ct = default);
     Task<AuthResponse> RemoveRoleAsync(int userId, string role, CancellationToken ct = default);
+    Task<AuthResponse> RefreshAsync(string refreshToken, CancellationToken ct = default);
+    Task RevokeRefreshTokenAsync(string refreshToken, CancellationToken ct = default);
     
     // Password Reset
     Task<PasswordResetResponse> ForgotPasswordAsync(ForgotPasswordRequest request, string frontendUrl, CancellationToken ct = default);

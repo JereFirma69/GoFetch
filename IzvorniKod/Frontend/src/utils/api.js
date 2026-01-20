@@ -1,7 +1,15 @@
 
 const BASE_URL = import.meta.env.VITE_API_BASE;
 
-async function apiRequest(path, options = {}) {
+async function tryRefresh() {
+  const res = await fetch(`${BASE_URL}/auth/refresh`, {
+    method: 'POST',
+    credentials: 'include'
+  });
+  return res.ok;
+}
+
+async function apiRequest(path, options = {}, allowRetry = true) {
   const headers = {
     "Content-Type": "application/json",
     ...(options.headers || {}),
@@ -12,17 +20,34 @@ async function apiRequest(path, options = {}) {
     headers,
     credentials: 'include' // Send httpOnly cookies
   });
-  const data = await res.json();
+
+  let data = null;
+  try {
+    data = await res.json();
+  } catch (err) {
+    // Some responses (e.g., 401) may have empty body
+  }
   
   if (!res.ok) {
-    throw new Error(data?.message || data?.error || `HTTP ${res.status}`);
+    // Attempt silent refresh once on 401
+    if (res.status === 401 && allowRetry) {
+      const refreshed = await tryRefresh();
+      if (refreshed) {
+        return apiRequest(path, options, false);
+      }
+    }
+
+    const error = new Error(data?.message || data?.error || `HTTP ${res.status}`);
+    error.status = res.status;
+    error.data = data;
+    throw error;
   }
   
   return data;
 }
 
 // Upload file to backend (separate function for file uploads)
-async function uploadFile(path, file) {
+async function uploadFile(path, file, allowRetry = true) {
   const formData = new FormData();
   formData.append('file', file);
   
@@ -32,10 +57,22 @@ async function uploadFile(path, file) {
     credentials: 'include'
   });
   
-  const data = await res.json();
+  let data = null;
+  try {
+    data = await res.json();
+  } catch (err) {}
   
   if (!res.ok) {
-    throw new Error(data?.message || data?.error || `HTTP ${res.status}`);
+    if (res.status === 401 && allowRetry) {
+      const refreshed = await tryRefresh();
+      if (refreshed) {
+        return uploadFile(path, file, false);
+      }
+    }
+    const error = new Error(data?.message || data?.error || `HTTP ${res.status}`);
+    error.status = res.status;
+    error.data = data;
+    throw error;
   }
   
   return data;

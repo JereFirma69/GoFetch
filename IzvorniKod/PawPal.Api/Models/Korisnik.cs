@@ -35,4 +35,5 @@ public class Korisnik
     public Setac? Setac { get; set; }
     public Administrator? Administrator { get; set; }
     public List<Poruka> Poruke { get; set; } = new();
+    public List<RefreshToken> RefreshTokens { get; set; } = new();
 }

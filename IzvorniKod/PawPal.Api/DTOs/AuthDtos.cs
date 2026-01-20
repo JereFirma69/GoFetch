@@ -19,6 +19,7 @@ public record RegisterRoleRequest(
 
 public record AuthResponse(
     string Jwt,
+    string RefreshToken,
     int UserId,
     string Email,
     string Role, // "owner", "walker", "admin", or "none"

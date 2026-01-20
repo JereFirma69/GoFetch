@@ -2,25 +2,34 @@ using Microsoft.EntityFrameworkCore;
 using PawPal.Api.Data;
 using PawPal.Api.DTOs;
 using PawPal.Api.Models;
+using PawPal.Api.Services;
 
 namespace PawPal.Api.Services.Implementations;
 
 public class ProfileService : IProfileService
 {
     private readonly AppDbContext _db;
+    private readonly IStorageService _storage;
 
-    public ProfileService(AppDbContext db)
+    public ProfileService(AppDbContext db, IStorageService storage)
     {
         _db = db;
+        _storage = storage;
     }
 
     public async Task<ProfileResponse> GetProfileAsync(int userId, CancellationToken ct = default)
     {
         var user = await _db.Korisnici
             .Include(k => k.Vlasnik)
-                .ThenInclude(v => v.Psi)
             .Include(k => k.Setac)
             .FirstOrDefaultAsync(k => k.IdKorisnik == userId, ct);
+
+        if (user?.Vlasnik != null)
+        {
+            await _db.Entry(user.Vlasnik)
+                .Collection(v => v.Psi)
+                .LoadAsync(ct);
+        }
 
         if (user == null)
         {
@@ -30,9 +39,10 @@ public class ProfileService : IProfileService
         OwnerProfileDto? ownerProfile = null;
         WalkerProfileDto? walkerProfile = null;
 
-        if (user.Vlasnik != null)
+        var ownerEntity = user.Vlasnik;
+        if (ownerEntity != null)
         {
-            var dogs = user.Vlasnik.Psi.Select(p => new DogDto(
+            var dogs = ownerEntity.Psi.Select(p => new DogDto(
                 p.IdPas,
                 p.ImePas,
                 p.Poslastice,
@@ -44,20 +54,21 @@ public class ProfileService : IProfileService
                 p.ProfilnaPas
             )).ToList();
 
-            ownerProfile = new OwnerProfileDto(user.Vlasnik.IdKorisnik, dogs);
+            ownerProfile = new OwnerProfileDto(ownerEntity.IdKorisnik, dogs);
         }
 
-        if (user.Setac != null)
+        var walkerEntity = user.Setac;
+        if (walkerEntity != null)
         {
             walkerProfile = new WalkerProfileDto(
-                user.Setac.IdKorisnik,
-                user.Setac.ImeSetac,
-                user.Setac.PrezimeSetac,
-                user.Setac.LokacijaSetac,
-                user.Setac.TelefonSetac,
-                user.Setac.ProfilnaSetac,
-                user.Setac.VerificationStatus,
-                user.Setac.IsVerified
+                walkerEntity.IdKorisnik,
+                walkerEntity.ImeSetac,
+                walkerEntity.PrezimeSetac,
+                walkerEntity.LokacijaSetac,
+                walkerEntity.TelefonSetac,
+                walkerEntity.ProfilnaSetac,
+                walkerEntity.VerificationStatus,
+                walkerEntity.IsVerified
             );
         }
 
@@ -154,6 +165,7 @@ public class ProfileService : IProfileService
 
         return new AuthResponse(
             "", 
+            "",
             user.IdKorisnik, 
             user.EmailKorisnik, 
             role, 
@@ -280,6 +292,9 @@ public class ProfileService : IProfileService
         {
             throw new InvalidOperationException("Dog not found or not owned by this user.");
         }
+
+        // Remove stored dog image (if any)
+        await _storage.DeleteDogImageAsync(ownerId, dogId, ct);
 
         _db.Psi.Remove(dog);
         await _db.SaveChangesAsync(ct);

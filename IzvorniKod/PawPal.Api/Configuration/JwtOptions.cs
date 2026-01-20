@@ -6,4 +6,5 @@ public class JwtOptions
     public string Audience { get; set; } = string.Empty;
     public string Key { get; set; } = string.Empty;
     public int ExpiresMinutes { get; set; } = 60;
+    public int RefreshTokenExpiresDays { get; set; } = 30;
 }
