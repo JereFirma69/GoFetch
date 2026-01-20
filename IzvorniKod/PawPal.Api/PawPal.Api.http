@@ -1,5 +1,21 @@
 @PawPal.Api_HostAddress = http://localhost:5237
 
+### Login to get JWT token (use your test user credentials)
+POST {{PawPal.Api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "YourPassword123!"
+}
+
+### Get Chat Token (use the JWT from login response in Authorization header)
+GET {{PawPal.Api_HostAddress}}/api/chat/token
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+Accept: application/json
+
+###
+
 GET {{PawPal.Api_HostAddress}}/weatherforecast/
 Accept: application/json
 

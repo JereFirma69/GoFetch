@@ -34,3 +34,13 @@ public record ResetPasswordRequest(
     string NewPassword);
 
 public record PasswordResetResponse(bool Success, string Message);
+
+// Chat DTOs
+public class ChatTokenResponse
+{
+    public string StreamUserId { get; set; } = string.Empty;
+    public string Token { get; set; } = string.Empty;
+    public string ApiKey { get; set; } = string.Empty;
+    public DateTime ExpiresAt { get; set; }
+}
+
