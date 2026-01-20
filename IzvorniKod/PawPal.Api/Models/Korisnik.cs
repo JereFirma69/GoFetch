@@ -28,6 +28,9 @@ public class Korisnik
     [MaxLength(500)]
     public string? ProfilnaKorisnik { get; set; }
 
+    [MaxLength(50)]
+    public string? StreamUserId { get; set; } // Link to Stream chat user ID
+
     public Vlasnik? Vlasnik { get; set; }
     public Setac? Setac { get; set; }
     public Administrator? Administrator { get; set; }
