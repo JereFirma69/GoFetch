@@ -60,3 +60,6 @@ Thumbs.db
 DEPLOYMENT.md
 .github/copilot-instructions.md
 IzvorniKod/PawPal.Api/gofetch-api.zip
+
+# Development secrets - NEVER commit
+IzvorniKod/PawPal.Api/appsettings.Development.json
