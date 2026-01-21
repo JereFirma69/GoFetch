@@ -14,6 +14,8 @@ import Header from "./shared_components/Header";
 import { CalendarPage } from "./pages/CalendarPage";
 import  ChatWidget from "./components/chat/ChatWidget";
 import { ChatProvider } from "./components/chat/ChatContext";
+import { ReviewsProvider } from "./components/reviews/ReviewsContext";
+import LeaveReviewModal from "./components/reviews/LeaveReviewModal";
 
 function PrivateRoute({ children }) {
   const { user } = useContext(AuthContext);
@@ -31,8 +33,10 @@ export default function App() {
 
   return (
     <AuthProvider>
+      <ReviewsProvider>
       <ChatProvider walk={walk}>
       <Header />
+      <LeaveReviewModal/>
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -72,6 +76,7 @@ export default function App() {
         />
       </Routes>
       </ChatProvider>
+      </ReviewsProvider>
     </AuthProvider>
 
   );

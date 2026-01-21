@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { createMockSocket } from "./mockSocket";
+import { useReviews } from "../reviews/ReviewsContext";
 
 const ChatContext = createContext();
 
@@ -7,6 +8,9 @@ export function ChatProvider({ walk, children }) {
   const [messages, setMessages] = useState([]);
   const [active, setActive] = useState(false);
   const socketRef = useRef(null);
+
+  const reviewRequestedRef = useRef(false);
+  const { requestReview } = useReviews();
 
   useEffect(() => {
     if (!walk) return;
@@ -16,6 +20,15 @@ export function ChatProvider({ walk, children }) {
 
     if (remaining <= 0) {
       setActive(false);
+    if(!reviewRequestedRef.current){
+      requestReview({
+      walkId: walk.walkId,
+      otherUserName: "other",
+      role: "owner",
+    }); //ako user uđe u aplikaciju i vidi da je šetnja završila
+    reviewRequestedRef.current = true;
+  }
+
       return;
     }
 
@@ -28,7 +41,16 @@ export function ChatProvider({ walk, children }) {
     const timer = setTimeout(() => {
       socketRef.current?.close();
       setActive(false);
-    }, remaining);
+    
+    if (!reviewRequestedRef.current){ 
+      requestReview({
+      walkId: walk.walkId,
+      otherUserName: "other",
+      role: "owner",
+    });
+    reviewRequestedRef.current=true; //ako se refresha
+  }
+    }, remaining); //ako user koristi aplikaciju u trenutku zavrsetka setnje
 
     return () => {
       clearTimeout(timer);
