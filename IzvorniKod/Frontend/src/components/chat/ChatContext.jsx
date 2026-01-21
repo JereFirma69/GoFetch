@@ -1,48 +1,94 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
-import { createMockSocket } from "./mockSocket";
+import { initializeStreamChat, getOrCreateWalkChannel, sendMessage } from "../../utils/chatService";
 
 const ChatContext = createContext();
 
-export function ChatProvider({ walk, children }) {
+export function ChatProvider({ walk, ownerId, walkerId, children }) {
   const [messages, setMessages] = useState([]);
   const [active, setActive] = useState(false);
-  const socketRef = useRef(null);
+  const [loading, setLoading] = useState(true);
+  const channelRef = useRef(null);
+  const unsubscribeRef = useRef(null);
 
   useEffect(() => {
-    if (!walk) return;
+    if (!walk) {
+      setLoading(false);
+      return;
+    }
 
     const endTime = new Date(walk.endTime).getTime();
     const remaining = endTime - Date.now();
 
     if (remaining <= 0) {
       setActive(false);
+      setLoading(false);
       return;
     }
 
-    setActive(true);
+    const initChat = async () => {
+      try {
+        setLoading(true);
+        
+        // Initialize Stream Chat client
+        await initializeStreamChat();
 
-    socketRef.current = createMockSocket((msg) =>
-      setMessages((m) => [...m, msg])
-    );
+        // Get or create channel for this walk
+        const channel = await getOrCreateWalkChannel(walk.id, ownerId, walkerId);
+        channelRef.current = channel;
 
+        // Load existing messages
+        const { messages: existingMessages } = await channel.query({
+          messages: { limit: 50 },
+        });
+
+        setMessages(existingMessages || []);
+
+        // Subscribe to new messages
+        unsubscribeRef.current = channel.on("message.new", (event) => {
+          setMessages((prev) => [...prev, event.message]);
+        });
+
+        setActive(true);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error initializing chat:", error);
+        setLoading(false);
+      }
+    };
+
+    initChat();
+
+    // Cleanup timer
     const timer = setTimeout(() => {
-      socketRef.current?.close();
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current();
+      }
+      if (channelRef.current) {
+        channelRef.current.stopWatching();
+      }
       setActive(false);
     }, remaining);
 
     return () => {
       clearTimeout(timer);
-      socketRef.current?.close();
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current();
+      }
     };
-  }, [walk]);
+  }, [walk, ownerId, walkerId]);
 
-  const sendMessage = (text) => {
-    if (!text.trim()) return;
-    socketRef.current?.send(text);
+  const sendChatMessage = async (text) => {
+    if (!text.trim() || !channelRef.current) return;
+    
+    try {
+      await sendMessage(channelRef.current, text);
+    } catch (error) {
+      console.error("Error sending message:", error);
+    }
   };
 
   return (
-    <ChatContext.Provider value={{ messages, sendMessage, active }}>
+    <ChatContext.Provider value={{ messages, sendMessage: sendChatMessage, active, loading }}>
       {children}
     </ChatContext.Provider>
   );
