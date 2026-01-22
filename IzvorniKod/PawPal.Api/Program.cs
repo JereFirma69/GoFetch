@@ -90,6 +90,7 @@ builder.Services.AddAuthorization();
 builder.Services.Configure<SupabaseOptions>(config.GetSection("Supabase"));
 builder.Services.Configure<EmailOptions>(config.GetSection("Email"));
 builder.Services.Configure<GoogleCalendarOptions>(config.GetSection("GoogleCalendar"));
+builder.Services.Configure<StreamOptions>(config.GetSection("Stream"));
 
 // Services
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -99,6 +100,8 @@ builder.Services.AddScoped<IStorageService, StorageService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IGoogleCalendarService, GoogleCalendarService>();
 builder.Services.AddScoped<ICalendarService, CalendarService>();
+builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddHttpClient<IChatService, ChatService>();
 
 // Controllers
 builder.Services.AddControllers();
