@@ -19,7 +19,8 @@ public record AdminUserDto(
     string? Location,
     string? Phone,
     bool? IsVerified,
-    string? ProfilePicture);
+    string? ProfilePicture,
+    string? Bio);
 
 public record WalkerSearchResultDto(
     int WalkerId,
@@ -48,3 +49,9 @@ public record TerminSearchResultDto(
     int WalkerId,
     string WalkerName,
     string? WalkerProfilePicture);
+
+public record WalkerReviewDto(
+    DateTime Date,
+    int Rating,
+    string? Comment,
+    string ReviewerName);

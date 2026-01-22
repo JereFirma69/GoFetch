@@ -22,4 +22,9 @@ public interface ISearchService
         string? type,
         bool? onlyAvailable,
         CancellationToken ct = default);
+
+    Task<IEnumerable<WalkerReviewDto>> GetWalkerReviewsAsync(
+        int walkerId,
+        int limit = 3,
+        CancellationToken ct = default);
 }

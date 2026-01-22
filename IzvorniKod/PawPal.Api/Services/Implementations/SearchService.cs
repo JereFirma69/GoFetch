@@ -175,4 +175,29 @@ public class SearchService : ISearchService
 
         return results.ToList();
     }
+
+    public async Task<IEnumerable<WalkerReviewDto>> GetWalkerReviewsAsync(int walkerId, int limit = 3, CancellationToken ct = default)
+    {
+        limit = Math.Clamp(limit, 1, 10);
+
+        var reviews = await _db.Recenzije
+            .Include(r => r.Rezervacija)
+                .ThenInclude(rez => rez.Termin)
+                    .ThenInclude(t => t.Setac)
+            .Include(r => r.Rezervacija)
+                .ThenInclude(rez => rez.Vlasnik)
+                    .ThenInclude(v => v.Korisnik)
+            .Where(r => r.Rezervacija.Termin.IdKorisnik == walkerId)
+            .OrderByDescending(r => r.DatumRecenzija)
+            .Take(limit)
+            .Select(r => new WalkerReviewDto(
+                r.DatumRecenzija,
+                r.Ocjena,
+                r.Komentar,
+                r.Rezervacija.Vlasnik.Korisnik.Ime + " " + r.Rezervacija.Vlasnik.Korisnik.Prezime
+            ))
+            .ToListAsync(ct);
+
+        return reviews;
+    }
 }

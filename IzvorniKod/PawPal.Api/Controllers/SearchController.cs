@@ -29,6 +29,16 @@ public class SearchController : ControllerBase
         return Ok(walkers);
     }
 
+    [HttpGet("walkers/{walkerId}/reviews")]
+    public async Task<IActionResult> GetWalkerReviews(
+        int walkerId,
+        [FromQuery] int limit = 3,
+        CancellationToken ct = default)
+    {
+        var reviews = await _searchService.GetWalkerReviewsAsync(walkerId, limit, ct);
+        return Ok(reviews);
+    }
+
     [HttpGet("termini")]
     public async Task<IActionResult> SearchTermini(
         [FromQuery] DateTime? from,

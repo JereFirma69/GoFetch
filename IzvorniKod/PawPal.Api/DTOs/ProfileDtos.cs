@@ -88,7 +88,10 @@ public record PendingWalkerDto(
     string LastName,
     string Location,
     string Phone,
-    string ProfilePicture);
+    string ProfilePicture,
+    string VerificationStatus,
+    bool IsVerified,
+    string? Bio);
 
 public record ApproveWalkerRequest(
     int WalkerId);

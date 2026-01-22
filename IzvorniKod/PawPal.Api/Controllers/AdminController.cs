@@ -32,18 +32,18 @@ public class AdminController : ControllerBase
         return await _db.Administratori.AnyAsync(a => a.IdKorisnik == userId, ct);
     }
 
-    [HttpGet("walkers/pending")]
+    [HttpGet("walkers")]
     [ProducesResponseType(typeof(IEnumerable<PendingWalkerDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<ActionResult<IEnumerable<PendingWalkerDto>>> GetPendingWalkers(CancellationToken ct)
+    public async Task<ActionResult<IEnumerable<PendingWalkerDto>>> GetWalkers([FromQuery] string status = "pending", CancellationToken ct = default)
     {
         try
         {
             var adminId = GetAdminId();
             if (!await IsAdminAsync(adminId, ct)) return Forbid();
-            var pendingWalkers = await _adminService.GetPendingWalkersAsync(ct);
-            return Ok(pendingWalkers);
+            var walkers = await _adminService.GetWalkersByStatusAsync(status, ct);
+            return Ok(walkers);
         }
         catch (InvalidOperationException)
         {

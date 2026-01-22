@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import SearchFilterTable from "../shared_components/SearchFilterTable";
 import ProfileModal from "../shared_components/ProfileModal";
 import { searchApi } from "../utils/searchApi";
+import verifiedBadge from "../assets/verification.png";
 
 const shellStyle = {
   maxWidth: "1100px",
@@ -29,8 +30,6 @@ export default function SearchPage() {
   const [walkerSearch, setWalkerSearch] = useState("");
   const [walkerLocation, setWalkerLocation] = useState("");
   const [walkerMinRating, setWalkerMinRating] = useState(0);
-  const [walkerMaxPrice, setWalkerMaxPrice] = useState("");
-  const [walkerMinPrice, setWalkerMinPrice] = useState("");
 
   // Slots
   const [slots, setSlots] = useState([]);
@@ -65,10 +64,21 @@ export default function SearchPage() {
         q: walkerSearch || undefined,
         location: walkerLocation || undefined,
         minRating: walkerMinRating ? Number(walkerMinRating) : undefined,
-        minPrice: walkerMinPrice ? Number(walkerMinPrice) : undefined,
-        maxPrice: walkerMaxPrice ? Number(walkerMaxPrice) : undefined,
       });
-      setWalkers(data || []);
+      const normalized = (data || []).map((w) => ({
+        ...w,
+        FullName: w.FullName ?? w.fullName,
+        Location: w.Location ?? w.location,
+        ProfilePicture: w.ProfilePicture ?? w.profilePicture,
+        Rating: w.Rating ?? w.rating ?? 0,
+        RatingCount: w.RatingCount ?? w.ratingCount ?? 0,
+        IsVerified: w.IsVerified === true || w.isVerified === true,
+        Email: w.Email ?? w.email,
+        Phone: w.Phone ?? w.phone,
+        Bio: w.Bio ?? w.bio,
+        WalkerId: w.WalkerId ?? w.walkerId,
+      }));
+      setWalkers(normalized);
     } catch (e) {
       console.error(e);
       setWalkers([]);
@@ -89,7 +99,20 @@ export default function SearchPage() {
         type: slotType || undefined,
         onlyAvailable: slotOnlyAvailable ? true : undefined,
       });
-      setSlots(data || []);
+      const normalized = (data || []).map((s) => ({
+        ...s,
+        TerminId: s.TerminId ?? s.terminId,
+        Start: s.Start ?? s.start,
+        Duration: s.Duration ?? s.duration,
+        Location: s.Location ?? s.location,
+        Price: s.Price ?? s.price,
+        Type: s.Type ?? s.type,
+        IsAvailable: s.IsAvailable ?? s.isAvailable,
+        WalkerId: s.WalkerId ?? s.walkerId,
+        WalkerName: s.WalkerName ?? s.walkerName,
+        WalkerProfilePicture: s.WalkerProfilePicture ?? s.walkerProfilePicture,
+      }));
+      setSlots(normalized);
     } catch (e) {
       console.error(e);
       setSlots([]);
@@ -129,7 +152,14 @@ export default function SearchPage() {
       {
         key: "IsVerified",
         title: "Verified",
-        render: (r) => (r.IsVerified ? "Yes" : "No"),
+        render: (r) =>
+          r.IsVerified === true ? (
+            <div className="flex items-center justify-center">
+              <img src={verifiedBadge} alt="Verified" className="w-5 h-5" />
+            </div>
+          ) : (
+            ""
+          ),
       },
     ],
     []
@@ -205,15 +235,6 @@ export default function SearchPage() {
           onChange={(e) => setWalkerMinRating(e.target.value)}
           placeholder="Min rating"
         />
-        <input
-          type="number"
-          min={10}
-          step={5}
-          style={{ width: 110, padding: "10px 12px", borderRadius: 8, border: "1px solid #d1d5db" }}
-          value={walkerMaxPrice}
-          onChange={(e) => setWalkerMaxPrice(e.target.value)}
-          placeholder="Max price (≥10)"
-        />
         <button
           onClick={fetchWalkers}
           style={{ padding: "10px 16px", background: "#0f766e", color: "#fff", border: "none", borderRadius: 8, fontWeight: 600 }}
@@ -239,7 +260,7 @@ export default function SearchPage() {
               bio: row.Bio,
               rating: row.Rating,
               ratingCount: row.RatingCount,
-              isVerified: row.IsVerified,
+              isVerified: row.IsVerified === true,
               walkerId: row.WalkerId,
             })}
             className="px-3 py-1 text-sm rounded border border-gray-300"

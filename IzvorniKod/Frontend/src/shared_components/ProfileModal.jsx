@@ -1,13 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { searchApi } from "../utils/searchApi";
+import verifiedBadge from "../assets/verification.png";
 
 export default function ProfileModal({ open, onClose, profile }) {
   const [appointments, setAppointments] = useState([]);
   const [loadingAppointments, setLoadingAppointments] = useState(false);
+  const [reviews, setReviews] = useState([]);
+  const [loadingReviews, setLoadingReviews] = useState(false);
 
   useEffect(() => {
     if (open && profile?.walkerId) {
       fetchAppointments();
+      fetchReviews();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, profile?.walkerId]);
@@ -26,6 +30,19 @@ export default function ProfileModal({ open, onClose, profile }) {
       setAppointments([]);
     } finally {
       setLoadingAppointments(false);
+    }
+  }
+
+  async function fetchReviews() {
+    setLoadingReviews(true);
+    try {
+      const data = await searchApi.getWalkerReviews(profile.walkerId, 3);
+      setReviews(data || []);
+    } catch (e) {
+      console.error(e);
+      setReviews([]);
+    } finally {
+      setLoadingReviews(false);
     }
   }
 
@@ -65,12 +82,16 @@ export default function ProfileModal({ open, onClose, profile }) {
         {/* Basic Info */}
         <div className="space-y-3 text-sm text-gray-700 mb-6">
           <div className="text-center">
-            <div className="text-2xl font-bold text-gray-900">{profile.name}</div>
-            {profile.isVerified && (
-              <div className="inline-flex items-center gap-1 mt-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                ✓ Verified Walker
-              </div>
-            )}
+            <div className="flex items-center justify-center gap-2">
+              <div className="text-2xl font-bold text-gray-900">{profile.name}</div>
+              {profile.isVerified === true && (
+                <img
+                  src={verifiedBadge}
+                  alt="Verified"
+                  className="w-6 h-6 inline-block align-middle"
+                />
+              )}
+            </div>
           </div>
           
           {profile.email && (
@@ -136,6 +157,38 @@ export default function ProfileModal({ open, onClose, profile }) {
               </div>
             ) : (
               <div className="text-center py-4 text-gray-500">No available appointments at the moment</div>
+            )}
+          </div>
+        )}
+
+        {/* Recent Reviews */}
+        {profile.walkerId && (
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">Recent Reviews</h3>
+            {loadingReviews ? (
+              <div className="text-center py-4 text-gray-500">Loading...</div>
+            ) : reviews.length > 0 ? (
+              <div className="space-y-3">
+                {reviews.map((rev, idx) => (
+                  <div
+                    key={idx}
+                    className="p-3 rounded-lg border border-gray-100 bg-gray-50"
+                  >
+                    <div className="flex items-center justify-between text-sm text-gray-700">
+                      <span className="font-semibold">{rev.ReviewerName}</span>
+                      <span className="text-xs text-gray-500">
+                        {rev.Date ? new Date(rev.Date).toLocaleDateString() : ""}
+                      </span>
+                    </div>
+                    <div className="text-amber-500 text-sm mt-1">{"★".repeat(rev.Rating)}</div>
+                    {rev.Comment && (
+                      <div className="text-sm text-gray-700 mt-2 whitespace-pre-wrap">{rev.Comment}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-4 text-gray-500">No reviews yet</div>
             )}
           </div>
         )}

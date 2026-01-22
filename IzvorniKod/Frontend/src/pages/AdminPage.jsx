@@ -6,6 +6,7 @@ import PricingForm from "../shared_components/PricingForm";
 import { adminApi } from "../utils/adminApi";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import verifiedBadge from "../assets/verification.png";
 
 function useAdminGuard() {
   const { user } = useContext(AuthContext);
@@ -30,13 +31,14 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [searchQ, setSearchQ] = useState("");
   const [userRole, setUserRole] = useState("");
+  const [verificationStatus, setVerificationStatus] = useState("pending");
   const [profile, setProfile] = useState(null);
   const [action, setAction] = useState({ open: false, type: "", walkerId: null });
   const [savingPrice, setSavingPrice] = useState(false);
 
   useEffect(() => {
     if (tab === "verification") loadPending();
-  }, [tab]);
+  }, [tab, verificationStatus]);
 
   useEffect(() => {
     if (tab === "users") loadUsers();
@@ -48,7 +50,7 @@ export default function AdminPage() {
 
   const loadPending = async () => {
     try {
-      const data = await adminApi.getPendingWalkers();
+      const data = await adminApi.getWalkers(verificationStatus);
       setPending(data || []);
     } catch (e) {
       console.error(e);
@@ -123,11 +125,25 @@ export default function AdminPage() {
     }
   };
 
+  const avatarCell = (pic, name) => (
+    <div className="flex items-center gap-2">
+      {pic ? (
+        <img src={pic} alt={name} className="w-10 h-10 rounded-full object-cover" />
+      ) : (
+        <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-semibold">
+          {name?.charAt(0) || "?"}
+        </div>
+      )}
+    </div>
+  );
+
   const verificationColumns = [
+    { key: "profilePicture", title: "", render: (r) => avatarCell(r.profilePicture, `${r.firstName} ${r.lastName}`) },
     { key: "name", title: "Name", render: (r) => `${r.firstName} ${r.lastName}` },
     { key: "email", title: "Email" },
     { key: "location", title: "Location" },
     { key: "phone", title: "Phone" },
+    { key: "verificationStatus", title: "Status", render: (r) => r.verificationStatus },
   ];
 
   const verificationData = pending
@@ -140,15 +156,31 @@ export default function AdminPage() {
         p.email?.toLowerCase().includes(q)
       );
     })
-    .map((p) => ({ ...p, name: `${p.firstName} ${p.lastName}` }));
+    .map((p) => ({
+      ...p,
+      name: `${p.firstName} ${p.lastName}`,
+      isVerified: p.isVerified === true,
+    }));
 
   const userColumns = [
+    { key: "profilePicture", title: "", render: (r) => avatarCell(r.profilePicture, r.name) },
     { key: "name", title: "Name", render: (r) => `${r.firstName || ""} ${r.lastName || ""}`.trim() },
     { key: "email", title: "Email" },
     { key: "role", title: "Role" },
     { key: "location", title: "Location" },
     { key: "phone", title: "Phone" },
-    { key: "isVerified", title: "Verified", render: (r) => (r.isVerified ? "Yes" : "No") },
+    {
+      key: "isVerified",
+      title: "Verified",
+      render: (r) =>
+        r.isVerified === true ? (
+          <div className="flex items-center justify-center">
+            <img src={verifiedBadge} alt="Verified" className="w-5 h-5" />
+          </div>
+        ) : (
+          ""
+        ),
+    },
   ];
 
   const userData = users
@@ -164,6 +196,8 @@ export default function AdminPage() {
     .map((u) => ({
       ...u,
       name: `${u.firstName || ""} ${u.lastName || ""}`.trim(),
+      bio: u.bio,
+      isVerified: u.isVerified === true,
     }));
 
   const renderTab = () => {
@@ -171,9 +205,13 @@ export default function AdminPage() {
       return (
         <SearchFilterTable
           title="Walker Verification"
-          filters={[{ value: "pending", label: "Pending" }]}
-          activeFilter="pending"
-          onFilterChange={() => {}}
+          filters={[
+            { value: "pending", label: "Pending" },
+            { value: "approved", label: "Approved" },
+            { value: "rejected", label: "Rejected" },
+          ]}
+          activeFilter={verificationStatus}
+          onFilterChange={setVerificationStatus}
           searchValue={searchQ}
           onSearchChange={setSearchQ}
           columns={verificationColumns}
@@ -187,6 +225,9 @@ export default function AdminPage() {
                   location: row.location,
                   phone: row.phone,
                   profilePicture: row.profilePicture,
+                  bio: row.bio,
+                  walkerId: row.walkerId,
+                  isVerified: row.isVerified === true,
                 })}
                 className="px-3 py-1 text-sm rounded border border-gray-300"
               >
@@ -249,7 +290,10 @@ export default function AdminPage() {
                   phone: row.phone,
                   role: row.role,
                   profilePicture: row.profilePicture,
-                  extra: [row.isVerified ? "Verified" : "Not verified"],
+                  bio: row.bio,
+                  isVerified: row.isVerified === true,
+                  walkerId: row.role === "walker" ? row.userId : undefined,
+                  extra: [],
                 })}
                 className="px-3 py-1 text-sm rounded border border-gray-300"
               >

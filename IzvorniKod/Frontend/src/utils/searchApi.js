@@ -23,5 +23,6 @@ export const searchApi = {
     if (params.onlyAvailable !== undefined) query.set("onlyAvailable", params.onlyAvailable);
     const qs = query.toString();
     return api.get(`/search/termini${qs ? `?${qs}` : ""}`);
-  }
+  },
+  getWalkerReviews: (walkerId, limit = 3) => api.get(`/search/walkers/${walkerId}/reviews?limit=${limit}`)
 };

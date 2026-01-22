@@ -14,10 +14,12 @@ public class AdminService : IAdminService
         _db = db;
     }
 
-    public async Task<IEnumerable<PendingWalkerDto>> GetPendingWalkersAsync(CancellationToken ct = default)
+    public async Task<IEnumerable<PendingWalkerDto>> GetWalkersByStatusAsync(string status, CancellationToken ct = default)
     {
+        var normalizedStatus = string.IsNullOrWhiteSpace(status) ? "pending" : status.ToLower();
+
         var pendingWalkers = await _db.Setaci
-            .Where(s => s.VerificationStatus == "pending")
+            .Where(s => s.VerificationStatus.ToLower() == normalizedStatus)
             .Include(s => s.Korisnik)
             .Select(s => new PendingWalkerDto(
                 s.IdKorisnik,
@@ -26,7 +28,10 @@ public class AdminService : IAdminService
                 s.PrezimeSetac,
                 s.LokacijaSetac,
                 s.TelefonSetac,
-                s.ProfilnaSetac
+                s.ProfilnaSetac,
+                s.VerificationStatus,
+                s.IsVerified,
+                s.Bio
             ))
             .ToListAsync(ct);
 
@@ -203,7 +208,8 @@ public class AdminService : IAdminService
                 k.Setac != null ? k.Setac.LokacijaSetac : null,
                 k.Setac != null ? k.Setac.TelefonSetac : null,
                 k.Setac != null ? (bool?)k.Setac.IsVerified : null,
-                k.Setac != null ? k.Setac.ProfilnaSetac : k.ProfilnaKorisnik))
+                k.Setac != null ? k.Setac.ProfilnaSetac : k.ProfilnaKorisnik,
+                k.Setac != null ? k.Setac.Bio : null))
             .ToListAsync(ct);
 
         return (result, total);
