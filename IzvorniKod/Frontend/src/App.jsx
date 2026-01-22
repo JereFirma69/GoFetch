@@ -6,6 +6,9 @@ import SignupPage from "./pages/SignupPage";
 import ProfilePage from "./pages/ProfilePage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+import AdminPage from "./pages/AdminPage";
+import SearchWalkersPage from "./pages/SearchWalkersPage";
+import SearchTerminiPage from "./pages/SearchTerminiPage";
 import { AuthProvider, AuthContext } from "./context/AuthContext";
 import { useContext } from "react";
 import HomePage from "./pages/Homepage";
@@ -21,6 +24,14 @@ function PrivateRoute({ children }) {
   const { user } = useContext(AuthContext);
   const hasStoredUser = localStorage.getItem("user");
   return user || hasStoredUser ? children : <Navigate to="/login" />;
+}
+
+function AdminRoute({ children }) {
+  const { user } = useContext(AuthContext);
+  const stored = localStorage.getItem("user");
+  const parsed = stored ? JSON.parse(stored) : null;
+  const currentUser = user || parsed;
+  return currentUser && currentUser.role === "admin" ? children : <Navigate to="/homepage" />;
 }
 
 export default function App() {
@@ -71,6 +82,30 @@ export default function App() {
               <HomePage />
               <ChatWidget walk = {walk}></ChatWidget>
               </>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminPage />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/search-walkers"
+          element={
+            <PrivateRoute>
+              <SearchWalkersPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/search-termini"
+          element={
+            <PrivateRoute>
+              <SearchTerminiPage />
             </PrivateRoute>
           }
         />

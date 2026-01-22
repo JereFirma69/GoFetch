@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using PawPal.Api.DTOs;
 using PawPal.Api.Services;
 using System.Security.Claims;
+using PawPal.Api.Data;
 
 namespace PawPal.Api.Controllers;
 
@@ -12,15 +14,22 @@ namespace PawPal.Api.Controllers;
 public class AdminController : ControllerBase
 {
     private readonly IAdminService _adminService;
+    private readonly AppDbContext _db;
 
-    public AdminController(IAdminService adminService)
+    public AdminController(IAdminService adminService, AppDbContext db)
     {
         _adminService = adminService;
+        _db = db;
     }
 
     private int GetAdminId()
     {
         return int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+    }
+
+    private async Task<bool> IsAdminAsync(int userId, CancellationToken ct)
+    {
+        return await _db.Administratori.AnyAsync(a => a.IdKorisnik == userId, ct);
     }
 
     [HttpGet("walkers/pending")]
@@ -32,6 +41,7 @@ public class AdminController : ControllerBase
         try
         {
             var adminId = GetAdminId();
+            if (!await IsAdminAsync(adminId, ct)) return Forbid();
             var pendingWalkers = await _adminService.GetPendingWalkersAsync(ct);
             return Ok(pendingWalkers);
         }
@@ -51,6 +61,7 @@ public class AdminController : ControllerBase
         try
         {
             var adminId = GetAdminId();
+            if (!await IsAdminAsync(adminId, ct)) return Forbid();
             var result = await _adminService.ApproveWalkerAsync(adminId, request, ct);
             
             if (!result.Success)
@@ -76,6 +87,7 @@ public class AdminController : ControllerBase
         try
         {
             var adminId = GetAdminId();
+            if (!await IsAdminAsync(adminId, ct)) return Forbid();
             var result = await _adminService.RejectWalkerAsync(adminId, request, ct);
             
             if (!result.Success)
@@ -99,6 +111,8 @@ public class AdminController : ControllerBase
     {
         try
         {
+            var adminId = GetAdminId();
+            if (!await IsAdminAsync(adminId, ct)) return Forbid();
             var status = await _adminService.GetWalkerVerificationStatusAsync(walkerId, ct);
             return Ok(status);
         }
@@ -106,5 +120,41 @@ public class AdminController : ControllerBase
         {
             return NotFound(new { error = ex.Message });
         }
+    }
+
+    [HttpGet("pricing")]
+    [ProducesResponseType(typeof(MembershipPricingDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<MembershipPricingDto>> GetPricing(CancellationToken ct)
+    {
+        var adminId = GetAdminId();
+        if (!await IsAdminAsync(adminId, ct)) return Forbid();
+
+        var pricing = await _adminService.GetMembershipPricingAsync(ct);
+        return Ok(pricing);
+    }
+
+    [HttpPut("pricing")]
+    [ProducesResponseType(typeof(MembershipPricingDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<MembershipPricingDto>> UpdatePricing([FromBody] UpdateMembershipPricingRequest request, CancellationToken ct)
+    {
+        var adminId = GetAdminId();
+        if (!await IsAdminAsync(adminId, ct)) return Forbid();
+
+        var pricing = await _adminService.UpdateMembershipPricingAsync(request, ct);
+        return Ok(pricing);
+    }
+
+    [HttpGet("users")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult> GetUsers([FromQuery] string? role, [FromQuery] string? q, CancellationToken ct)
+    {
+        var adminId = GetAdminId();
+        if (!await IsAdminAsync(adminId, ct)) return Forbid();
+
+        var (users, total) = await _adminService.SearchUsersAsync(role, q, ct);
+        return Ok(new { total, users });
     }
 }

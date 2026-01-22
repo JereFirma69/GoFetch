@@ -25,6 +25,7 @@ public class AppDbContext : DbContext
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<WalkerGoogleAuth> WalkerGoogleAuths => Set<WalkerGoogleAuth>();
+    public DbSet<MembershipSetting> MembershipSettings => Set<MembershipSetting>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -165,6 +166,17 @@ public class AppDbContext : DbContext
                 .WithMany(k => k.RefreshTokens)
                 .HasForeignKey(r => r.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<MembershipSetting>(entity =>
+        {
+            entity.HasData(new MembershipSetting
+            {
+                Id = 1,
+                MonthlyPrice = 0m,
+                YearlyPrice = 0m,
+                Currency = "EUR"
+            });
         });
 
 

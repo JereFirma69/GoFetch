@@ -90,10 +90,15 @@ builder.Services.AddAuthorization();
 builder.Services.Configure<SupabaseOptions>(config.GetSection("Supabase"));
 builder.Services.Configure<EmailOptions>(config.GetSection("Email"));
 <<<<<<< HEAD
+<<<<<<< HEAD
 builder.Services.Configure<GoogleCalendarOptions>(config.GetSection("GoogleCalendar"));
 =======
 builder.Services.Configure<StreamOptions>(config.GetSection("Stream"));
 >>>>>>> main
+=======
+builder.Services.Configure<GoogleCalendarOptions>(config.GetSection("GoogleCalendar"));
+builder.Services.Configure<StreamOptions>(config.GetSection("Stream"));
+>>>>>>> f056fa1c7c36fbbb54e32d60e0f326b08c971ab0
 
 // Services
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -102,12 +107,20 @@ builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IStorageService, StorageService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 <<<<<<< HEAD
+<<<<<<< HEAD
 builder.Services.AddScoped<IGoogleCalendarService, GoogleCalendarService>();
 builder.Services.AddScoped<ICalendarService, CalendarService>();
 =======
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddHttpClient<IChatService, ChatService>();
 >>>>>>> main
+=======
+builder.Services.AddScoped<IGoogleCalendarService, GoogleCalendarService>();
+builder.Services.AddScoped<ICalendarService, CalendarService>();
+builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddHttpClient<IChatService, ChatService>();
+builder.Services.AddScoped<ISearchService, SearchService>();
+>>>>>>> f056fa1c7c36fbbb54e32d60e0f326b08c971ab0
 
 // Controllers
 builder.Services.AddControllers();

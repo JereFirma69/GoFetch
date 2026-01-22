@@ -29,12 +29,20 @@ public class Korisnik
     public string? ProfilnaKorisnik { get; set; }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     public WalkerGoogleAuth? GoogleAuth { get; set; }
 =======
     [MaxLength(50)]
     public string? StreamUserId { get; set; } // Link to Stream chat user ID
 
 >>>>>>> main
+=======
+    [MaxLength(50)]
+    public string? StreamUserId { get; set; } // Link to Stream chat user ID
+
+    public WalkerGoogleAuth? GoogleAuth { get; set; }
+
+>>>>>>> f056fa1c7c36fbbb54e32d60e0f326b08c971ab0
     public Vlasnik? Vlasnik { get; set; }
     public Setac? Setac { get; set; }
     public Administrator? Administrator { get; set; }

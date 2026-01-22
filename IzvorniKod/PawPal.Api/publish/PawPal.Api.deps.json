@@ -17,7 +17,8 @@
           "Microsoft.EntityFrameworkCore.Design": "9.0.10",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "9.0.4",
           "Supabase": "1.1.1",
-          "Swashbuckle.AspNetCore": "9.0.6"
+          "Swashbuckle.AspNetCore": "9.0.6",
+          "stream-chat-net": "2.19.1"
         },
         "runtime": {
           "PawPal.Api.dll": {}
@@ -602,6 +603,17 @@
           "lib/net8.0/Npgsql.EntityFrameworkCore.PostgreSQL.dll": {
             "assemblyVersion": "9.0.4.0",
             "fileVersion": "9.0.4.0"
+          }
+        }
+      },
+      "stream-chat-net/2.19.1": {
+        "dependencies": {
+          "Newtonsoft.Json": "13.0.4"
+        },
+        "runtime": {
+          "lib/net6.0/stream-chat-net.dll": {
+            "assemblyVersion": "2.19.1.0",
+            "fileVersion": "2.19.1.0"
           }
         }
       },
@@ -1377,6 +1389,13 @@
       "sha512": "sha512-mw5vcY2IEc7L+IeGrxpp/J5OSnCcjkjAgJYCm/eD52wpZze8zsSifdqV7zXslSMmfJG2iIUGZyo3KuDtEFKwMQ==",
       "path": "npgsql.entityframeworkcore.postgresql/9.0.4",
       "hashPath": "npgsql.entityframeworkcore.postgresql.9.0.4.nupkg.sha512"
+    },
+    "stream-chat-net/2.19.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-DIdYzViEFMWvya3DpJs8gm+B+lssohIMGh2UW0o9ePtqUqRZCA+xZRvaKZomx5nXFyRHe9txyVs+i/3DyiZKzw==",
+      "path": "stream-chat-net/2.19.1",
+      "hashPath": "stream-chat-net.2.19.1.nupkg.sha512"
     },
     "Supabase/1.1.1": {
       "type": "package",
