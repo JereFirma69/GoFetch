@@ -7,6 +7,7 @@ export function ChatProvider({ walk, ownerId, walkerId, children }) {
   const [messages, setMessages] = useState([]);
   const [active, setActive] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isVisible, setIsVisible] = useState(true); // Testing purposes
   const channelRef = useRef(null);
   const unsubscribeRef = useRef(null);
 
@@ -88,7 +89,7 @@ export function ChatProvider({ walk, ownerId, walkerId, children }) {
   };
 
   return (
-    <ChatContext.Provider value={{ messages, sendMessage: sendChatMessage, active, loading }}>
+    <ChatContext.Provider value={{ messages, sendMessage: sendChatMessage, active, loading, isVisible, setIsVisible }}>
       {children}
     </ChatContext.Provider>
   );

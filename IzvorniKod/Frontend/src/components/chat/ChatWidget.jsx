@@ -3,10 +3,10 @@ import ChatTimer from "./ChatTimer";
 import {useState} from "react";
 
 export default function ChatWidget({ walk, currentUserId }) {
-  const { messages, sendMessage, active, loading } = useChat();
+  const { messages, sendMessage, active, loading, isVisible } = useChat();
   const [minimized, setMinimized] = useState(false);
 
-  if (!active || loading) return null;
+  if (!isVisible || (walk && !active) || loading) return null;
 
   //minimiziranje chata
   const toggleMinimize = () => setMinimized(!minimized);
