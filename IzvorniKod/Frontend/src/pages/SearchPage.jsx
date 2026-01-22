@@ -29,9 +29,8 @@ export default function SearchPage() {
   const [walkerLoading, setWalkerLoading] = useState(false);
   const [walkerSearch, setWalkerSearch] = useState("");
   const [walkerLocation, setWalkerLocation] = useState("");
-  const [walkerMinRating, setWalkerMinRating] = useState(0);
 
-  // Slots
+  // 
   const [slots, setSlots] = useState([]);
   const [slotLoading, setSlotLoading] = useState(false);
   const [slotSearch, setSlotSearch] = useState("");
@@ -63,7 +62,6 @@ export default function SearchPage() {
       const data = await searchApi.searchWalkers({
         q: walkerSearch || undefined,
         location: walkerLocation || undefined,
-        minRating: walkerMinRating ? Number(walkerMinRating) : undefined,
       });
       const normalized = (data || []).map((w) => ({
         ...w,
@@ -226,15 +224,6 @@ export default function SearchPage() {
           value={walkerLocation}
           onChange={(e) => setWalkerLocation(e.target.value)}
         />
-        <input
-          type="number"
-          min={0}
-          step={0.5}
-          style={{ width: 110, padding: "10px 12px", borderRadius: 8, border: "1px solid #d1d5db" }}
-          value={walkerMinRating}
-          onChange={(e) => setWalkerMinRating(e.target.value)}
-          placeholder="Min rating"
-        />
         <button
           onClick={fetchWalkers}
           style={{ padding: "10px 16px", background: "#0f766e", color: "#fff", border: "none", borderRadius: 8, fontWeight: 600 }}
@@ -245,8 +234,8 @@ export default function SearchPage() {
 
       <SearchFilterTable
         title={`${walkerData.length} walkers found`}
-        searchValue={walkerSearch}
-        onSearchChange={setWalkerSearch}
+        searchValue=""
+        onSearchChange={() => {}}
         columns={walkerColumns}
         data={walkerData}
         actions={(row) => (
@@ -339,9 +328,9 @@ export default function SearchPage() {
       </div>
 
       <SearchFilterTable
-        title={`${slotData.length} slots found`}
-        searchValue={slotSearch}
-        onSearchChange={setSlotSearch}
+        title={`${slotData.length} appointments found`}
+        searchValue=""
+        onSearchChange={() => {}}
         columns={slotColumns}
         data={slotData}
         actions={(row) => (
@@ -350,10 +339,7 @@ export default function SearchPage() {
               name: row.WalkerName,
               location: row.Location,
               profilePicture: row.WalkerProfilePicture,
-              extra: [
-                `Type: ${row.Type}`,
-                row.IsAvailable ? "Available" : "Booked",
-              ],
+              walkerId: row.WalkerId,
             })}
             className="px-3 py-1 text-sm rounded border border-gray-300"
           >
@@ -370,7 +356,7 @@ export default function SearchPage() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
           <div style={{ fontSize: 24, fontWeight: 700, color: "#111827" }}>Search</div>
           <div style={{ display: "flex", gap: 8 }}>
-            {[{ key: "walkers", label: "Walkers" }, { key: "slots", label: "Slots" }].map((t) => (
+            {[{ key: "walkers", label: "Walkers" }, { key: "slots", label: "Appointments" }].map((t) => (
               <button
                 key={t.key}
                 onClick={() => setTab(t.key)}

@@ -58,7 +58,7 @@ export default function PricingForm({ initial, onSave, loading }) {
         <button
           type="submit"
           disabled={loading}
-          className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
+          className="px-3 py-1.5 text-sm rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
         >
           {loading ? "Saving..." : "Save"}
         </button>

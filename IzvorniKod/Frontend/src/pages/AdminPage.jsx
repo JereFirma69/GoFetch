@@ -31,7 +31,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [searchQ, setSearchQ] = useState("");
   const [userRole, setUserRole] = useState("");
-  const [verificationStatus, setVerificationStatus] = useState("pending");
+  const [verificationStatus, setVerificationStatus] = useState("");
   const [profile, setProfile] = useState(null);
   const [action, setAction] = useState({ open: false, type: "", walkerId: null });
   const [savingPrice, setSavingPrice] = useState(false);
@@ -206,7 +206,7 @@ export default function AdminPage() {
         <SearchFilterTable
           title="Walker Verification"
           filters={[
-            { value: "pending", label: "Pending" },
+            { value: "", label: "All" },
             { value: "approved", label: "Approved" },
             { value: "rejected", label: "Rejected" },
           ]}
