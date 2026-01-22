@@ -171,8 +171,9 @@ export default function MyBookingsPage() {
     const checkRoles = async () => {
       try {
         const response = await api.get("/profile/me");
-        const hasOwner = !!response.data?.owner;
-        const hasWalker = !!response.data?.walker;
+        // `api.get` returns parsed JSON directly (no `.data` wrapper)
+        const hasOwner = !!response?.owner;
+        const hasWalker = !!response?.walker;
 
         setIsOwner(hasOwner);
         setIsWalker(hasWalker);
@@ -202,7 +203,8 @@ export default function MyBookingsPage() {
     setError("");
     try {
       const response = await getMyRezervacije();
-      setBookings(response.data || []);
+      // `getMyRezervacije` returns the bookings array directly
+      setBookings(response || []);
     } catch (err) {
       console.error("Failed to fetch bookings:", err);
       setError("Failed to load bookings. Please try again.");
@@ -212,10 +214,22 @@ export default function MyBookingsPage() {
     }
   };
 
-  const filteredBookings = bookings.filter((booking) => {
-    if (statusFilter === "all") return true;
-    return booking.statusRezervacija === statusFilter;
-  });
+  const filteredBookings = bookings
+    .filter((booking) => {
+      // Filter by active role tab
+      if (activeTab === "owner") {
+        return booking.owner?.idKorisnik === user?.userId;
+      }
+      if (activeTab === "walker") {
+        return booking.termin?.walker?.idKorisnik === user?.userId;
+      }
+      return true;
+    })
+    .filter((booking) => {
+      // Filter by status
+      if (statusFilter === "all") return true;
+      return booking.statusRezervacija === statusFilter;
+    });
 
   const emptyMessage = {
     owner: "No bookings yet. Start by searching for walkers!",
@@ -227,11 +241,11 @@ export default function MyBookingsPage() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">My Bookings</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Bookings</h1>
           <p className="text-gray-600">Manage your walk bookings and requests</p>
         </div>
 
-        {/* Tabs */}
+        {/* Role Subtabs (Owner / Walker) */}
         {(isOwner || isWalker) && (
           <div className="flex gap-2 mb-6 bg-white rounded-lg p-2 shadow-sm">
             {isOwner && (
@@ -246,7 +260,7 @@ export default function MyBookingsPage() {
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
-                My Bookings
+                Owner
               </button>
             )}
             {isWalker && (
@@ -261,7 +275,7 @@ export default function MyBookingsPage() {
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
-                Incoming Bookings
+                Walker
               </button>
             )}
           </div>

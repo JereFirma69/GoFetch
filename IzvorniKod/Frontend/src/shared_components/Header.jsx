@@ -110,7 +110,7 @@ export default function Header() {
                   : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
               }`}
             >
-              My Bookings
+              Bookings
             </Link>
 
             {isAdmin && (

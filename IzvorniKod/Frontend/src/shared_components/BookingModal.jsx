@@ -110,8 +110,28 @@ export default function BookingModal({ open, onClose, appointment, onSuccess }) 
   if (!open || !appointment) return null;
 
   const availableSlots = appointment.maxDogs - appointment.bookedDogs;
+  // Robust date/duration parsing (Duration may be a TimeSpan string like "00:45:00")
+  const parseDurationMinutes = (dur) => {
+    if (dur == null) return 0;
+    if (typeof dur === "number" && !isNaN(dur)) return dur;
+    if (typeof dur === "string") {
+      // Try TimeSpan format HH:MM:SS
+      const parts = dur.split(":");
+      if (parts.length === 3) {
+        const h = parseInt(parts[0], 10) || 0;
+        const m = parseInt(parts[1], 10) || 0;
+        // ignore seconds for minute calc
+        return h * 60 + m;
+      }
+      const num = parseInt(dur, 10);
+      return isNaN(num) ? 0 : num;
+    }
+    return 0;
+  };
+
   const startDate = new Date(appointment.start);
-  const endDate = new Date(startDate.getTime() + appointment.duration * 60000);
+  const durationMinutes = parseDurationMinutes(appointment.duration);
+  const endDate = new Date(startDate.getTime() + durationMinutes * 60000);
 
   return (
     <div 
@@ -168,7 +188,7 @@ export default function BookingModal({ open, onClose, appointment, onSuccess }) 
               </div>
               <div className="text-sm text-gray-700 space-y-1 mt-3">
                 <div>📍 {appointment.location}</div>
-                <div>📅 {startDate.toLocaleDateString()} • {startDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - {endDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} ({appointment.duration} min)</div>
+                <div>📅 {startDate.toLocaleDateString()} • {startDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - {endDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} ({durationMinutes} min)</div>
                 <div>👥 {appointment.type === "grupna" || appointment.type === "group" ? "Group Walk" : "Individual Walk"} • <span className="font-semibold">{appointment.price} €</span></div>
               </div>
             </div>
