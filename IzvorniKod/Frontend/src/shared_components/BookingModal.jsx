@@ -27,7 +27,10 @@ export default function BookingModal({ open, onClose, appointment, onSuccess }) 
     setLoadingDogs(true);
     try {
       const response = await api.get("/profile/me");
-      const ownerDogs = response.data?.owner?.Dogs || [];
+      console.log("Profile response:", response.data);
+      // Response uses camelCase: owner.dogs (not Owner.Dogs)
+      const ownerDogs = response.data?.owner?.dogs || [];
+      console.log("Owner dogs found:", ownerDogs);
       setDogs(ownerDogs);
     } catch (err) {
       console.error("Failed to fetch dogs:", err);
