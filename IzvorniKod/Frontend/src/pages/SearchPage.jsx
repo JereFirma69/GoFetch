@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import SearchFilterTable from "../shared_components/SearchFilterTable";
 import ProfileModal from "../shared_components/ProfileModal";
+import BookingModal from "../shared_components/BookingModal";
 import { searchApi } from "../utils/searchApi";
 import verifiedBadge from "../assets/verification.png";
 
@@ -42,6 +43,8 @@ export default function SearchPage() {
   const [slotOnlyAvailable, setSlotOnlyAvailable] = useState(false);
 
   const [profile, setProfile] = useState(null);
+  const [bookingAppointment, setBookingAppointment] = useState(null);
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
     setSearchParams({ tab });
@@ -371,17 +374,39 @@ export default function SearchPage() {
         columns={slotColumns}
         data={slotData}
         actions={(row) => (
-          <button
-            onClick={() => setProfile({
-              name: row.WalkerName,
-              location: row.Location,
-              profilePicture: row.WalkerProfilePicture,
-              walkerId: row.WalkerId,
-            })}
-            className="px-3 py-1 text-sm rounded border border-gray-300"
-          >
-            View
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setProfile({
+                name: row.WalkerName,
+                location: row.Location,
+                profilePicture: row.WalkerProfilePicture,
+                walkerId: row.WalkerId,
+              })}
+              className="px-3 py-1 text-sm rounded border border-gray-300 hover:bg-gray-50"
+            >
+              View
+            </button>
+            {row.IsAvailable && (
+              <button
+                onClick={() => setBookingAppointment({
+                  terminId: row.TerminId,
+                  walkerName: row.WalkerName,
+                  walkerProfilePicture: row.WalkerProfilePicture,
+                  location: row.Location,
+                  start: row.Start,
+                  duration: row.Duration,
+                  type: row.Type,
+                  price: row.Price,
+                  maxDogs: row.MaxDogs || 5,
+                  bookedDogs: row.BookedDogs || 0,
+                  isVerified: false
+                })}
+                className="px-3 py-1 text-sm rounded bg-teal-600 text-white hover:bg-teal-700 font-medium"
+              >
+                Book
+              </button>
+            )}
+          </div>
         )}
       />
     </div>
@@ -416,7 +441,27 @@ export default function SearchPage() {
         {tab === "walkers" ? renderWalkers() : renderSlots()}
       </div>
 
+      {/* Modals */}
       <ProfileModal open={!!profile} onClose={() => setProfile(null)} profile={profile} />
+      <BookingModal
+        open={!!bookingAppointment}
+        onClose={() => setBookingAppointment(null)}
+        appointment={bookingAppointment}
+        onSuccess={() => {
+          setToast("✅ Booking request sent! Waiting for walker confirmation.");
+          setTimeout(() => setToast(null), 5000);
+        }}
+      />
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 bg-green-600 text-white px-6 py-3 rounded-lg shadow-xl flex items-center gap-3 z-50 animate-slide-up">
+          <span>{toast}</span>
+          <button onClick={() => setToast(null)} className="text-white hover:text-gray-200 font-bold">
+            ✕
+          </button>
+        </div>
+      )}
     </div>
   );
 }

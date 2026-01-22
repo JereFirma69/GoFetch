@@ -306,6 +306,19 @@ public class CalendarService : ICalendarService
         _db.Rezervacije.Add(rezervacija);
         await _db.SaveChangesAsync(ct);
 
+        // Create payment record
+        var payment = new Placanje
+        {
+            IdRezervacija = rezervacija.IdRezervacija,
+            StatusPlacanje = "na cekanju",
+            DatumPlacanje = DateTime.UtcNow,
+            IznosPlacanje = termin.Cijena,
+            NacinPlacanje = request.NacinPlacanje
+        };
+
+        _db.Placanja.Add(payment);
+        await _db.SaveChangesAsync(ct);
+
         // Add dogs to reservation
         foreach (var dogId in request.DogIds)
         {
