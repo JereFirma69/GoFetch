@@ -102,17 +102,6 @@ export default function Header() {
               Search
             </Link>
 
-            <Link
-              to="/my-bookings"
-              className={`px-4 py-2 rounded-lg transition ${
-                location.pathname === "/my-bookings"
-                  ? "bg-teal-50 text-teal-600 font-semibold"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-              }`}
-            >
-              My Bookings
-            </Link>
-
             {isAdmin && (
               <Link
                 to="/admin"

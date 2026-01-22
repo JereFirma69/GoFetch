@@ -50,8 +50,7 @@ public record CreateRezervacijaRequest(
     int IdTermin,
     List<int> DogIds, // Multiple dogs for same walk
     string AdresaPolaska,
-    string? NapomenaRezervacija,
-    string NacinPlacanje // "gotovina", "paypal", "kartica"
+    string? NapomenaRezervacija
 );
 
 public record UpdateRezervacijaStatusRequest(

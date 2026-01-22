@@ -118,7 +118,7 @@ export default function HomePage() {
                   onClick={() => navigate("/search?tab=slots")}
                   className="w-full py-3 border border-teal-500 text-teal-600 rounded-lg hover:bg-teal-50 transition-colors"
                 >
-                  📅 Find Walking Appointments
+                  📅 Find Walking Slots
                 </button>
               </div>
             </div>

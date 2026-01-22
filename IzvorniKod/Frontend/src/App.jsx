@@ -8,7 +8,6 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import AdminPage from "./pages/AdminPage";
 import SearchPage from "./pages/SearchPage";
-import MyBookingsPage from "./pages/MyBookingsPage";
 import { AuthProvider, AuthContext } from "./context/AuthContext";
 import { useContext } from "react";
 import HomePage from "./pages/Homepage";
@@ -98,14 +97,6 @@ export default function App() {
           element={
             <PrivateRoute>
               <SearchPage />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/my-bookings"
-          element={
-            <PrivateRoute>
-              <MyBookingsPage />
             </PrivateRoute>
           }
         />
