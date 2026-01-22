@@ -34,10 +34,8 @@ function AdminRoute({ children }) {
 }
 
 export default function App() {
-  const { user } = useContext(AuthContext);
-  
-  const walk = {
-    id: "walk-1",
+
+   const walk = {
     walkId: "walk-1",
     startTime: new Date().toISOString(),
     endTime: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
@@ -61,7 +59,7 @@ export default function App() {
             <PrivateRoute>
               <>
               <ProfilePage />
-              <ChatWidget walk={walk} currentUserId={user?.id}/>
+              <ChatWidget walk={walk}/>
               </>
             </PrivateRoute>
           }
@@ -81,7 +79,7 @@ export default function App() {
             <PrivateRoute>
               <>
               <HomePage />
-              <ChatWidget walk={walk} currentUserId={user?.id}></ChatWidget>
+              <ChatWidget walk = {walk}></ChatWidget>
               </>
             </PrivateRoute>
           }
