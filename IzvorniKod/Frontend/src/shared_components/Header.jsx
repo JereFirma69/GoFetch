@@ -92,25 +92,14 @@ export default function Header() {
             </Link>
 
             <Link
-              to="/search-walkers"
+              to="/search"
               className={`px-4 py-2 rounded-lg transition ${
-                location.pathname === "/search-walkers"
+                location.pathname.startsWith("/search")
                   ? "bg-teal-50 text-teal-600 font-semibold"
                   : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
               }`}
             >
-              Find Walkers
-            </Link>
-
-            <Link
-              to="/search-termini"
-              className={`px-4 py-2 rounded-lg transition ${
-                location.pathname === "/search-termini"
-                  ? "bg-teal-50 text-teal-600 font-semibold"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-              }`}
-            >
-              Find Slots
+              Search
             </Link>
 
             {isAdmin && (

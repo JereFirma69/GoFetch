@@ -144,13 +144,8 @@ public class ProfileService : IProfileService
     private string DetermineUserRole(Korisnik user)
     {
         if (user.Administrator != null) return "admin";
-        
-        bool isOwner = user.Vlasnik != null;
-        bool isWalker = user.Setac != null;
-        
-        if (isOwner && isWalker) return "both";
-        if (isOwner) return "owner";
-        if (isWalker) return "walker";
+        if (user.Setac != null) return "walker";
+        if (user.Vlasnik != null) return "owner";
         return "none";
     }
 

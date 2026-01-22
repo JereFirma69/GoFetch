@@ -56,11 +56,17 @@ export default function HomePage() {
           onClick={() => navigate("/login")}
           className="px-5 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600"
         >
-          Go to Login
-        </button>
-      </div>
-    );
-  }
+                  onClick={() => navigate("/search?tab=walkers")}
+                  className="w-full py-3 border border-teal-500 text-teal-600 rounded-lg hover:bg-teal-50 transition-colors"
+                >
+                  🔍 Find Dog Walkers
+                </button>
+                <button
+                  onClick={() => navigate("/search?tab=slots")}
+                  className="w-full py-3 border border-teal-500 text-teal-600 rounded-lg hover:bg-teal-50 transition-colors"
+                >
+                  📅 Find Walking Slots
+                </button>
 
   return (
     <div className="min-h-screen bg-gray-50">

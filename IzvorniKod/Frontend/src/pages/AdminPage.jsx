@@ -269,37 +269,49 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 space-y-4">
-      <div className="text-2xl font-bold text-gray-800">Admin Dashboard</div>
-      <div className="flex gap-2 flex-wrap">
-        {[{ key: "verification", label: "Verification" }, { key: "users", label: "Users" }, { key: "pricing", label: "Pricing" }].map((t) => (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            className={`px-4 py-2 rounded-md text-sm font-semibold border ${
-              tab === t.key ? "bg-blue-600 text-white border-blue-600" : "bg-white text-gray-700 border-gray-300"
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
+    <div style={{ background: "#f8fafc", minHeight: "100vh" }}>
+      <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "24px 24px 48px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+          <div style={{ fontSize: 24, fontWeight: 700, color: "#111827" }}>Admin Dashboard</div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {[{ key: "verification", label: "Verification" }, { key: "users", label: "Users" }, { key: "pricing", label: "Pricing" }].map((t) => (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                style={{
+                  padding: "10px 16px",
+                  borderRadius: 10,
+                  border: "1px solid",
+                  borderColor: tab === t.key ? "#2563eb" : "#e5e7eb",
+                  background: tab === t.key ? "#2563eb" : "#fff",
+                  color: tab === t.key ? "#fff" : "#0f172a",
+                  fontWeight: 600,
+                }}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e5e7eb", boxShadow: "0 8px 30px rgba(0,0,0,0.05)", padding: 18 }}>
+          {renderTab()}
+        </div>
+
+        <ProfileModal open={!!profile} onClose={() => setProfile(null)} profile={profile} />
+
+        <ActionModal
+          open={action.open}
+          title={action.type === "approve" ? "Approve walker" : "Reject walker"}
+          message={action.type === "approve" ? "Approve this walker?" : "Reject this walker?"}
+          confirmText={action.type === "approve" ? "Approve" : "Reject"}
+          onConfirm={() => {
+            if (action.type === "approve") approve(action.walkerId);
+            else reject(action.walkerId);
+          }}
+          onCancel={() => setAction({ open: false, type: "", walkerId: null })}
+        />
       </div>
-
-      {renderTab()}
-
-      <ProfileModal open={!!profile} onClose={() => setProfile(null)} profile={profile} />
-
-      <ActionModal
-        open={action.open}
-        title={action.type === "approve" ? "Approve walker" : "Reject walker"}
-        message={action.type === "approve" ? "Approve this walker?" : "Reject this walker?"}
-        confirmText={action.type === "approve" ? "Approve" : "Reject"}
-        onConfirm={() => {
-          if (action.type === "approve") approve(action.walkerId);
-          else reject(action.walkerId);
-        }}
-        onCancel={() => setAction({ open: false, type: "", walkerId: null })}
-      />
     </div>
   );
 }

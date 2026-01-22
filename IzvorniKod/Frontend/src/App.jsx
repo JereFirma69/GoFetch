@@ -7,8 +7,7 @@ import ProfilePage from "./pages/ProfilePage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import AdminPage from "./pages/AdminPage";
-import SearchWalkersPage from "./pages/SearchWalkersPage";
-import SearchTerminiPage from "./pages/SearchTerminiPage";
+import SearchPage from "./pages/SearchPage";
 import { AuthProvider, AuthContext } from "./context/AuthContext";
 import { useContext } from "react";
 import HomePage from "./pages/Homepage";
@@ -90,18 +89,10 @@ export default function App() {
           }
         />
         <Route
-          path="/search-walkers"
+          path="/search"
           element={
             <PrivateRoute>
-              <SearchWalkersPage />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/search-termini"
-          element={
-            <PrivateRoute>
-              <SearchTerminiPage />
+              <SearchPage />
             </PrivateRoute>
           }
         />
