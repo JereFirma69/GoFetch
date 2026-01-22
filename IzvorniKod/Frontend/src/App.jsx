@@ -22,8 +22,10 @@ function PrivateRoute({ children }) {
 }
 
 export default function App() {
-
-   const walk = {
+  const { user } = useContext(AuthContext);
+  
+  const walk = {
+    id: "walk-1",
     walkId: "walk-1",
     startTime: new Date().toISOString(),
     endTime: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
@@ -45,7 +47,7 @@ export default function App() {
             <PrivateRoute>
               <>
               <ProfilePage />
-              <ChatWidget walk={walk}/>
+              <ChatWidget walk={walk} currentUserId={user?.id}/>
               </>
             </PrivateRoute>
           }
@@ -65,7 +67,7 @@ export default function App() {
             <PrivateRoute>
               <>
               <HomePage />
-              <ChatWidget walk = {walk}></ChatWidget>
+              <ChatWidget walk={walk} currentUserId={user?.id}></ChatWidget>
               </>
             </PrivateRoute>
           }
