@@ -109,10 +109,16 @@ export default function HomePage() {
                   🐕 Add New Dog
                 </button>
                 <button
-                  onClick={() => navigate("/search")}
+                  onClick={() => navigate("/search-walkers")}
                   className="w-full py-3 border border-teal-500 text-teal-600 rounded-lg hover:bg-teal-50 transition-colors"
                 >
                   🔍 Find Dog Walkers
+                </button>
+                <button
+                  onClick={() => navigate("/search-termini")}
+                  className="w-full py-3 border border-teal-500 text-teal-600 rounded-lg hover:bg-teal-50 transition-colors"
+                >
+                  📅 Find Walking Slots
                 </button>
               </div>
             </div>

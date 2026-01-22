@@ -102,6 +102,7 @@ builder.Services.AddScoped<IGoogleCalendarService, GoogleCalendarService>();
 builder.Services.AddScoped<ICalendarService, CalendarService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddHttpClient<IChatService, ChatService>();
+builder.Services.AddScoped<ISearchService, SearchService>();
 
 // Controllers
 builder.Services.AddControllers();
