@@ -1,5 +1,8 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { createMockSocket } from "./mockSocket";
+import { useReviews } from "../reviews/ReviewsContext";
 import { initializeStreamChat, getOrCreateWalkChannel, sendMessage } from "../../utils/chatService";
+
 
 const ChatContext = createContext();
 
@@ -9,6 +12,9 @@ export function ChatProvider({ walk, ownerId, walkerId, children }) {
   const [loading, setLoading] = useState(true);
   const channelRef = useRef(null);
   const unsubscribeRef = useRef(null);
+
+  const reviewRequestedRef = useRef(false);
+  const { requestReview } = useReviews();
 
   useEffect(() => {
     if (!walk) {
@@ -21,7 +27,18 @@ export function ChatProvider({ walk, ownerId, walkerId, children }) {
 
     if (remaining <= 0) {
       setActive(false);
+
+    if(!reviewRequestedRef.current){
+      requestReview({
+      walkId: walk.walkId,
+      otherUserName: "other",
+      role: "owner",
+    }); //ako user uđe u aplikaciju i vidi da je šetnja završila
+    reviewRequestedRef.current = true;
+  }
+
       setLoading(false);
+
       return;
     }
 
@@ -67,7 +84,16 @@ export function ChatProvider({ walk, ownerId, walkerId, children }) {
         channelRef.current.stopWatching();
       }
       setActive(false);
-    }, remaining);
+    
+    if (!reviewRequestedRef.current){ 
+      requestReview({
+      walkId: walk.walkId,
+      otherUserName: "other",
+      role: "owner",
+    });
+    reviewRequestedRef.current=true; //ako se refresha
+  }
+    }, remaining); //ako user koristi aplikaciju u trenutku zavrsetka setnje
 
     return () => {
       clearTimeout(timer);
