@@ -51,22 +51,16 @@ export default function HomePage() {
   if (!user) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
-        <h2 className="text-2xl font-bold text-gray-700 mb-4">Welcome to PawPal </h2>
+        <h2 className="text-2xl font-bold text-gray-700 mb-4">Welcome to PawPal</h2>
         <button
           onClick={() => navigate("/login")}
           className="px-5 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600"
         >
-                  onClick={() => navigate("/search?tab=walkers")}
-                  className="w-full py-3 border border-teal-500 text-teal-600 rounded-lg hover:bg-teal-50 transition-colors"
-                >
-                  🔍 Find Dog Walkers
-                </button>
-                <button
-                  onClick={() => navigate("/search?tab=slots")}
-                  className="w-full py-3 border border-teal-500 text-teal-600 rounded-lg hover:bg-teal-50 transition-colors"
-                >
-                  📅 Find Walking Slots
-                </button>
+          Login
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -115,13 +109,13 @@ export default function HomePage() {
                   🐕 Add New Dog
                 </button>
                 <button
-                  onClick={() => navigate("/search-walkers")}
+                  onClick={() => navigate("/search?tab=walkers")}
                   className="w-full py-3 border border-teal-500 text-teal-600 rounded-lg hover:bg-teal-50 transition-colors"
                 >
                   🔍 Find Dog Walkers
                 </button>
                 <button
-                  onClick={() => navigate("/search-termini")}
+                  onClick={() => navigate("/search?tab=slots")}
                   className="w-full py-3 border border-teal-500 text-teal-600 rounded-lg hover:bg-teal-50 transition-colors"
                 >
                   📅 Find Walking Slots
