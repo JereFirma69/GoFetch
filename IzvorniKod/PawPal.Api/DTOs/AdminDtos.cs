@@ -30,7 +30,10 @@ public record WalkerSearchResultDto(
     double Rating,
     int RatingCount,
     string? ProfilePicture,
-    bool IsVerified);
+    bool IsVerified,
+    string? Bio,
+    string? Email,
+    string? Phone);
 
 public record TerminSearchResultDto(
     int TerminId,

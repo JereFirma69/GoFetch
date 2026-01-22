@@ -24,6 +24,9 @@ public class Setac
     [Required, MaxLength(20)]
     public string TelefonSetac { get; set; } = string.Empty;
 
+    [MaxLength(1000)]
+    public string? Bio { get; set; }
+
     // Verification fields
     [MaxLength(20)]
     public string VerificationStatus { get; set; } = "pending"; // pending, approved, rejected

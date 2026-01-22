@@ -68,7 +68,8 @@ public class ProfileService : IProfileService
                 walkerEntity.TelefonSetac,
                 walkerEntity.ProfilnaSetac,
                 walkerEntity.VerificationStatus,
-                walkerEntity.IsVerified
+                walkerEntity.IsVerified,
+                walkerEntity.Bio
             );
         }
 
@@ -123,6 +124,7 @@ public class ProfileService : IProfileService
         {
             user.Setac.LokacijaSetac = request.WalkerDetails.Location;
             user.Setac.TelefonSetac = request.WalkerDetails.Phone;
+            user.Setac.Bio = request.WalkerDetails.Bio;
             
             if (request.WalkerDetails.WalkerProfilePicture != null)
             {

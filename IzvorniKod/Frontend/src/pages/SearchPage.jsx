@@ -100,18 +100,27 @@ export default function SearchPage() {
 
   const walkerColumns = useMemo(
     () => [
+      {
+        key: "ProfilePicture",
+        title: "",
+        render: (r) => (
+          <div className="flex items-center justify-center">
+            {r.ProfilePicture ? (
+              <img 
+                src={r.ProfilePicture} 
+                alt={r.FullName} 
+                className="w-10 h-10 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 font-semibold">
+                {r.FullName?.charAt(0) || "?"}
+              </div>
+            )}
+          </div>
+        ),
+      },
       { key: "FullName", title: "Name" },
       { key: "Location", title: "Location" },
-      {
-        key: "LowestPrice",
-        title: "Hourly From",
-        render: (r) => (r.LowestPrice != null ? `${r.LowestPrice} €` : "—"),
-      },
-      {
-        key: "HighestPrice",
-        title: "Hourly To",
-        render: (r) => (r.HighestPrice != null ? `${r.HighestPrice} €` : "—"),
-      },
       {
         key: "Rating",
         title: "Rating",
@@ -224,12 +233,14 @@ export default function SearchPage() {
             onClick={() => setProfile({
               name: row.FullName,
               email: row.Email,
+              phone: row.Phone,
               location: row.Location,
               profilePicture: row.ProfilePicture,
-              extra: [
-                row.IsVerified ? "Verified" : "Not verified",
-                `Rating: ${row.Rating?.toFixed?.(1) || "0.0"} (${row.RatingCount || 0})`,
-              ],
+              bio: row.Bio,
+              rating: row.Rating,
+              ratingCount: row.RatingCount,
+              isVerified: row.IsVerified,
+              walkerId: row.WalkerId,
             })}
             className="px-3 py-1 text-sm rounded border border-gray-300"
           >

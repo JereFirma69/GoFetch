@@ -73,7 +73,10 @@ public class SearchService : ISearchService
                     ratingInfo.Count > 0 ? ratingInfo.Avg : 0,
                     ratingInfo.Count,
                     w.ProfilnaSetac,
-                    w.IsVerified);
+                    w.IsVerified,
+                    w.Bio,
+                    w.Korisnik.EmailKorisnik,
+                    w.TelefonSetac);
             })
             .Where(w =>
                 (!minPrice.HasValue || (w.LowestPrice.HasValue && w.LowestPrice.Value >= minPrice.Value)) &&

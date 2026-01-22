@@ -14,6 +14,7 @@ export default function EditProfilePanel({ onBack, profileData, onRoleChange, on
       location: profileData?.walker?.location || "",
       phone: profileData?.walker?.phone || "",
       profilePicture: profileData?.walker?.profilePicture || "",
+      bio: profileData?.walker?.bio || "",
     },
   });
 
@@ -52,6 +53,7 @@ export default function EditProfilePanel({ onBack, profileData, onRoleChange, on
               location: profileData.walker.location || "",
               phone: profileData.walker.phone || "",
               profilePicture: profileData.walker.profilePicture || "",
+              bio: profileData.walker.bio || "",
             }
           : prev.walker,
       }));
@@ -72,6 +74,7 @@ export default function EditProfilePanel({ onBack, profileData, onRoleChange, on
               location: formData.walker.location || "",
               phone: formData.walker.phone || "",
               walkerProfilePicture: formData.walker.profilePicture || null,
+              bio: formData.walker.bio || null,
             }
           : null,
       };
@@ -116,6 +119,7 @@ export default function EditProfilePanel({ onBack, profileData, onRoleChange, on
             location: formData.walker.location,
             phone: formData.walker.phone,
             walkerProfilePicture: formData.walker.profilePicture,
+            bio: formData.walker.bio,
           };
           try {
             localStorage.setItem("savedWalkerDetails", JSON.stringify(saved));
@@ -137,6 +141,7 @@ export default function EditProfilePanel({ onBack, profileData, onRoleChange, on
                   location: saved.location || "",
                   phone: saved.phone || "",
                   walkerProfilePicture: saved.walkerProfilePicture || null,
+                  bio: saved.bio || null,
                 },
               });
               setFormData((prev) => ({
@@ -145,6 +150,7 @@ export default function EditProfilePanel({ onBack, profileData, onRoleChange, on
                   location: saved.location || "",
                   phone: saved.phone || "",
                   profilePicture: saved.walkerProfilePicture || "",
+                  bio: saved.bio || "",
                 },
               }));
               localStorage.removeItem("savedWalkerDetails");
@@ -263,7 +269,22 @@ export default function EditProfilePanel({ onBack, profileData, onRoleChange, on
                   }
                 />
               </label>
-          </div>
+            </div>
+            <label className="form-field full">
+              <span>About Me</span>
+              <textarea
+                rows={5}
+                placeholder="Tell potential clients about your experience with dogs, availability, special skills, etc..."
+                value={formData.walker.bio}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    walker: { ...prev.walker, bio: e.target.value },
+                  }))
+                }
+                style={{ resize: "vertical" }}
+              />
+            </label>
           <ImageUpload
             label="Walker Profile Picture (optional)"
             currentUrl={formData.walker.profilePicture}
