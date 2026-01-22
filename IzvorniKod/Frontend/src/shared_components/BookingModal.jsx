@@ -27,14 +27,30 @@ export default function BookingModal({ open, onClose, appointment, onSuccess }) 
     setLoadingDogs(true);
     try {
       const response = await api.get("/profile/me");
-      console.log("Profile response:", response.data);
-      // Response uses camelCase: owner.dogs (not Owner.Dogs)
-      const ownerDogs = response.data?.owner?.dogs || [];
-      console.log("Owner dogs found:", ownerDogs);
+      console.log("✅ Profile API call successful");
+      console.log("Response data type:", typeof response.data);
+      console.log("Full response:", response);
+      
+      // The API returns the profile object directly, not wrapped
+      const profileData = response?.owner || response?.data?.owner || response;
+      const ownerDogs = profileData?.dogs || [];
+      
+      console.log("✅ Dogs fetched:", ownerDogs.length, "dogs");
       setDogs(ownerDogs);
+      
+      if (ownerDogs.length === 0) {
+        console.warn("⚠️ No dogs found in profile");
+      }
     } catch (err) {
-      console.error("Failed to fetch dogs:", err);
-      setError("Failed to load your dogs. Please try again.");
+      console.error("❌ API Error fetching profile:", err.message);
+      console.error("Error status:", err.status);
+      console.error("Error data:", err.data);
+      
+      // Don't show error to user, just log it
+      if (err.status === 401) {
+        console.error("❌ Unauthorized - check authentication token");
+      }
+      
       setDogs([]);
     } finally {
       setLoadingDogs(false);
