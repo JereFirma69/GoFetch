@@ -54,7 +54,7 @@ export default function PricingForm({ initial, onSave, loading }) {
           />
         </label>
       </div>
-      <div className="flex justify-end">
+      <div className="flex justify-start">
         <button
           type="submit"
           disabled={loading}

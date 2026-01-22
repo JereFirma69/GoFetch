@@ -3,9 +3,9 @@ import { api } from "./api";
 export const adminApi = {
   getPricing: () => api.get("/admin/pricing"),
   updatePricing: (body) => api.put("/admin/pricing", body),
-  getWalkers: (status = "pending") => {
+  getWalkers: (status) => {
     const query = new URLSearchParams();
-    if (status) query.set("status", status);
+    if (status && status.trim()) query.set("status", status);
     const qs = query.toString();
     return api.get(`/admin/walkers${qs ? `?${qs}` : ""}`);
   },

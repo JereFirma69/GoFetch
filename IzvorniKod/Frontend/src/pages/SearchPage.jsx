@@ -176,9 +176,37 @@ export default function SearchPage() {
 
   const slotColumns = useMemo(
     () => [
+      {
+        key: "WalkerProfilePicture",
+        title: "",
+        render: (r) => (
+          <div className="flex items-center justify-center">
+            {r.WalkerProfilePicture ? (
+              <img
+                src={r.WalkerProfilePicture}
+                alt={r.WalkerName}
+                className="w-10 h-10 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 font-semibold">
+                {r.WalkerName?.charAt(0) || "?"}
+              </div>
+            )}
+          </div>
+        ),
+      },
       { key: "WalkerName", title: "Walker" },
       { key: "Location", title: "Location" },
-      { key: "Type", title: "Type" },
+      {
+        key: "Type",
+        title: "Type",
+        render: (r) => {
+          const type = r.Type?.toLowerCase();
+          if (type === "grupna" || type === "group") return "Group";
+          if (type === "individualna" || type === "individual") return "Individual";
+          return r.Type;
+        },
+      },
       {
         key: "Start",
         title: "Start Time",
@@ -214,16 +242,21 @@ export default function SearchPage() {
       <div className="flex" style={{ gap: "12px", flexWrap: "wrap", marginBottom: 12 }}>
         <input
           style={{ flex: 1, minWidth: 220, padding: "10px 12px", borderRadius: 8, border: "1px solid #d1d5db" }}
-          placeholder="Search by name or bio..."
+          placeholder="Search by name"
           value={walkerSearch}
           onChange={(e) => setWalkerSearch(e.target.value)}
         />
-        <input
-          style={{ flex: 1, minWidth: 200, padding: "10px 12px", borderRadius: 8, border: "1px solid #d1d5db" }}
+        <select
+          style={{ flex: 1, minWidth: 200, padding: "10px 12px", borderRadius: 8, border: "1px solid #d1d5db", background: "#fff" }}
           placeholder="Location"
           value={walkerLocation}
           onChange={(e) => setWalkerLocation(e.target.value)}
-        />
+        >
+          <option value="">All Locations</option>
+          <option value="zagreb">Zagreb</option>
+          <option value="rijeka">Rijeka</option>
+          <option value="split">Split</option>
+        </select>
         <button
           onClick={fetchWalkers}
           style={{ padding: "10px 16px", background: "#0f766e", color: "#fff", border: "none", borderRadius: 8, fontWeight: 600 }}
@@ -266,7 +299,7 @@ export default function SearchPage() {
       <div className="flex" style={{ gap: "12px", flexWrap: "wrap", marginBottom: 12 }}>
         <input
           style={{ flex: 1, minWidth: 220, padding: "10px 12px", borderRadius: 8, border: "1px solid #d1d5db" }}
-          placeholder="Search by walker or location..."
+          placeholder="Search by walker"
           value={slotSearch}
           onChange={(e) => setSlotSearch(e.target.value)}
         />
@@ -276,12 +309,16 @@ export default function SearchPage() {
           value={slotDate}
           onChange={(e) => setSlotDate(e.target.value)}
         />
-        <input
-          style={{ flex: 1, minWidth: 200, padding: "10px 12px", borderRadius: 8, border: "1px solid #d1d5db" }}
-          placeholder="Location"
+        <select
+          style={{ flex: 1, minWidth: 200, padding: "10px 12px", borderRadius: 8, border: "1px solid #d1d5db", background: "#fff" }}
           value={slotLocation}
           onChange={(e) => setSlotLocation(e.target.value)}
-        />
+        >
+          <option value="">All Locations</option>
+          <option value="zagreb">Zagreb</option>
+          <option value="rijeka">Rijeka</option>
+          <option value="split">Split</option>
+        </select>
         <select
           style={{ width: 170, padding: "10px 12px", borderRadius: 8, border: "1px solid #d1d5db", background: "#fff" }}
           value={slotType}
