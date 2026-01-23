@@ -644,7 +644,7 @@ public class CalendarService : ICalendarService
                     r.Termin.Setac.IdKorisnik,
                     r.Termin.Setac.ImeSetac,
                     r.Termin.Setac.PrezimeSetac,
-                    r.Termin.Setac.ProfilnaSetac,
+                    r.Termin.Setac.Korisnik?.ProfilnaKorisnik ?? "",
                     r.Termin.Setac.LokacijaSetac,
                     null
                 )
@@ -691,7 +691,7 @@ public class CalendarService : ICalendarService
             s.IdKorisnik,
             s.ImeSetac,
             s.PrezimeSetac,
-            s.ProfilnaSetac,
+            s.Korisnik?.ProfilnaKorisnik ?? "",
             s.LokacijaSetac,
             null // TODO: Calculate average rating from reviews
         )).ToList();

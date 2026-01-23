@@ -4,7 +4,10 @@ import { getMyRezervacije, updateRezervacijaStatus } from "../utils/calendarApi"
 import { api } from "../utils/api";
 
 // Inline SVG data URI for fallback avatar (no external dependency)
-const fallbackAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect fill='%2399f6e4' width='64' height='64'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='24' fill='%230d9488'%3E%3F%3C/text%3E%3C/svg%3E";
+const createFallbackAvatar = (letter) => {
+  const char = letter || "?";
+  return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect fill='%2399f6e4' width='64' height='64'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='24' fill='%230d9488'%3E${encodeURIComponent(char)}%3C/text%3E%3C/svg%3E`;
+};
 
 const STATUS_CONFIG = {
   "na cekanju": { bg: "bg-amber-100", border: "border-amber-400", text: "text-amber-700", label: "Pending", icon: "⏳" },
@@ -49,41 +52,47 @@ function BookingCard({ booking, isOwner, onStatusChange, loading }) {
         {/* Avatar */}
         <div className="flex-shrink-0">
           {isOwner ? (
-            <>
-              {booking.termin?.walker?.profilnaSetac ? (
+            (() => {
+              const pic = booking.termin?.walker?.profilnaSetac;
+              const initial = booking.termin?.walker?.imeSetac?.charAt(0) || "?";
+              const hasValidPic = pic && pic !== "null" && pic.trim() !== "";
+              return hasValidPic ? (
                 <img
-                  src={booking.termin.walker.profilnaSetac}
+                  src={pic}
                   alt={booking.termin.walker.imeSetac}
                   className="w-12 h-12 rounded-full object-cover"
                   onError={(e) => {
                     e.currentTarget.onerror = null;
-                    e.currentTarget.src = fallbackAvatar;
+                    e.currentTarget.src = createFallbackAvatar(initial);
                   }}
                 />
               ) : (
                 <div className="w-12 h-12 rounded-full bg-teal-200 flex items-center justify-center text-teal-700 font-bold">
-                  {booking.termin?.walker?.imeSetac?.charAt(0) || "?"}
+                  {initial}
                 </div>
-              )}
-            </>
+              );
+            })()
           ) : (
-            <>
-              {booking.owner?.profilnaKorisnik ? (
+            (() => {
+              const pic = booking.owner?.profilnaKorisnik;
+              const initial = booking.owner?.ime?.charAt(0) || "?";
+              const hasValidPic = pic && pic !== "null" && pic.trim() !== "";
+              return hasValidPic ? (
                 <img
-                  src={booking.owner.profilnaKorisnik}
+                  src={pic}
                   alt={booking.owner.ime}
                   className="w-12 h-12 rounded-full object-cover"
                   onError={(e) => {
                     e.currentTarget.onerror = null;
-                    e.currentTarget.src = fallbackAvatar;
+                    e.currentTarget.src = createFallbackAvatar(initial);
                   }}
                 />
               ) : (
                 <div className="w-12 h-12 rounded-full bg-teal-200 flex items-center justify-center text-teal-700 font-bold">
-                  {booking.owner?.ime?.charAt(0) || "?"}
+                  {initial}
                 </div>
-              )}
-            </>
+              );
+            })()
           )}
         </div>
 
