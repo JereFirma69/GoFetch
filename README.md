@@ -1,6 +1,8 @@
 # GoFetch! - Moderna platforma za pronalazak pouzdanih šetača pasa u vašoj blizini
 [PawPal](https://gofetch-pawpal.vercel.app)
+-------------------------------
 Login info za testiranje:
+
   šetać:    mail - "testwalker@pawpal.com"
             pass - "test"
   vlasnik:  mail - "testowner@pawpal.com"
