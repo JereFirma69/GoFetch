@@ -1,6 +1,5 @@
 import { useState, useContext, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { PayPalButtons } from "@paypal/react-paypal-js";
 import { AuthContext } from "../context/AuthContext";
 import { api } from "../utils/api";
 import ProfileSidebar from "../components/Profile/ProfileSidebar";
@@ -12,8 +11,6 @@ import DogFormPanel from "../components/Profile/DogFormPanel";
 import gD1 from "../assets/dogImages/goldenRetriver1.jpg";
 import gD2 from "../assets/dogImages/goldenRetriver2.jpg";
 import p1 from "../assets/dogImages/pug1.jpg";
-
-const API_URL = import.meta.env.VITE_API_URL;
 
 export default function ProfilePage() {
   const { user, logout } = useContext(AuthContext);
@@ -195,42 +192,7 @@ export default function ProfilePage() {
 
                 {activeTab === "settings" && <div>Settings - coming soon</div>}
 
-                {activeTab === "payment" && (
-                  <div className="space-y-4 max-w-md">
-                    <h3 className="text-lg font-semibold">Premium subskripcija</h3>
-                    <p className="text-gray-600">
-                      Otključaj premium značajke za 10 €
-                    </p>
-
-                    <PayPalButtons
-                      createOrder={async () => {
-                        const res = await fetch(`${API_URL}/payments/create-order`, {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify("10.00"),
-                        });
-
-                        const data = await res.json();
-                        return data.orderId;
-                      }}
-                      onApprove={async (data) => {
-                        const res = await fetch(
-                          `${API_URL}/payments/capture-order/${data.orderID}`,
-                          { method: "POST" }
-                        );
-
-                        const result = await res.json();
-                        console.log("CAPTURE RESULT:", result);
-
-                        alert("✅ Plaćanje uspješno ✅");
-                      }}
-                      onError={(err) => {
-                        console.error(err);
-                        alert("❌ Greška pri plaćanju ❌");
-                      }}
-                    />
-                  </div>
-                )}
+                {activeTab === "payment" && <div>Payment - coming soon</div>}
               </div>
             </div>
           )}

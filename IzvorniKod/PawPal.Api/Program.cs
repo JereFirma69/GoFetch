@@ -6,7 +6,6 @@ using PawPal.Api.Configuration;
 using PawPal.Api.Data;
 using PawPal.Api.Services;
 using PawPal.Api.Services.Implementations;
-using PawPal.Api.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -100,7 +99,6 @@ builder.Services.AddScoped<IStorageService, StorageService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddHttpClient<IChatService, ChatService>();
-builder.Services.AddScoped<IPayPalService, PayPalService>();
 
 // Controllers
 builder.Services.AddControllers();
