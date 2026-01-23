@@ -13,7 +13,7 @@ function ChatWidget() {
         window.start.init({
           title: "Spremni za šetnju?",
           message: "Pozdrav!\nUkoliko ti ili tvoj krzneni prijatelj imate pitanja, slobodno nam pišite.\nNaš tim Vam stoji na raspolaganju.",
-          color: "#000000", //14b8a6
+          color: "#14b8a6", //14b8a6
           position: "left",
           placeholder: "Enter your message",
           withText: "Write with",

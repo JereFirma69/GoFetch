@@ -525,6 +525,73 @@ public class CalendarService : ICalendarService
         await UpdateRezervacijaStatusAsync(ownerId, rezervacijaId, new UpdateRezervacijaStatusRequest("otkazana"), ct);
     }
 
+    public async Task<WalkerReviewDto> CreateRecenzijaAsync(int ownerId, int rezervacijaId, CreateRecenzijaRequest request, CancellationToken ct = default)
+    {
+        if (request.Ocjena is < 1 or > 5)
+        {
+            throw new InvalidOperationException("Ocjena must be between 1 and 5.");
+        }
+
+        var rezervacija = await _db.Rezervacije
+            .Include(r => r.Termin)
+                .ThenInclude(t => t.Setac)
+                    .ThenInclude(s => s.Korisnik)
+            .Include(r => r.Vlasnik)
+                .ThenInclude(v => v.Korisnik)
+            .FirstOrDefaultAsync(r => r.IdRezervacija == rezervacijaId, ct);
+
+        if (rezervacija == null)
+        {
+            throw new InvalidOperationException("Rezervacija not found.");
+        }
+
+        if (rezervacija.IdVlasnik != ownerId)
+        {
+            throw new InvalidOperationException("You don't have permission to review this booking.");
+        }
+
+        if (rezervacija.StatusRezervacija == "otkazana")
+        {
+            throw new InvalidOperationException("Cannot review a cancelled booking.");
+        }
+
+        // Only allow reviews for confirmed (accepted) bookings
+        if (rezervacija.StatusRezervacija != "prihvacena")
+        {
+            throw new InvalidOperationException("Booking must be accepted before it can be reviewed.");
+        }
+
+        // Only allow after the scheduled walk end time
+        var startUtc = rezervacija.DatumVrijemePolaska.Kind == DateTimeKind.Unspecified
+            ? DateTime.SpecifyKind(rezervacija.DatumVrijemePolaska, DateTimeKind.Utc)
+            : rezervacija.DatumVrijemePolaska.ToUniversalTime();
+        var endUtc = startUtc.Add(rezervacija.Termin.Trajanje);
+        if (DateTime.UtcNow < endUtc)
+        {
+            throw new InvalidOperationException("Cannot leave a review before the walk ends.");
+        }
+
+        var alreadyReviewed = await _db.Recenzije.AnyAsync(r => r.IdRezervacija == rezervacijaId, ct);
+        if (alreadyReviewed)
+        {
+            throw new InvalidOperationException("A review for this booking already exists.");
+        }
+
+        var recenzija = new Recenzija
+        {
+            IdRezervacija = rezervacijaId,
+            DatumRecenzija = DateTime.UtcNow,
+            Ocjena = request.Ocjena,
+            Komentar = string.IsNullOrWhiteSpace(request.Komentar) ? null : request.Komentar.Trim()
+        };
+
+        _db.Recenzije.Add(recenzija);
+        await _db.SaveChangesAsync(ct);
+
+        var reviewerName = rezervacija.Vlasnik.Korisnik.Ime + " " + rezervacija.Vlasnik.Korisnik.Prezime;
+        return new WalkerReviewDto(recenzija.DatumRecenzija, recenzija.Ocjena, recenzija.Komentar, reviewerName);
+    }
+
     // ============ MAPPING HELPERS ============
 
     private TerminDto MapToTerminDto(Termin t)

@@ -230,6 +230,28 @@ public class CalendarController : ControllerBase
         }
     }
 
+    // ============ REVIEWS (Recenzije) ============
+
+    [HttpPost("rezervacije/{rezervacijaId}/recenzija")]
+    [ProducesResponseType(typeof(WalkerReviewDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<WalkerReviewDto>> CreateRecenzija(
+        int rezervacijaId,
+        [FromBody] CreateRecenzijaRequest request,
+        CancellationToken ct)
+    {
+        try
+        {
+            var userId = GetUserId();
+            var created = await _calendarService.CreateRecenzijaAsync(userId, rezervacijaId, request, ct);
+            return Created(string.Empty, created);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
     // ============ AVAILABLE SLOTS (For Owners to Browse) ============
 
     [HttpGet("available")]
