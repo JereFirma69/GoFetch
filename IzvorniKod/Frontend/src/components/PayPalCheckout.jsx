@@ -1,12 +1,22 @@
-import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
+import { PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js";
+import { useEffect } from "react";
 import axios from "axios";
 
 export default function PayPalCheckout() {
+  const [{ isPending, isResolved }, dispatch] = usePayPalScriptReducer();
   const amount = 50.00;
+
+  // Load the PayPal script when this component mounts
+  useEffect(() => {
+    dispatch({
+      type: "setLoadingStatus",
+      value: "pending"
+    });
+  }, [dispatch]);
 
   const createOrder = async () => {
     const response = await axios.post(
-      "/api/payments/create-order",
+      `${import.meta.env.VITE_API_URL}/api/payments/create-order`,
       amount,
       {
         headers: {
@@ -21,7 +31,7 @@ export default function PayPalCheckout() {
 
   const onApprove = async (data) => {
     await axios.post(
-      "/api/payments/capture-order",
+      `${import.meta.env.VITE_API_URL}/api/payments/capture-order`,
       data.orderID,
       {
         headers: {
@@ -39,19 +49,16 @@ export default function PayPalCheckout() {
     alert("❌ Greška pri plaćanju ❌");
   };
 
+  if (isPending) {
+    return <div className="text-center py-4">Loading PayPal...</div>;
+  }
+
   return (
-    <PayPalScriptProvider
-      options={{
-        "client-id": import.meta.env.VITE_PAYPAL_CLIENT_ID,
-        currency: "EUR"
-      }}
-    >
-      <PayPalButtons
-        createOrder={createOrder}
-        onApprove={onApprove}
-        onError={onError}
-        style={{ layout: "vertical" }}
-      />
-    </PayPalScriptProvider>
+    <PayPalButtons
+      createOrder={createOrder}
+      onApprove={onApprove}
+      onError={onError}
+      style={{ layout: "vertical" }}
+    />
   );
 }

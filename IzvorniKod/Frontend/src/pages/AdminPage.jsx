@@ -125,15 +125,31 @@ export default function AdminPage() {
     }
   };
 
+  const isValidImageUrl = (url) => {
+    if (!url || typeof url !== 'string') return false;
+    // Check if it starts with http/https or is a valid blob/data URL
+    return url.startsWith('http://') || url.startsWith('https://') || url.startsWith('blob:') || url.startsWith('data:');
+  };
+
   const avatarCell = (pic, name) => (
     <div className="flex items-center gap-2">
-      {pic ? (
-        <img src={pic} alt={name} className="w-10 h-10 rounded-full object-cover" />
-      ) : (
-        <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-semibold">
-          {name?.charAt(0) || "?"}
-        </div>
-      )}
+      {isValidImageUrl(pic) ? (
+        <img 
+          src={pic} 
+          alt={name} 
+          className="w-10 h-10 rounded-full object-cover"
+          onError={(e) => {
+            e.target.style.display = 'none';
+            e.target.nextSibling.style.display = 'flex';
+          }}
+        />
+      ) : null}
+      <div 
+        className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-semibold"
+        style={{ display: isValidImageUrl(pic) ? 'none' : 'flex' }}
+      >
+        {name?.charAt(0) || "?"}
+      </div>
     </div>
   );
 

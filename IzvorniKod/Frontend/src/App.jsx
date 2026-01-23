@@ -42,6 +42,7 @@ export default function App() {
         currency: "EUR",
         intent: "capture"
       }}
+      deferLoading={true}
     >
     <AuthProvider>
       <ReviewsProvider>

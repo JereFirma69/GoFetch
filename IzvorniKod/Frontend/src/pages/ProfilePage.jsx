@@ -10,6 +10,7 @@ import Reviews from "../components/Profile/Reviews";
 import EditProfilePanel from "../components/Profile/EditProfilePanel";
 import DogFormPanel from "../components/Profile/DogFormPanel";
 import BookingHistory from "../components/Profile/BookingHistory";
+import WalkerSubscription from "../components/Profile/WalkerSubscription";
 import gD1 from "../assets/dogImages/goldenRetriver1.jpg";
 import gD2 from "../assets/dogImages/goldenRetriver2.jpg";
 import p1 from "../assets/dogImages/pug1.jpg";
@@ -225,40 +226,7 @@ export default function ProfilePage() {
                 )}
 
                 {activeTab === "payment" && (
-                  <div className="space-y-4 max-w-md">
-                    <h3 className="text-lg font-semibold">Premium subskripcija</h3>
-                    <p className="text-gray-600">
-                      Otključaj premium značajke za 10 €
-                    </p>
-
-                    <PayPalButtons
-                      createOrder={async () => {
-                        const res = await fetch(`${API_URL}/payments/create-order`, {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify("10.00"),
-                        });
-
-                        const data = await res.json();
-                        return data.orderId;
-                      }}
-                      onApprove={async (data) => {
-                        const res = await fetch(
-                          `${API_URL}/payments/capture-order/${data.orderID}`,
-                          { method: "POST" }
-                        );
-
-                        const result = await res.json();
-                        console.log("CAPTURE RESULT:", result);
-
-                        alert("✅ Plaćanje uspješno ✅");
-                      }}
-                      onError={(err) => {
-                        console.error(err);
-                        alert("❌ Greška pri plaćanju ❌");
-                      }}
-                    />
-                  </div>
+                  <WalkerSubscription isWalker={!!profileData?.walker} />
                 )}
               </div>
             </div>
