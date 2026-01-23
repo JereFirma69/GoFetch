@@ -120,6 +120,18 @@ export const updateRezervacijaStatus = async (rezervacijaId, status) => {
   return api.put(`/calendar/rezervacije/${rezervacijaId}/status`, { status });
 };
 
+// ==================== Reviews ====================
+
+/**
+ * Create a review for a completed booking
+ * @param {number} rezervacijaId - ID of the rezervacija
+ * @param {number} ocjena - Rating (1-5)
+ * @param {string} komentar - Optional comment
+ */
+export const createReview = async (rezervacijaId, ocjena, komentar = null) => {
+  return api.post(`/calendar/rezervacije/${rezervacijaId}/recenzija`, { ocjena, komentar });
+};
+
 // ==================== Walker Discovery ====================
 
 /**

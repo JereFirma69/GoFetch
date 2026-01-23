@@ -567,20 +567,23 @@ public class CalendarService : ICalendarService
             throw new InvalidOperationException("Cannot review a cancelled booking.");
         }
 
-        // Only allow reviews for confirmed (accepted) bookings
-        if (rezervacija.StatusRezervacija != "prihvacena")
+        // Only allow reviews for confirmed (accepted) or finished bookings
+        if (rezervacija.StatusRezervacija != "prihvacena" && rezervacija.StatusRezervacija != "zavrsena")
         {
-            throw new InvalidOperationException("Booking must be accepted before it can be reviewed.");
+            throw new InvalidOperationException("Booking must be accepted or finished before it can be reviewed.");
         }
 
-        // Only allow after the scheduled walk end time
-        var startUtc = rezervacija.DatumVrijemePolaska.Kind == DateTimeKind.Unspecified
-            ? DateTime.SpecifyKind(rezervacija.DatumVrijemePolaska, DateTimeKind.Utc)
-            : rezervacija.DatumVrijemePolaska.ToUniversalTime();
-        var endUtc = startUtc.Add(rezervacija.Termin.Trajanje);
-        if (DateTime.UtcNow < endUtc)
+        // For non-finished bookings, only allow after the scheduled walk end time
+        if (rezervacija.StatusRezervacija != "zavrsena")
         {
-            throw new InvalidOperationException("Cannot leave a review before the walk ends.");
+            var startUtc = rezervacija.DatumVrijemePolaska.Kind == DateTimeKind.Unspecified
+                ? DateTime.SpecifyKind(rezervacija.DatumVrijemePolaska, DateTimeKind.Utc)
+                : rezervacija.DatumVrijemePolaska.ToUniversalTime();
+            var endUtc = startUtc.Add(rezervacija.Termin.Trajanje);
+            if (DateTime.UtcNow < endUtc)
+            {
+                throw new InvalidOperationException("Cannot leave a review before the walk ends.");
+            }
         }
 
         var alreadyReviewed = await _db.Recenzije.AnyAsync(r => r.IdRezervacija == rezervacijaId, ct);

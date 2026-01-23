@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { getMyRezervacije, updateRezervacijaStatus } from "../utils/calendarApi";
+import { useReviews } from "../components/reviews/ReviewsContext";
 import { api } from "../utils/api";
 
 
@@ -17,7 +18,7 @@ const STATUS_CONFIG = {
   "zavrsena": { bg: "bg-blue-100", border: "border-blue-400", text: "text-blue-700", label: "Finished", icon: "🏁" },
 };
 
-function BookingCard({ booking, isOwner, onStatusChange, loading, onOpenChat }) {
+function BookingCard({ booking, isOwner, onStatusChange, loading, onOpenChat, onOpenReview }) {
   const [localError, setLocalError] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -147,7 +148,7 @@ function BookingCard({ booking, isOwner, onStatusChange, loading, onOpenChat }) 
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {isOwner && canCancel && (
               <button
                 onClick={() => handleStatusChange("otkazana")}
@@ -162,6 +163,16 @@ function BookingCard({ booking, isOwner, onStatusChange, loading, onOpenChat }) 
               <div className="text-xs text-red-600 font-medium">
                 ✕ Cannot cancel less than 24 hours before
               </div>
+            )}
+
+            {/* Owner can leave a review for finished bookings */}
+            {isOwner && booking.statusRezervacija === "zavrsena" && (
+              <button
+                onClick={() => onOpenReview?.(booking)}
+                className="px-3 py-1 bg-yellow-500 text-white text-sm rounded-lg hover:bg-yellow-600 font-medium"
+              >
+                ⭐ Leave Review
+              </button>
             )}
 
             {!isOwner && canConfirm && (
@@ -207,6 +218,7 @@ function BookingCard({ booking, isOwner, onStatusChange, loading, onOpenChat }) 
 
 export default function MyBookingsPage() {
   const { user } = useContext(AuthContext);
+  const { requestReview } = useReviews();
   const [isOwner, setIsOwner] = useState(false);
   const [isWalker, setIsWalker] = useState(false);
   const [activeTab, setActiveTab] = useState("owner"); // or "walker"
@@ -214,6 +226,7 @@ export default function MyBookingsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [openChats, setOpenChats] = useState([]); // For chat windows
 
   useEffect(() => {
     const checkRoles = async () => {
@@ -263,20 +276,28 @@ export default function MyBookingsPage() {
   };
 
   const openChatForBooking = (booking) => {
-  setOpenChats((prev) => {
-    if (prev.some((b) => b.idRezervacija === booking.idRezervacija)) {
-      return prev;
-    }
-    return [...prev, booking];
-  });
-};
+    setOpenChats((prev) => {
+      if (prev.some((b) => b.idRezervacija === booking.idRezervacija)) {
+        return prev;
+      }
+      return [...prev, booking];
+    });
+  };
 
 
   const filteredBookings = bookings
     .filter((booking) => {
-      // Filter out finished bookings (past bookings or manually finished)
+      // Filter by active role tab first to determine if user is owner for this booking
+      const isOwnerForBooking = booking.owner?.idKorisnik === user?.userId;
+      const isWalkerForBooking = booking.termin?.walker?.idKorisnik === user?.userId;
+      
+      // Filter out finished bookings (but keep "zavrsena" for owners so they can review)
       if (booking.statusRezervacija === "zavrsena") {
-        return false; // Manually marked as finished
+        // Show finished bookings only to owners (so they can leave a review)
+        if (activeTab === "owner" && isOwnerForBooking) {
+          return true;
+        }
+        return false; // Hide from walkers
       }
       const bookingDate = new Date(booking.datumVrijemePolaska);
       const durationMins = booking.termin?.trajanjeMins || 60;
@@ -405,16 +426,23 @@ export default function MyBookingsPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {filteredBookings.map((booking) => (
-              <BookingCard
-                key={booking.idRezervacija}
-                booking={booking}
-                isOwner={activeTab === "owner"}
-                onStatusChange={fetchBookings}
-                loading={loading}
-                onOpenChat={openChatForBooking}
-              />
-            ))}
+            {filteredBookings.map((booking) => {
+              const walkerName = `${booking.termin?.walker?.imeSetac || ""} ${booking.termin?.walker?.prezimeSetac || ""}`.trim();
+              return (
+                <BookingCard
+                  key={booking.idRezervacija}
+                  booking={booking}
+                  isOwner={activeTab === "owner"}
+                  onStatusChange={fetchBookings}
+                  loading={loading}
+                  onOpenChat={openChatForBooking}
+                  onOpenReview={() => requestReview({
+                    walkId: booking.idRezervacija,
+                    otherUserName: walkerName || "Walker",
+                  })}
+                />
+              );
+            })}
           </div>
         )}
       </div>
