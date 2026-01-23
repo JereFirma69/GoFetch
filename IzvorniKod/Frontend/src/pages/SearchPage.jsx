@@ -21,7 +21,6 @@ const cardStyle = {
   padding: "18px",
 };
 
-// Helper to create a fallback avatar SVG with a specific letter
 const createFallbackAvatar = (letter) => {
   const char = letter || "?";
   return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect fill='%2399f6e4' width='80' height='80'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='32' fill='%230d9488'%3E${encodeURIComponent(char)}%3C/text%3E%3C/svg%3E`;
@@ -33,13 +32,11 @@ export default function SearchPage() {
   const initialTab = searchParams.get("tab") === "slots" ? "slots" : "walkers";
   const [tab, setTab] = useState(initialTab);
 
-  // Walkers
   const [walkers, setWalkers] = useState([]);
   const [walkerLoading, setWalkerLoading] = useState(false);
   const [walkerSearch, setWalkerSearch] = useState("");
   const [walkerLocation, setWalkerLocation] = useState("");
 
-  // 
   const [slots, setSlots] = useState([]);
   const [slotLoading, setSlotLoading] = useState(false);
   const [slotSearch, setSlotSearch] = useState("");
@@ -59,7 +56,6 @@ export default function SearchPage() {
     setSearchParams({ tab });
   }, [tab, setSearchParams]);
 
-  // Helper to fetch full walker profile and open modal
   const openWalkerProfile = async (walkerId) => {
     setProfileLoading(true);
     try {

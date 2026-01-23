@@ -21,8 +21,6 @@ public class CalendarService : ICalendarService
         _logger = logger;
     }
 
-    // ============ TERMIN (Walker's Available Slots) ============
-
     public async Task<TerminDto> CreateTerminAsync(int walkerId, CreateTerminRequest request, CancellationToken ct = default)
     {
         var walker = await _db.Setaci
@@ -46,7 +44,6 @@ public class CalendarService : ICalendarService
             MaxDogs = request.MaxDogs ?? 5
         };
 
-        // Create Google Calendar event if connected
         if (walker.Korisnik.GoogleAuth != null)
         {
             try
@@ -80,7 +77,6 @@ public class CalendarService : ICalendarService
             throw new InvalidOperationException("Termin not found or you don't have permission to edit it.");
         }
 
-        // Check for existing bookings
         var hasBookings = await _db.Rezervacije
             .AnyAsync(r => r.IdTermin == terminId && r.StatusRezervacija != "otkazana", ct);
 
@@ -96,7 +92,6 @@ public class CalendarService : ICalendarService
         if (request.LokacijaTermin != null) termin.LokacijaTermin = request.LokacijaTermin;
         if (request.MaxDogs.HasValue) termin.MaxDogs = request.MaxDogs.Value;
 
-        // Update Google Calendar
         if (!string.IsNullOrEmpty(termin.GoogleCalendarEventId))
         {
             try
@@ -124,7 +119,6 @@ public class CalendarService : ICalendarService
             throw new InvalidOperationException("Termin not found or you don't have permission to delete it.");
         }
 
-        // Check for existing confirmed bookings
         var hasConfirmedBookings = await _db.Rezervacije
             .AnyAsync(r => r.IdTermin == terminId && r.StatusRezervacija == "prihvacena", ct);
 
@@ -133,13 +127,11 @@ public class CalendarService : ICalendarService
             throw new InvalidOperationException("Cannot delete a slot with confirmed bookings. Cancel bookings first.");
         }
 
-        // Delete from Google Calendar
         if (!string.IsNullOrEmpty(termin.GoogleCalendarEventId))
         {
             await _googleCalendar.DeleteEventAsync(walkerId, termin.GoogleCalendarEventId, ct);
         }
 
-        // Cancel any pending bookings
         var pendingBookings = await _db.Rezervacije
             .Where(r => r.IdTermin == terminId && r.StatusRezervacija == "na cekanju")
             .ToListAsync(ct);
@@ -188,8 +180,6 @@ public class CalendarService : ICalendarService
         return MapToTerminDto(termin);
     }
 
-    // ============ AVAILABLE SLOTS (For Owners) ============
-
     public async Task<List<TerminDto>> GetAvailableSlotsAsync(AvailableSlotsQuery query, CancellationToken ct = default)
     {
         var queryable = _db.Termini
@@ -199,10 +189,9 @@ public class CalendarService : ICalendarService
                 .ThenInclude(r => r.PsiRezervacije)
             .Where(t => t.DatumVrijemePocetka >= query.From 
                 && t.DatumVrijemePocetka <= query.To
-                && t.DatumVrijemePocetka > DateTime.UtcNow) // Only future slots
+                && t.DatumVrijemePocetka > DateTime.UtcNow)
             .AsQueryable();
 
-        // Filter by location (partial match)
         if (!string.IsNullOrEmpty(query.Location))
         {
             queryable = queryable.Where(t => 
@@ -210,13 +199,11 @@ public class CalendarService : ICalendarService
                 t.Setac.LokacijaSetac.ToLower().Contains(query.Location.ToLower()));
         }
 
-        // Filter by max price
         if (query.MaxPrice.HasValue)
         {
             queryable = queryable.Where(t => t.Cijena <= query.MaxPrice.Value);
         }
 
-        // Filter by walk type
         if (!string.IsNullOrEmpty(query.VrstaSetnje))
         {
             queryable = queryable.Where(t => t.VrstaSetnjaTermin == query.VrstaSetnje);
@@ -226,7 +213,6 @@ public class CalendarService : ICalendarService
             .OrderBy(t => t.DatumVrijemePocetka)
             .ToListAsync(ct);
 
-        // Filter to only show slots with availability
         var availableTermini = termini
             .Where(t => 
             {
@@ -241,11 +227,8 @@ public class CalendarService : ICalendarService
         return availableTermini.Select(t => MapToTerminDto(t)).ToList();
     }
 
-    // ============ REZERVACIJA (Bookings) ============
-
     public async Task<RezervacijaDto> CreateRezervacijaAsync(int ownerId, CreateRezervacijaRequest request, CancellationToken ct = default)
     {
-        // Verify owner exists
         var owner = await _db.Vlasnici
             .Include(v => v.Korisnik)
             .Include(v => v.Psi)
@@ -256,7 +239,6 @@ public class CalendarService : ICalendarService
             throw new InvalidOperationException("Owner profile not found.");
         }
 
-        // Verify all dogs belong to owner
         var dogs = await _db.Psi
             .Where(p => request.DogIds.Contains(p.IdPas) && p.IdKorisnik == ownerId)
             .ToListAsync(ct);
@@ -266,7 +248,6 @@ public class CalendarService : ICalendarService
             throw new InvalidOperationException("One or more dogs not found or don't belong to you.");
         }
 
-        // Get termin with current bookings
         var termin = await _db.Termini
             .Include(t => t.Setac)
                 .ThenInclude(s => s.Korisnik)
@@ -279,7 +260,6 @@ public class CalendarService : ICalendarService
             throw new InvalidOperationException("Termin not found.");
         }
 
-        // Check if this termin already has an active booking (only 1 booking per termin allowed)
         var existingBooking = termin.Rezervacije
             .FirstOrDefault(r => r.StatusRezervacija != "otkazana");
 
@@ -288,13 +268,11 @@ public class CalendarService : ICalendarService
             throw new InvalidOperationException("This walk slot is already booked. Please choose a different time.");
         }
 
-        // Check availability (still validate max dogs for the booking itself)
         if (request.DogIds.Count > termin.MaxDogs)
         {
             throw new InvalidOperationException($"Too many dogs selected. Maximum {termin.MaxDogs} dogs allowed for this walk.");
         }
 
-        // Create reservation
         var rezervacija = new Rezervacija
         {
             IdTermin = request.IdTermin,
@@ -310,7 +288,6 @@ public class CalendarService : ICalendarService
         _db.Rezervacije.Add(rezervacija);
         await _db.SaveChangesAsync(ct);
 
-        // Create payment record
         var payment = new Placanje
         {
             IdRezervacija = rezervacija.IdRezervacija,
@@ -323,7 +300,6 @@ public class CalendarService : ICalendarService
         _db.Placanja.Add(payment);
         await _db.SaveChangesAsync(ct);
 
-        // Add dogs to reservation
         foreach (var dogId in request.DogIds)
         {
             _db.RezervacijePsi.Add(new RezervacijaPas
@@ -334,7 +310,6 @@ public class CalendarService : ICalendarService
         }
         await _db.SaveChangesAsync(ct);
 
-        // Update Google Calendar
         if (!string.IsNullOrEmpty(termin.GoogleCalendarEventId))
         {
             var allBookings = await _db.Rezervacije
@@ -361,7 +336,6 @@ public class CalendarService : ICalendarService
 
     public async Task<List<RezervacijaDto>> GetUserRezervacijeAsync(int userId, DateTime from, DateTime to, CancellationToken ct = default)
     {
-        // Check if user is owner and/or walker (an account can be both)
         var isOwner = await _db.Vlasnici.AnyAsync(v => v.IdKorisnik == userId, ct);
         var isWalker = await _db.Setaci.AnyAsync(s => s.IdKorisnik == userId, ct);
 
@@ -374,7 +348,6 @@ public class CalendarService : ICalendarService
 
         if (isOwner)
         {
-            // Owner sees their own bookings
             queries.Add(
                 _db.Rezervacije
                     .Include(r => r.Termin)
@@ -392,7 +365,6 @@ public class CalendarService : ICalendarService
 
         if (isWalker)
         {
-            // Walker sees incoming bookings for their slots
             queries.Add(
                 _db.Rezervacije
                     .Include(r => r.Termin)
@@ -414,13 +386,10 @@ public class CalendarService : ICalendarService
             rezervacije.AddRange(await q.ToListAsync(ct));
         }
 
-        // Get IDs of bookings that have already been reviewed
         var reviewedIds = await _db.Recenzije
             .Select(r => r.IdRezervacija)
             .ToListAsync(ct);
 
-        // Remove duplicates (in case of overlap) and order by date
-        // Also filter out finished bookings that have already been reviewed
         var distinct = rezervacije
             .GroupBy(r => r.IdRezervacija)
             .Select(g => g.First())
@@ -475,26 +444,22 @@ public class CalendarService : ICalendarService
             throw new InvalidOperationException("You don't have permission to modify this booking.");
         }
 
-        // Validate status transitions
         var validStatuses = new[] { "prihvacena", "otkazana", "zavrsena" };
         if (!validStatuses.Contains(request.Status))
         {
             throw new InvalidOperationException("Invalid status. Must be 'prihvacena', 'otkazana', or 'zavrsena'.");
         }
 
-        // Only walker can confirm
         if (request.Status == "prihvacena" && !isWalker)
         {
             throw new InvalidOperationException("Only the walker can confirm a booking.");
         }
 
-        // Only walker can mark as finished
         if (request.Status == "zavrsena" && !isWalker)
         {
             throw new InvalidOperationException("Only the walker can mark a booking as finished.");
         }
 
-        // Can only finish confirmed bookings
         if (request.Status == "zavrsena" && rezervacija.StatusRezervacija != "prihvacena")
         {
             throw new InvalidOperationException("Only confirmed bookings can be marked as finished.");
@@ -503,7 +468,6 @@ public class CalendarService : ICalendarService
         rezervacija.StatusRezervacija = request.Status;
         await _db.SaveChangesAsync(ct);
 
-        // Update Google Calendar
         if (!string.IsNullOrEmpty(termin.GoogleCalendarEventId))
         {
             var allBookings = await _db.Rezervacije
@@ -538,7 +502,6 @@ public class CalendarService : ICalendarService
             throw new InvalidOperationException("Rezervacija not found or you don't have permission to cancel it.");
         }
 
-        // Check 24-hour rule
         var hoursUntilStart = (rezervacija.DatumVrijemePolaska - DateTime.UtcNow).TotalHours;
         if (hoursUntilStart < 24)
         {
@@ -578,13 +541,11 @@ public class CalendarService : ICalendarService
             throw new InvalidOperationException("Cannot review a cancelled booking.");
         }
 
-        // Only allow reviews for confirmed (accepted) or finished bookings
         if (rezervacija.StatusRezervacija != "prihvacena" && rezervacija.StatusRezervacija != "zavrsena")
         {
             throw new InvalidOperationException("Booking must be accepted or finished before it can be reviewed.");
         }
 
-        // For non-finished bookings, only allow after the scheduled walk end time
         if (rezervacija.StatusRezervacija != "zavrsena")
         {
             var startUtc = rezervacija.DatumVrijemePolaska.Kind == DateTimeKind.Unspecified
@@ -617,8 +578,6 @@ public class CalendarService : ICalendarService
         var reviewerName = rezervacija.Vlasnik.Korisnik.Ime + " " + rezervacija.Vlasnik.Korisnik.Prezime;
         return new WalkerReviewDto(recenzija.DatumRecenzija, recenzija.Ocjena, recenzija.Komentar, reviewerName);
     }
-
-    // ============ MAPPING HELPERS ============
 
     private TerminDto MapToTerminDto(Termin t)
     {
@@ -690,8 +649,6 @@ public class CalendarService : ICalendarService
             )).ToList()
         );
     }
-
-    // ============ WALKER DISCOVERY ============
 
     public async Task<WalkersPagedResponse> GetWalkersWithCalendarAsync(int page, int pageSize, CancellationToken ct = default)
     {

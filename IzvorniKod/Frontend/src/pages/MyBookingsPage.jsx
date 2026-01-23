@@ -5,8 +5,6 @@ import { useReviews } from "../components/reviews/ReviewsContext";
 import { api } from "../utils/api";
 import ChatContainer from "../components/chat/ChatContainer";
 
-
-// Inline SVG data URI for fallback avatar (no external dependency)
 const createFallbackAvatar = (letter) => {
   const char = letter || "?";
   return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect fill='%2399f6e4' width='64' height='64'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='24' fill='%230d9488'%3E${encodeURIComponent(char)}%3C/text%3E%3C/svg%3E`;
@@ -53,7 +51,6 @@ function BookingCard({ booking, isOwner, onStatusChange, loading, onOpenChat, on
       )}
 
       <div className="flex gap-4">
-        {/* Avatar */}
         <div className="flex-shrink-0">
           {isOwner ? (
             (() => {
@@ -100,9 +97,7 @@ function BookingCard({ booking, isOwner, onStatusChange, loading, onOpenChat, on
           )}
         </div>
 
-        {/* Info */}
         <div className="flex-1">
-          {/* Clear relationship header */}
           <div className="flex items-center gap-2 mb-3">
             {isOwner ? (
               <>
@@ -143,12 +138,10 @@ function BookingCard({ booking, isOwner, onStatusChange, loading, onOpenChat, on
             )}
           </div>
 
-          {/* Status Badge */}
           <div className={`inline-block px-3 py-1 rounded-full ${statusConfig.bg} ${statusConfig.text} text-sm font-medium mb-3`}>
             {statusConfig.icon} {statusConfig.label}
           </div>
 
-          {/* Action Buttons */}
           <div className="flex gap-2 flex-wrap">
             {isOwner && canCancel && (
               <button
@@ -166,7 +159,6 @@ function BookingCard({ booking, isOwner, onStatusChange, loading, onOpenChat, on
               </div>
             )}
 
-            {/* Owner can leave a review for finished bookings */}
             {isOwner && booking.statusRezervacija === "zavrsena" && (
               <button
                 onClick={() => onOpenReview?.(booking)}
@@ -222,7 +214,7 @@ export default function MyBookingsPage() {
   const { requestReview } = useReviews();
   const [isOwner, setIsOwner] = useState(false);
   const [isWalker, setIsWalker] = useState(false);
-  const [activeTab, setActiveTab] = useState("owner"); // or "walker"
+  const [activeTab, setActiveTab] = useState("owner");
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -233,14 +225,12 @@ export default function MyBookingsPage() {
     const checkRoles = async () => {
       try {
         const response = await api.get("/profile/me");
-        // `api.get` returns parsed JSON directly (no `.data` wrapper)
         const hasOwner = !!response?.owner;
         const hasWalker = !!response?.walker;
 
         setIsOwner(hasOwner);
         setIsWalker(hasWalker);
 
-        // Set initial tab based on roles
         if (hasOwner && !hasWalker) {
           setActiveTab("owner");
         } else if (hasWalker && !hasOwner) {
@@ -265,7 +255,6 @@ export default function MyBookingsPage() {
     setError("");
     try {
       const response = await getMyRezervacije();
-      // `getMyRezervacije` returns the bookings array directly
       setBookings(response || []);
     } catch (err) {
       console.error("Failed to fetch bookings:", err);
@@ -288,28 +277,24 @@ export default function MyBookingsPage() {
 
   const filteredBookings = bookings
     .filter((booking) => {
-      // Filter by active role tab first to determine if user is owner for this booking
       const isOwnerForBooking = booking.owner?.idKorisnik === user?.userId;
       const isWalkerForBooking = booking.termin?.walker?.idKorisnik === user?.userId;
       
-      // Filter out finished bookings (but keep "zavrsena" for owners so they can review)
       if (booking.statusRezervacija === "zavrsena") {
-        // Show finished bookings only to owners (so they can leave a review)
         if (activeTab === "owner" && isOwnerForBooking) {
           return true;
         }
-        return false; // Hide from walkers
+        return false;
       }
       const bookingDate = new Date(booking.datumVrijemePolaska);
       const durationMins = booking.termin?.trajanjeMins || 60;
       const endTime = new Date(bookingDate.getTime() + durationMins * 60 * 1000);
       if (endTime < new Date()) {
-        return false; // Booking time has passed
+        return false;
       }
       return true;
     })
     .filter((booking) => {
-      // Filter by active role tab
       if (activeTab === "owner") {
         return booking.owner?.idKorisnik === user?.userId;
       }
@@ -319,7 +304,6 @@ export default function MyBookingsPage() {
       return true;
     })
     .filter((booking) => {
-      // Filter by status
       if (statusFilter === "all") return true;
       return booking.statusRezervacija === statusFilter;
     });
@@ -333,13 +317,11 @@ export default function MyBookingsPage() {
     <>
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Bookings</h1>
           <p className="text-gray-600">Manage your walk bookings and requests</p>
         </div>
 
-        {/* Role Subtabs (Owner / Walker) */}
         {(isOwner || isWalker) && (
           <div className="space-y-4 mb-6">
             <div className="flex gap-2 bg-white rounded-lg p-2 shadow-sm">
@@ -378,7 +360,6 @@ export default function MyBookingsPage() {
           </div>
         )}
 
-        {/* Status Filters */}
         <div className="flex gap-2 mb-6 flex-wrap">
           {["all", "na cekanju", "prihvacena", "otkazana"].map((status) => {
             const statusLabels = {
@@ -408,7 +389,6 @@ export default function MyBookingsPage() {
           })}
         </div>
 
-        {/* Content */}
         {error && (
           <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 mb-6">
             {error}

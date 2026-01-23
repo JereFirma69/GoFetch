@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { searchApi } from "../utils/searchApi";
 import verifiedBadge from "../assets/verification.png";
 
-// Inline SVG data URI for fallback avatar (no external dependency)
 const fallbackAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128' viewBox='0 0 128 128'%3E%3Crect fill='%2399f6e4' width='128' height='128'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='48' fill='%230d9488'%3E%3F%3C/text%3E%3C/svg%3E";
 
 export default function ProfileModal({ open, onClose, profile }) {
@@ -22,12 +21,10 @@ export default function ProfileModal({ open, onClose, profile }) {
   async function fetchAppointments() {
     setLoadingAppointments(true);
     try {
-      // Pass walkerId directly to the API - it supports filtering by walker
       const data = await searchApi.searchTermini({
         walkerId: profile.walkerId,
         onlyAvailable: true,
       });
-      // Normalize property names
       const normalized = (data || []).map((s) => ({
         TerminId: s.TerminId ?? s.terminId,
         Start: s.Start ?? s.start,
@@ -51,7 +48,6 @@ export default function ProfileModal({ open, onClose, profile }) {
     setLoadingReviews(true);
     try {
       const data = await searchApi.getWalkerReviews(profile.walkerId, 3);
-      // Normalize property names from backend (Date, Rating, Comment, ReviewerName)
       const normalized = (data || []).map((r) => ({
         Date: r.Date ?? r.date,
         Rating: r.Rating ?? r.rating,
@@ -85,7 +81,6 @@ export default function ProfileModal({ open, onClose, profile }) {
           </button>
         </div>
 
-        {/* Profile Picture */}
         <div className="flex justify-center mb-6">
           {profile.profilePicture ? (
             <img 
@@ -104,7 +99,6 @@ export default function ProfileModal({ open, onClose, profile }) {
           )}
         </div>
 
-        {/* Basic Info */}
         <div className="space-y-3 text-sm text-gray-700 mb-6">
           <div className="text-center">
             <div className="flex items-center justify-center gap-2">
@@ -145,7 +139,6 @@ export default function ProfileModal({ open, onClose, profile }) {
           )}
         </div>
 
-        {/* About Section */}
         {profile.bio && (
           <div className="mb-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-2">About</h3>
@@ -155,7 +148,6 @@ export default function ProfileModal({ open, onClose, profile }) {
           </div>
         )}
 
-        {/* Available Appointments */}
         {profile.walkerId && (
           <div>
             <h3 className="text-lg font-semibold text-gray-800 mb-3">Available Appointments</h3>
@@ -186,7 +178,6 @@ export default function ProfileModal({ open, onClose, profile }) {
           </div>
         )}
 
-        {/* Recent Reviews */}
         {profile.walkerId && (
           <div className="mt-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-3">Recent Reviews</h3>
@@ -218,7 +209,6 @@ export default function ProfileModal({ open, onClose, profile }) {
           </div>
         )}
 
-        {/* Old extra fields for backward compatibility */}
         {profile.extra && profile.extra.length > 0 && (
           <div className="mt-4 space-y-2">
             {profile.extra.map((line, idx) => (

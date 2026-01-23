@@ -41,7 +41,6 @@ public class SearchService : ISearchService
                 s.Korisnik.EmailKorisnik.ToLower().Contains(q));
         }
 
-        // Ratings
         var ratings = await _db.Recenzije
             .Join(_db.Rezervacije, r => r.IdRezervacija, rez => rez.IdRezervacija, (r, rez) => new { r, rez })
             .Join(_db.Termini, rr => rr.rez.IdTermin, t => t.IdTermin, (rr, t) => new { rr.r, t })
@@ -103,6 +102,9 @@ public class SearchService : ISearchService
             .Include(t => t.Rezervacije)
                 .ThenInclude(r => r.PsiRezervacije)
             .AsQueryable();
+
+        var now = DateTime.UtcNow;
+        termini = termini.Where(t => t.DatumVrijemePocetka > now);
 
         if (from.HasValue)
         {
@@ -179,7 +181,6 @@ public class SearchService : ISearchService
 
     public async Task<IEnumerable<WalkerReviewDto>> GetWalkerReviewsAsync(int walkerId, int limit = 3, CancellationToken ct = default)
     {
-        // Profile page may need more than 10; keep a hard cap to avoid abuse.
         if (limit <= 0) limit = 100;
         limit = Math.Clamp(limit, 1, 100);
 
@@ -213,7 +214,6 @@ public class SearchService : ISearchService
 
         if (walker == null) return null;
 
-        // Get rating info
         var ratingInfo = await _db.Recenzije
             .Join(_db.Rezervacije, r => r.IdRezervacija, rez => rez.IdRezervacija, (r, rez) => new { r, rez })
             .Join(_db.Termini, rr => rr.rez.IdTermin, t => t.IdTermin, (rr, t) => new { rr.r, t })
