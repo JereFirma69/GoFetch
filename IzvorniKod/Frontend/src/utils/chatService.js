@@ -48,8 +48,10 @@ export async function initializeStreamChat() {
       );
     }
 
-    // Create Stream Chat client
-    chatClient = new StreamChat(apiKey);
+    // Create Stream Chat client with EU region
+    chatClient = new StreamChat(apiKey, {
+      baseURL: "https://chat-eu.stream-io-api.com",
+    });
 
     // Connect user to Stream
     await chatClient.connectUser(

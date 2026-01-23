@@ -12,7 +12,7 @@ public class ChatService : IChatService
     private readonly StreamOptions _streamOptions;
     private readonly ILogger<ChatService> _logger;
     private readonly HttpClient _httpClient;
-    private const string StreamApiUrl = "https://chat.stream-io-api.com/api/v1";
+    private const string StreamApiUrl = "https://chat-eu.stream-io-api.com";
 
     public ChatService(IOptions<StreamOptions> streamOptions, ILogger<ChatService> logger, HttpClient httpClient)
     {
@@ -27,11 +27,12 @@ public class ChatService : IChatService
         {
             EnsureStreamConfigured();
 
-            // Create user in Stream if it doesn't exist
+            // Upsert user on the server first (recommended)
             await CreateOrUpdateStreamUserAsync(userId, userEmail, userName);
 
-            // Generate JWT token for the user
             var token = GenerateStreamToken(userId.ToString());
+
+            _logger.LogInformation("Generated Stream token for user {UserId}", userId);
 
             return new ChatTokenResponse
             {
@@ -57,42 +58,46 @@ public class ChatService : IChatService
             var streamUserId = userId.ToString();
             var displayName = userName ?? userEmail.Split('@')[0];
 
-            var userObj = new
-            {
-                id = streamUserId,
-                name = displayName,
-                email = userEmail
-            };
-
-            var usersDict = new Dictionary<string, object>
-            {
-                { streamUserId, userObj }
-            };
-
+            // Stream Chat API expects users as an object with user_id as key
             var payload = new
             {
-                users = usersDict
+                users = new Dictionary<string, object>
+                {
+                    { 
+                        streamUserId, 
+                        new 
+                        { 
+                            id = streamUserId, 
+                            name = displayName,
+                            email = userEmail
+                        } 
+                    }
+                }
             };
 
             var json = JsonSerializer.Serialize(payload);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{StreamApiUrl}/users?api_key={_streamOptions.ApiKey}")
+            // Correct upsert endpoint + method (PUT for upsert)
+            var request = new HttpRequestMessage(HttpMethod.Put, $"{StreamApiUrl}/users?api_key={_streamOptions.ApiKey}")
             {
                 Content = content
             };
 
             ApplyStreamServerAuth(request);
 
+            _logger.LogInformation("Creating/updating Stream user {UserId} with request to {Url}", userId, request.RequestUri);
+
             var response = await _httpClient.SendAsync(request);
+            var responseContent = await response.Content.ReadAsStringAsync();
+            
             if (!response.IsSuccessStatusCode)
             {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                _logger.LogError("Failed to create Stream user: {ErrorContent}", errorContent);
+                _logger.LogError("Failed to create Stream user. Status: {StatusCode}, Response: {Response}", response.StatusCode, responseContent);
                 throw new Exception($"Failed to create Stream user: {response.StatusCode}");
             }
 
-            _logger.LogInformation("User {UserId} created/updated in Stream", userId);
+            _logger.LogInformation("User {UserId} created/updated in Stream successfully", userId);
         }
         catch (Exception ex)
         {
@@ -116,7 +121,7 @@ public class ChatService : IChatService
             if (!response.IsSuccessStatusCode)
             {
                 var errorContent = await response.Content.ReadAsStringAsync();
-                _logger.LogError("Failed to delete Stream user: {ErrorContent}", errorContent);
+                _logger.LogError("Failed to delete Stream user. Status: {StatusCode}, Response: {Response}", response.StatusCode, errorContent);
                 throw new Exception($"Failed to delete Stream user: {response.StatusCode}");
             }
 
@@ -165,10 +170,10 @@ public class ChatService : IChatService
 
     private void ApplyStreamServerAuth(HttpRequestMessage request)
     {
-        // Stream Chat REST API expects the JWT in the Authorization header and Stream-Auth-Type=jwt.
+        // Stream Chat REST API expects the JWT in the Authorization header with Bearer prefix
         var token = GenerateServerToken();
         request.Headers.TryAddWithoutValidation("Stream-Auth-Type", "jwt");
-        request.Headers.TryAddWithoutValidation("Authorization", token);
+        request.Headers.TryAddWithoutValidation("Authorization", $"Bearer {token}");
     }
 
     private void EnsureStreamConfigured()
