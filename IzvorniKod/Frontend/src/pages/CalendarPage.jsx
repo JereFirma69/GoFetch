@@ -343,7 +343,7 @@ function NewTerminModal({ isOpen, onClose, onSave, selectedDate, editingTermin }
 }
 
 // ==================== Month View ====================
-function MonthView({ currentDate, termini, onDayClick, compact }) {
+function MonthView({ currentDate, termini, rezervacije = [], onDayClick, compact, isWalker }) {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
   const firstDayOfMonth = new Date(year, month, 1);
@@ -357,6 +357,12 @@ function MonthView({ currentDate, termini, onDayClick, compact }) {
   const getTerminiForDate = (day) => {
     const dateStr = formatDateString(year, month, day);
     return termini.filter((t) => parseDateTime(t.datumVrijemePocetka).date === dateStr);
+  };
+
+  const getRezForDate = (day) => {
+    if (isWalker) return [];
+    const dateStr = formatDateString(year, month, day);
+    return rezervacije.filter((r) => parseDateTime(r.datumVrijemePolaska).date === dateStr);
   };
 
   const isToday = (day) => {
@@ -375,6 +381,7 @@ function MonthView({ currentDate, termini, onDayClick, compact }) {
     for (let day = 1; day <= daysInMonth; day++) {
       const isTodayDate = isToday(day);
       const dayTermini = getTerminiForDate(day);
+      const dayRez = getRezForDate(day);
       const dateStr = formatDateString(year, month, day);
 
       days.push(
@@ -393,8 +400,13 @@ function MonthView({ currentDate, termini, onDayClick, compact }) {
               {dayTermini.slice(0, 2).map((termin) => (
                 <TerminBadge key={termin.idTermin} termin={termin} compact />
               ))}
-              {dayTermini.length > 2 && (
-                <div className="text-xs text-gray-500">+{dayTermini.length - 2} more</div>
+              {!isWalker && dayRez.slice(0, 2 - dayTermini.slice(0, 2).length).map((rez) => (
+                <div key={rez.idRezervacija} className="text-xs px-1 py-0.5 rounded bg-emerald-100 text-emerald-700 truncate">
+                  Booking: {rez.dogs?.map((d) => d.imePas).join(", ") || "Dog"}
+                </div>
+              ))}
+              {dayTermini.length + dayRez.length > 2 && (
+                <div className="text-xs text-gray-500">+{dayTermini.length + dayRez.length - 2} more</div>
               )}
             </div>
           )}
@@ -402,6 +414,13 @@ function MonthView({ currentDate, termini, onDayClick, compact }) {
             <div className="flex gap-0.5 mt-1">
               {dayTermini.slice(0, 3).map((termin) => (
                 <div key={termin.idTermin} className="w-2 h-2 rounded-full bg-teal-500" />
+              ))}
+            </div>
+          )}
+          {compact && !isWalker && dayRez.length > 0 && (
+            <div className="flex gap-0.5 mt-1">
+              {dayRez.slice(0, 3).map((rez) => (
+                <div key={rez.idRezervacija} className="w-2 h-2 rounded-full bg-emerald-500" />
               ))}
             </div>
           )}
@@ -428,7 +447,7 @@ function MonthView({ currentDate, termini, onDayClick, compact }) {
 }
 
 // ==================== Week View ====================
-function WeekView({ currentDate, termini, onTimeSlotClick }) {
+function WeekView({ currentDate, termini, rezervacije = [], onTimeSlotClick, isWalker }) {
   const getWeekDays = () => {
     const startOfWeek = new Date(currentDate);
     // Align week to start on Monday
@@ -468,7 +487,7 @@ function WeekView({ currentDate, termini, onTimeSlotClick }) {
                 today ? "bg-teal-100 text-teal-700 font-semibold" : "bg-gray-100 text-gray-700"
               }`}
             >
-              <div>{dayNames[d.getDay()]}</div>
+              <div>{dayNames[i]}</div>
               <div className="text-lg">{d.getDate()}</div>
             </div>
           );
@@ -486,6 +505,11 @@ function WeekView({ currentDate, termini, onTimeSlotClick }) {
                 return parsed.date === dateStr && parseInt(parsed.time.split(":")[0]) === hour;
               });
 
+              const hourRez = rezervacije.filter((r) => {
+                const parsed = parseDateTime(r.datumVrijemePolaska);
+                return parsed.date === dateStr && parseInt(parsed.time.split(":")[0]) === hour;
+              });
+
               return (
                 <div
                   key={dayIndex}
@@ -494,6 +518,11 @@ function WeekView({ currentDate, termini, onTimeSlotClick }) {
                 >
                   {hourTermini.map((termin) => (
                     <TerminBadge key={termin.idTermin} termin={termin} compact />
+                  ))}
+                  {!isWalker && hourRez.map((rez) => (
+                    <div key={rez.idRezervacija} className="mt-0.5 text-xs rounded bg-emerald-100 text-emerald-700 px-1.5 py-0.5 truncate">
+                      Booking: {rez.dogs?.map((d) => d.imePas).join(", ") || "Dog"}
+                    </div>
                   ))}
                 </div>
               );
@@ -538,18 +567,29 @@ function DayView({ selectedDate, termini, rezervacije, onNewTermin, onTerminClic
             const hourTermini = dayTermini.filter(
               (t) => parseInt(parseDateTime(t.datumVrijemePocetka).time.split(":")[0]) === hour
             );
+            const hourRez = dayRezervacije.filter(
+              (r) => parseInt(parseDateTime(r.datumVrijemePolaska).time.split(":")[0]) === hour
+            );
 
             return (
               <div key={hour} className="flex">
                 <div className="w-20 p-3 text-sm text-gray-500 bg-gray-50 border-r flex-shrink-0">
                   {String(hour).padStart(2, "0")}:00
                 </div>
-                <div className="flex-1 p-2 min-h-[60px]">
+                <div className="flex-1 p-2 min-h-[60px] space-y-1">
                   {hourTermini.map((termin) => (
                     <TerminBadge 
                       key={termin.idTermin} 
                       termin={termin}
                       onClick={onTerminClick}
+                    />
+                  ))}
+                  {!isWalker && hourRez.map((rez) => (
+                    <RezervacijaBadge 
+                      key={rez.idRezervacija}
+                      rezervacija={rez}
+                      onStatusChange={onStatusChange}
+                      isWalker={isWalker}
                     />
                   ))}
                 </div>
@@ -806,8 +846,10 @@ export function Calendar({ compact = false }) {
         <MonthView
           currentDate={currentDate}
           termini={termini}
+          rezervacije={rezervacije}
           onDayClick={handleDayClick}
           compact={compact}
+          isWalker={isWalker}
         />
       )}
 
@@ -816,7 +858,9 @@ export function Calendar({ compact = false }) {
           <WeekView
             currentDate={currentDate}
             termini={termini}
+            rezervacije={rezervacije}
             onTimeSlotClick={handleTimeSlotClick}
+            isWalker={isWalker}
           />
         </div>
       )}
