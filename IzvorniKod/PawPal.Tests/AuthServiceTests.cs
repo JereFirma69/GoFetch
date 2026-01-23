@@ -2,7 +2,6 @@ using Xunit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using PawPal.Api.Services.Implementations;
 using PawPal.Api.Services;
@@ -22,8 +21,7 @@ public class AuthServiceTests {
         });
         var emailMock = new Mock<IEmailService>();
         var config = new ConfigurationBuilder().Build();
-        var logger = NullLogger<AuthService>.Instance;
-        return new AuthService(db, jwtOptions, config, emailMock.Object, logger);
+        return new AuthService(db, jwtOptions, config, emailMock.Object);
     }
     private AppDbContext CreateDb() {
         var options = new DbContextOptionsBuilder<AppDbContext>()

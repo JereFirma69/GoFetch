@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { api } from "../utils/api";
-import ChatWidget from "../components/PopUpWidget";
+import ChatWidget from "../components/ChatWidget";
 import FavoriteDogs from "../components/Profile/FavoriteDogs";
 import AddedDogs from "../components/Profile/AddedDogs";
 import gD1 from "../assets/dogImages/goldenRetriver1.jpg";
@@ -51,12 +51,12 @@ export default function HomePage() {
   if (!user) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
-        <h2 className="text-2xl font-bold text-gray-700 mb-4">Welcome to PawPal</h2>
+        <h2 className="text-2xl font-bold text-gray-700 mb-4">Welcome to PawPal </h2>
         <button
           onClick={() => navigate("/login")}
           className="px-5 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600"
         >
-          Login
+          Go to Login
         </button>
       </div>
     );
@@ -77,7 +77,7 @@ export default function HomePage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left column - Calendar */}
           <div className="lg:col-span-2">
-            <DoubleCalendar />
+            <DoubleCalendar/>
           </div>
 
           {/* Right column - Dogs & Quick Actions */}
@@ -89,6 +89,9 @@ export default function HomePage() {
               onDogClick={(dog) => navigate(`/profile?view=edit-dog&dogId=${dog.id}`)}
             />
             
+            {/* Favorite Dogs */}
+            <FavoriteDogs dogs={favoriteDogs} />
+
             {/* Quick Actions */}
             <div className="bg-white rounded-xl shadow-sm p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
@@ -97,19 +100,19 @@ export default function HomePage() {
                   onClick={() => navigate("/profile")}
                   className="w-full py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                 >
+                  ⚙️ Profile Settings
+                </button>
+                <button
+                  onClick={() => navigate("/profile?view=add-dog")}
+                  className="w-full py-3 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors"
+                >
                   🐕 Add New Dog
                 </button>
                 <button
-                  onClick={() => navigate("/search?tab=walkers")}
+                  onClick={() => navigate("/search")}
                   className="w-full py-3 border border-teal-500 text-teal-600 rounded-lg hover:bg-teal-50 transition-colors"
                 >
                   🔍 Find Dog Walkers
-                </button>
-                <button
-                  onClick={() => navigate("/search?tab=slots")}
-                  className="w-full py-3 border border-teal-500 text-teal-600 rounded-lg hover:bg-teal-50 transition-colors"
-                >
-                  📅 Find Walking Slots
                 </button>
               </div>
             </div>

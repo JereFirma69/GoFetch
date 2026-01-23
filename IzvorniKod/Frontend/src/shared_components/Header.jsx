@@ -27,10 +27,10 @@ export default function Header() {
     return (
       <header className="bg-white border-b border-gray-200 px-6 py-4 shadow-sm">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <img src={logoImg} alt="GoFetch logo" className="h-8 w-8" />
             <span className="text-xl font-semibold text-gray-800">PawPal!</span>
-          </Link>
+          </div>
           <nav className="flex gap-2">
             {location.pathname === "/login" ? (
               <Link
@@ -70,14 +70,13 @@ export default function Header() {
 
   // header za ulogiranog korisnika
   if (user) {
-    const isAdmin = user.role === "admin";
     return (
       <header className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <Link to="/homepage" className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <img src={logoImg} alt="PawPal logo" className="h-8 w-8" />
             <span className="text-xl font-bold text-gray-800">PawPal</span>
-          </Link>
+          </div>
 
           <nav className="flex gap-2">
             <Link
@@ -92,41 +91,6 @@ export default function Header() {
             </Link>
 
             <Link
-              to="/search"
-              className={`px-4 py-2 rounded-lg transition ${
-                location.pathname.startsWith("/search")
-                  ? "bg-teal-50 text-teal-600 font-semibold"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-              }`}
-            >
-              Search
-            </Link>
-
-            <Link
-              to="/my-bookings"
-              className={`px-4 py-2 rounded-lg transition ${
-                location.pathname === "/my-bookings"
-                  ? "bg-teal-50 text-teal-600 font-semibold"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-              }`}
-            >
-              Bookings
-            </Link>
-
-            {isAdmin && (
-              <Link
-                to="/admin"
-                className={`px-4 py-2 rounded-lg transition ${
-                  location.pathname === "/admin"
-                    ? "bg-blue-50 text-blue-600 font-semibold"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                }`}
-              >
-                Admin
-              </Link>
-            )}
-
-            <Link
               to="/profile"
               className={`px-4 py-2 rounded-lg transition ${
                 location.pathname === "/profile"
@@ -137,12 +101,16 @@ export default function Header() {
               Profile
             </Link>
 
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+            <Link
+              to="/"
+              className={`px-4 py-2 rounded-lg transition ${
+                location.pathname === "/"
+                  ? "bg-teal-50 text-teal-600 font-semibold"
+                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              }`}
             >
               Logout
-            </button>
+            </Link>
           </nav>
         </div>
       </header>

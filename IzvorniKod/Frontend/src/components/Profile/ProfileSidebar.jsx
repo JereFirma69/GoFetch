@@ -1,5 +1,4 @@
 import React from "react";
-import verifiedBadge from "../../assets/verification.png";
 
 export default function ProfileSidebar({ user, profileData, onLogout, onEdit }) {
   const walkerStatus = profileData?.walker?.verificationStatus;
@@ -43,12 +42,7 @@ export default function ProfileSidebar({ user, profileData, onLogout, onEdit }) 
           alt="Profile"
           className="w-28 h-28 rounded-full mb-4 border-4 border-teal-100 object-cover"
         />
-        <div className="flex items-center justify-center gap-2">
-          <h2 className="text-xl font-bold text-gray-800 mb-1">{user.name}</h2>
-          {profileData?.walker?.isVerified && (
-            <img src={verifiedBadge} alt="Verified" className="w-6 h-6" />
-          )}
-        </div>
+        <h2 className="text-xl font-bold text-gray-800 mb-1">{user.name}</h2>
         <p className="text-gray-500 text-sm mb-4">{user.email}</p>
 
         {getStatusBadge()}

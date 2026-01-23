@@ -15,14 +15,12 @@ public class AuthController : ControllerBase
     private readonly IAuthService _authService;
     private readonly IConfiguration _configuration;
     private readonly JwtOptions _jwtOptions;
-    private readonly ILogger<AuthController> _logger;
 
-    public AuthController(IAuthService authService, IConfiguration configuration, IOptions<JwtOptions> jwtOptions, ILogger<AuthController> logger)
+    public AuthController(IAuthService authService, IConfiguration configuration, IOptions<JwtOptions> jwtOptions)
     {
         _authService = authService;
         _configuration = configuration;
         _jwtOptions = jwtOptions.Value;
-        _logger = logger;
     }
 
     private void SetAuthCookie(string token)
@@ -189,32 +187,10 @@ public class AuthController : ControllerBase
     [ProducesResponseType(typeof(PasswordResetResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<PasswordResetResponse>> ForgotPassword([FromBody] ForgotPasswordRequest request, CancellationToken ct)
     {
-        try
-        {
-            // Detect frontend URL from referer or use config
-            var referer = Request.Headers.Referer.ToString();
-            string frontendUrl;
-            
-            if (!string.IsNullOrEmpty(referer) && Uri.TryCreate(referer, UriKind.Absolute, out var refererUri))
-            {
-                // Use the origin from where the request came
-                frontendUrl = $"{refererUri.Scheme}://{refererUri.Authority}";
-            }
-            else
-            {
-                // Fallback to config/env
-                frontendUrl = _configuration["FrontendUrl"] ?? "http://localhost:5173";
-            }
-            
-            var response = await _authService.ForgotPasswordAsync(request, frontendUrl, ct);
-            return Ok(response);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error in ForgotPassword endpoint");
-            // Return success to prevent information disclosure
-            return Ok(new PasswordResetResponse(true, "If the email exists, a password reset link has been sent."));
-        }
+        // Get frontend URL from configuration, fallback to localhost for dev
+        var frontendUrl = _configuration["FrontendUrl"] ?? "http://localhost:5173";
+        var response = await _authService.ForgotPasswordAsync(request, frontendUrl, ct);
+        return Ok(response);
     }
 
     [HttpPost("reset-password")]

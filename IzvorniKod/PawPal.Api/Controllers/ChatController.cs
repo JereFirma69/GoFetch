@@ -31,7 +31,6 @@ public class ChatController : ControllerBase
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
             {
-                _logger.LogWarning("Chat token request unauthorized: missing/invalid NameIdentifier claim. TraceId={TraceId}", HttpContext.TraceIdentifier);
                 return Unauthorized(new { message = "Invalid user ID" });
             }
 
@@ -39,7 +38,6 @@ public class ChatController : ControllerBase
             var userEmail = User.FindFirst(ClaimTypes.Email)?.Value;
             if (string.IsNullOrEmpty(userEmail))
             {
-                _logger.LogWarning("Chat token request unauthorized: missing Email claim for user {UserId}. TraceId={TraceId}", userId, HttpContext.TraceIdentifier);
                 return Unauthorized(new { message = "Email not found in token" });
             }
 
@@ -52,9 +50,8 @@ public class ChatController : ControllerBase
         }
         catch (Exception ex)
         {
-            var traceId = HttpContext.TraceIdentifier;
-            _logger.LogError(ex, "CHAT TOKEN ERROR. TraceId={TraceId}", traceId);
-            return StatusCode(500, new { message = "Error generating chat token", error = ex.Message, traceId });
+            _logger.LogError(ex, "Error getting chat token");
+            return StatusCode(500, new { message = "Error generating chat token", error = ex.Message });
         }
     }
 }

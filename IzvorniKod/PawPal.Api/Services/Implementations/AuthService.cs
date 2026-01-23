@@ -23,17 +23,15 @@ public class AuthService : IAuthService
     private readonly PasswordHasher<Korisnik> _passwordHasher;
     private readonly string? _googleClientId;
     private readonly IEmailService _emailService;
-    private readonly ILogger<AuthService> _logger;
     private readonly RandomNumberGenerator _rng = RandomNumberGenerator.Create();
 
-    public AuthService(AppDbContext db, IOptions<JwtOptions> jwtOptions, IConfiguration configuration, IEmailService emailService, ILogger<AuthService> logger)
+    public AuthService(AppDbContext db, IOptions<JwtOptions> jwtOptions, IConfiguration configuration, IEmailService emailService)
     {
         _db = db;
         _jwtOptions = jwtOptions;
         _passwordHasher = new PasswordHasher<Korisnik>();
         _googleClientId = configuration["Google:ClientId"];
         _emailService = emailService;
-        _logger = logger;
     }
 
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request, CancellationToken ct = default)
@@ -61,16 +59,7 @@ public class AuthService : IAuthService
         _db.Korisnici.Add(user);
         await _db.SaveChangesAsync(ct);
 
-        // Auto-create Vlasnik (owner) profile for new user
-        var vlasnik = new Vlasnik
-        {
-            IdKorisnik = user.IdKorisnik,
-            Korisnik = user
-        };
-        _db.Vlasnici.Add(vlasnik);
-        await _db.SaveChangesAsync(ct);
-
-        return await GenerateAuthResponseAsync(user, "owner", ct);
+        return await GenerateAuthResponseAsync(user, "none", ct);
     }
 
     public async Task<AuthResponse> LoginAsync(LoginRequest request, CancellationToken ct = default)
@@ -160,15 +149,6 @@ public class AuthService : IAuthService
 
             _db.Korisnici.Add(user);
             await _db.SaveChangesAsync(ct);
-
-            // Auto-create owner profile for OAuth registrations
-            var vlasnik = new Vlasnik
-            {
-                IdKorisnik = user.IdKorisnik,
-                Korisnik = user
-            };
-            _db.Vlasnici.Add(vlasnik);
-            await _db.SaveChangesAsync(ct);
         }
         else
         {
@@ -189,18 +169,6 @@ public class AuthService : IAuthService
                 user.Ime = firstName;
                 user.Prezime = lastName;
                 await _db.SaveChangesAsync(ct);
-            }
-
-            // Ensure owner role exists if none set
-            await _db.Entry(user).ReloadAsync(ct);
-            if (user.Vlasnik == null && user.Setac == null && user.Administrator == null)
-            {
-                var vlasnikExisting = await _db.Vlasnici.FirstOrDefaultAsync(v => v.IdKorisnik == user.IdKorisnik, ct);
-                if (vlasnikExisting == null)
-                {
-                    _db.Vlasnici.Add(new Vlasnik { IdKorisnik = user.IdKorisnik });
-                    await _db.SaveChangesAsync(ct);
-                }
             }
         }
 
@@ -300,10 +268,13 @@ public class AuthService : IAuthService
     private string DetermineUserRole(Korisnik user)
     {
         if (user.Administrator != null) return "admin";
-
-        // Prefer a single primary role to avoid "both" states leaking to the client
-        if (user.Setac != null) return "walker";
-        if (user.Vlasnik != null) return "owner";
+        
+        bool isOwner = user.Vlasnik != null;
+        bool isWalker = user.Setac != null;
+        
+        if (isOwner && isWalker) return "both";
+        if (isOwner) return "owner";
+        if (isWalker) return "walker";
         return "none";
     }
 
@@ -430,17 +401,15 @@ public class AuthService : IAuthService
             t.IsUsed = true;
         }
 
-        // Generate new token (UTC timestamps)
+        // Generate new token
         var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
-        var utcNow = DateTime.UtcNow;
-        var expiry = utcNow.AddHours(1);
         var resetToken = new PasswordResetToken
         {
             Token = token,
             IdKorisnik = user.IdKorisnik,
-            ExpiresAt = expiry,
+            ExpiresAt = DateTime.UtcNow.AddHours(1),
             IsUsed = false,
-            CreatedAt = utcNow
+            CreatedAt = DateTime.UtcNow
         };
 
         _db.PasswordResetTokens.Add(resetToken);
@@ -448,7 +417,7 @@ public class AuthService : IAuthService
 
         // Send email with reset link
         var resetUrl = $"{frontendUrl}/reset-password?token={Uri.EscapeDataString(token)}";
-        await _emailService.SendPasswordResetEmailAsync(user.EmailKorisnik, resetUrl, ct);
+        await _emailService.SendPasswordResetEmailAsync(user.EmailKorisnik, resetUrl);
 
         return new PasswordResetResponse(true, "If the email exists, a password reset link has been sent.");
     }

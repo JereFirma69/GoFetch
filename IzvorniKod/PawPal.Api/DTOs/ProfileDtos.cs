@@ -22,8 +22,7 @@ public record WalkerProfileDto(
     string Phone,
     string ProfilePicture,
     string VerificationStatus,
-    bool IsVerified,
-    string? Bio);
+    bool IsVerified);
 
 public record UpdateOwnerRequest(
     string FirstName,
@@ -38,8 +37,7 @@ public record UpdateProfileRequest(
 public record WalkerDetailsDto(
     string Location,
     string Phone,
-    string? WalkerProfilePicture,
-    string? Bio);
+    string? WalkerProfilePicture);
 
 public record UpdateWalkerRequest(
     string FirstName,
@@ -88,10 +86,7 @@ public record PendingWalkerDto(
     string LastName,
     string Location,
     string Phone,
-    string ProfilePicture,
-    string VerificationStatus,
-    bool IsVerified,
-    string? Bio);
+    string ProfilePicture);
 
 public record ApproveWalkerRequest(
     int WalkerId);

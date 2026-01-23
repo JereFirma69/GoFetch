@@ -23,6 +23,8 @@ public class ProfileController : ControllerBase
         return int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
     }
 
+
+    /// Get the authenticated user's profile (including owner/walker details and dogs)
     [HttpGet("me")]
     [ProducesResponseType(typeof(ProfileResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -39,6 +41,8 @@ public class ProfileController : ControllerBase
             return NotFound(new { error = ex.Message });
         }
     }
+
+    /// Update user profile (general info, walker details)
     [HttpPut("")]
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -57,6 +61,8 @@ public class ProfileController : ControllerBase
         }
     }
 
+
+    /// Update owner profile (first name, last name)
     [HttpPut("owner")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -75,6 +81,8 @@ public class ProfileController : ControllerBase
         }
     }
 
+
+    /// Update walker profile (name, location, phone, picture, bio)
     [HttpPut("walker")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -93,6 +101,9 @@ public class ProfileController : ControllerBase
         }
     }
 
+
+    /// Create a new dog for the authenticated owner
+
     [HttpPost("dogs")]
     [ProducesResponseType(typeof(DogDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -110,6 +121,9 @@ public class ProfileController : ControllerBase
             return BadRequest(new { error = ex.Message });
         }
     }
+
+    /// Update an existing dog owned by the authenticated user
+
     [HttpPut("dogs/{dogId}")]
     [ProducesResponseType(typeof(DogDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -127,6 +141,9 @@ public class ProfileController : ControllerBase
             return BadRequest(new { error = ex.Message });
         }
     }
+
+
+    /// Delete a dog owned by the authenticated user
 
     [HttpDelete("dogs/{dogId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]

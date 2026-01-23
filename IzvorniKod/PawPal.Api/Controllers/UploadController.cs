@@ -28,6 +28,9 @@ public class UploadController : ControllerBase
         return int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
     }
 
+    /// <summary>
+    /// Upload user profile picture (avatar)
+    /// </summary>
     [HttpPost("avatar")]
     [ProducesResponseType(typeof(UploadResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -51,6 +54,9 @@ public class UploadController : ControllerBase
         return Ok(new UploadResponse(imageUrl, "Avatar uploaded successfully"));
     }
 
+    /// <summary>
+    /// Upload walker profile picture
+    /// </summary>
     [HttpPost("walker-avatar")]
     [ProducesResponseType(typeof(UploadResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -74,6 +80,9 @@ public class UploadController : ControllerBase
         return Ok(new UploadResponse(imageUrl, "Walker avatar uploaded successfully"));
     }
 
+    /// <summary>
+    /// Upload dog profile picture
+    /// </summary>
     [HttpPost("dog/{dogId}")]
     [ProducesResponseType(typeof(UploadResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -102,6 +111,9 @@ public class UploadController : ControllerBase
         return Ok(new UploadResponse(imageUrl, "Dog image uploaded successfully"));
     }
 
+    /// <summary>
+    /// Delete user avatar
+    /// </summary>
     [HttpDelete("avatar")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> DeleteAvatar(CancellationToken ct)
@@ -118,6 +130,9 @@ public class UploadController : ControllerBase
         return Ok(new { message = "Avatar deleted successfully" });
     }
 
+    /// <summary>
+    /// Delete dog image
+    /// </summary>
     [HttpDelete("dog/{dogId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

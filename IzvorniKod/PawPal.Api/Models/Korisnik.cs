@@ -31,7 +31,6 @@ public class Korisnik
     [MaxLength(50)]
     public string? StreamUserId { get; set; } // Link to Stream chat user ID
 
-    public WalkerGoogleAuth? GoogleAuth { get; set; }
     public Vlasnik? Vlasnik { get; set; }
     public Setac? Setac { get; set; }
     public Administrator? Administrator { get; set; }

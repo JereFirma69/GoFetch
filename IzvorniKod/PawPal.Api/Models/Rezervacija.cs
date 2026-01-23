@@ -27,11 +27,7 @@ public class Rezervacija
     [ForeignKey(nameof(Termin))]
     public int IdTermin { get; set; }
 
-    [ForeignKey(nameof(Vlasnik))]
-    public int IdVlasnik { get; set; }
-
     public Termin Termin { get; set; } = null!;
-    public Vlasnik Vlasnik { get; set; } = null!;
     public List<Placanje> Placanja { get; set; } = new();
     public List<Recenzija> Recenzije { get; set; } = new();
     public List<Poruka> Poruke { get; set; } = new();

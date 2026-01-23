@@ -3,7 +3,7 @@ import logoImg from '../assets/logo.png'
 import bannerImg from '../assets/banner.jpg';
 import aboutW from '../assets/aboutWalker.jpg';
 import aboutO from '../assets/aboutOwner.jpg';
-import ChatWidget from '../components/PopUpWidget';
+import ChatWidget from '../components/ChatWidget';
 
 function LandingPage(){
     return (

@@ -6,9 +6,6 @@ import SignupPage from "./pages/SignupPage";
 import ProfilePage from "./pages/ProfilePage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
-import AdminPage from "./pages/AdminPage";
-import SearchPage from "./pages/SearchPage";
-import MyBookingsPage from "./pages/MyBookingsPage";
 import { AuthProvider, AuthContext } from "./context/AuthContext";
 import { useContext } from "react";
 import HomePage from "./pages/Homepage";
@@ -17,8 +14,6 @@ import Header from "./shared_components/Header";
 import { CalendarPage } from "./pages/CalendarPage";
 import  ChatWidget from "./components/chat/ChatWidget";
 import { ChatProvider } from "./components/chat/ChatContext";
-import { ReviewsProvider } from "./components/reviews/ReviewsContext";
-import LeaveReviewModal from "./components/reviews/LeaveReviewModal";
 
 function PrivateRoute({ children }) {
   const { user } = useContext(AuthContext);
@@ -26,21 +21,18 @@ function PrivateRoute({ children }) {
   return user || hasStoredUser ? children : <Navigate to="/login" />;
 }
 
-function AdminRoute({ children }) {
-  const { user } = useContext(AuthContext);
-  const stored = localStorage.getItem("user");
-  const parsed = stored ? JSON.parse(stored) : null;
-  const currentUser = user || parsed;
-  return currentUser && currentUser.role === "admin" ? children : <Navigate to="/homepage" />;
-}
-
 export default function App() {
+
+   const walk = {
+    walkId: "walk-1",
+    startTime: new Date().toISOString(),
+    endTime: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+  };
+
   return (
     <AuthProvider>
-      <ReviewsProvider>
-      
+      <ChatProvider walk={walk}>
       <Header />
-      <LeaveReviewModal/>
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -53,6 +45,7 @@ export default function App() {
             <PrivateRoute>
               <>
               <ProfilePage />
+              <ChatWidget walk={walk}/>
               </>
             </PrivateRoute>
           }
@@ -72,37 +65,13 @@ export default function App() {
             <PrivateRoute>
               <>
               <HomePage />
+              <ChatWidget walk = {walk}></ChatWidget>
               </>
             </PrivateRoute>
           }
         />
-        <Route
-          path="/admin"
-          element={
-            <AdminRoute>
-              <AdminPage />
-            </AdminRoute>
-          }
-        />
-        <Route
-          path="/search"
-          element={
-            <PrivateRoute>
-              <SearchPage />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/my-bookings"
-          element={
-            <PrivateRoute>
-              <MyBookingsPage />
-            </PrivateRoute>
-          }
-        />
       </Routes>
-      
-      </ReviewsProvider>
+      </ChatProvider>
     </AuthProvider>
 
   );
