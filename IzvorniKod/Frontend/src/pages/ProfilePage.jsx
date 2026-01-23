@@ -8,6 +8,7 @@ import AddedDogs from "../components/Profile/AddedDogs";
 import Reviews from "../components/Profile/Reviews";
 import EditProfilePanel from "../components/Profile/EditProfilePanel";
 import DogFormPanel from "../components/Profile/DogFormPanel";
+import BookingHistory from "../components/Profile/BookingHistory";
 import gD1 from "../assets/dogImages/goldenRetriver1.jpg";
 import gD2 from "../assets/dogImages/goldenRetriver2.jpg";
 import p1 from "../assets/dogImages/pug1.jpg";
@@ -190,7 +191,11 @@ export default function ProfilePage() {
               <div className="p-6">
                 {activeTab === "reviews" && <Reviews reviews={reviews} />}
 
-                {activeTab === "settings" && <div>Settings - coming soon</div>}
+                {activeTab === "settings" && (
+                  <div className="space-y-6">
+                    <BookingHistory />
+                  </div>
+                )}
 
                 {activeTab === "payment" && <div>Payment - coming soon</div>}
               </div>

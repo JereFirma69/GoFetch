@@ -357,52 +357,67 @@ public class CalendarService : ICalendarService
 
     public async Task<List<RezervacijaDto>> GetUserRezervacijeAsync(int userId, DateTime from, DateTime to, CancellationToken ct = default)
     {
-        // Check if user is owner or walker
+        // Check if user is owner and/or walker (an account can be both)
         var isOwner = await _db.Vlasnici.AnyAsync(v => v.IdKorisnik == userId, ct);
         var isWalker = await _db.Setaci.AnyAsync(s => s.IdKorisnik == userId, ct);
 
-        List<Rezervacija> rezervacije;
-
-        if (isOwner)
-        {
-            // Owner sees their own bookings
-            rezervacije = await _db.Rezervacije
-                .Include(r => r.Termin)
-                    .ThenInclude(t => t.Setac)
-                        .ThenInclude(s => s.Korisnik)
-                .Include(r => r.Vlasnik)
-                    .ThenInclude(v => v.Korisnik)
-                .Include(r => r.PsiRezervacije)
-                    .ThenInclude(rp => rp.Pas)
-                .Where(r => r.IdVlasnik == userId
-                    && r.DatumVrijemePolaska >= from
-                    && r.DatumVrijemePolaska <= to)
-                .OrderBy(r => r.DatumVrijemePolaska)
-                .ToListAsync(ct);
-        }
-        else if (isWalker)
-        {
-            // Walker sees incoming bookings for their slots
-            rezervacije = await _db.Rezervacije
-                .Include(r => r.Termin)
-                    .ThenInclude(t => t.Setac)
-                        .ThenInclude(s => s.Korisnik)
-                .Include(r => r.Vlasnik)
-                    .ThenInclude(v => v.Korisnik)
-                .Include(r => r.PsiRezervacije)
-                    .ThenInclude(rp => rp.Pas)
-                .Where(r => r.Termin.IdKorisnik == userId
-                    && r.DatumVrijemePolaska >= from
-                    && r.DatumVrijemePolaska <= to)
-                .OrderBy(r => r.DatumVrijemePolaska)
-                .ToListAsync(ct);
-        }
-        else
+        if (!isOwner && !isWalker)
         {
             return new List<RezervacijaDto>();
         }
 
-        return rezervacije.Select(r => MapToRezervacijaDto(r)).ToList();
+        var queries = new List<IQueryable<Rezervacija>>();
+
+        if (isOwner)
+        {
+            // Owner sees their own bookings
+            queries.Add(
+                _db.Rezervacije
+                    .Include(r => r.Termin)
+                        .ThenInclude(t => t.Setac)
+                            .ThenInclude(s => s.Korisnik)
+                    .Include(r => r.Vlasnik)
+                        .ThenInclude(v => v.Korisnik)
+                    .Include(r => r.PsiRezervacije)
+                        .ThenInclude(rp => rp.Pas)
+                    .Where(r => r.IdVlasnik == userId
+                        && r.DatumVrijemePolaska >= from
+                        && r.DatumVrijemePolaska <= to)
+            );
+        }
+
+        if (isWalker)
+        {
+            // Walker sees incoming bookings for their slots
+            queries.Add(
+                _db.Rezervacije
+                    .Include(r => r.Termin)
+                        .ThenInclude(t => t.Setac)
+                            .ThenInclude(s => s.Korisnik)
+                    .Include(r => r.Vlasnik)
+                        .ThenInclude(v => v.Korisnik)
+                    .Include(r => r.PsiRezervacije)
+                        .ThenInclude(rp => rp.Pas)
+                    .Where(r => r.Termin.IdKorisnik == userId
+                        && r.DatumVrijemePolaska >= from
+                        && r.DatumVrijemePolaska <= to)
+            );
+        }
+
+        var rezervacije = new List<Rezervacija>();
+        foreach (var q in queries)
+        {
+            rezervacije.AddRange(await q.ToListAsync(ct));
+        }
+
+        // Remove duplicates (in case of overlap) and order by date
+        var distinct = rezervacije
+            .GroupBy(r => r.IdRezervacija)
+            .Select(g => g.First())
+            .OrderBy(r => r.DatumVrijemePolaska)
+            .ToList();
+
+        return distinct.Select(r => MapToRezervacijaDto(r)).ToList();
     }
 
     public async Task<RezervacijaDto> GetRezervacijaAsync(int rezervacijaId, CancellationToken ct = default)

@@ -77,15 +77,24 @@ function BookingCard({ booking, isOwner, onStatusChange, loading }) {
 
         {/* Info */}
         <div className="flex-1">
-          <div className="flex items-center gap-2 mb-2">
+          {/* Clear relationship header */}
+          <div className="flex items-center gap-2 mb-3">
             {isOwner ? (
-              <div className="font-semibold text-gray-900">
-                {booking.termin?.walker?.imeSetac} {booking.termin?.walker?.prezimeSetac}
-              </div>
+              <>
+                <span className="text-xs font-bold px-2 py-1 bg-blue-200 text-blue-800 rounded">My Booking</span>
+                <div className="font-semibold text-gray-900">
+                  {booking.termin?.walker?.imeSetac} {booking.termin?.walker?.prezimeSetac}
+                </div>
+                <span className="text-xs text-gray-500">(Walker)</span>
+              </>
             ) : (
-              <div className="font-semibold text-gray-900">
-                {booking.owner?.ime} {booking.owner?.prezime}
-              </div>
+              <>
+                <span className="text-xs font-bold px-2 py-1 bg-green-200 text-green-800 rounded">Walk Request</span>
+                <div className="font-semibold text-gray-900">
+                  {booking.owner?.ime} {booking.owner?.prezime}
+                </div>
+                <span className="text-xs text-gray-500">(Owner)</span>
+              </>
             )}
           </div>
 
@@ -247,37 +256,49 @@ export default function MyBookingsPage() {
 
         {/* Role Subtabs (Owner / Walker) */}
         {(isOwner || isWalker) && (
-          <div className="flex gap-2 mb-6 bg-white rounded-lg p-2 shadow-sm">
-            {isOwner && (
-              <button
-                onClick={() => {
-                  setActiveTab("owner");
-                  setStatusFilter("all");
-                }}
-                className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
-                  activeTab === "owner"
-                    ? "bg-teal-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                Owner
-              </button>
-            )}
-            {isWalker && (
-              <button
-                onClick={() => {
-                  setActiveTab("walker");
-                  setStatusFilter("all");
-                }}
-                className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
-                  activeTab === "walker"
-                    ? "bg-teal-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                Walker
-              </button>
-            )}
+          <div className="space-y-4 mb-6">
+            <div className="flex gap-2 bg-white rounded-lg p-2 shadow-sm">
+              {isOwner && (
+                <button
+                  onClick={() => {
+                    setActiveTab("owner");
+                    setStatusFilter("all");
+                  }}
+                  className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
+                    activeTab === "owner"
+                      ? "bg-teal-600 text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  🐕 My Dogs (Owner)
+                </button>
+              )}
+              {isWalker && (
+                <button
+                  onClick={() => {
+                    setActiveTab("walker");
+                    setStatusFilter("all");
+                  }}
+                  className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
+                    activeTab === "walker"
+                      ? "bg-teal-600 text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  👟 My Walks (Walker)
+                </button>
+              )}
+            </div>
+
+            {/* Context Info Box */}
+            <div className={`p-4 rounded-lg ${activeTab === "owner" ? "bg-blue-50 border border-blue-200" : "bg-green-50 border border-green-200"}`}>
+              <p className={`font-medium ${activeTab === "owner" ? "text-blue-900" : "text-green-900"}`}>
+                {activeTab === "owner" 
+                  ? "📅 Bookings: I'm looking for walkers for my dogs"
+                  : "🚶 Walks: I'm providing walking services"
+                }
+              </p>
+            </div>
           </div>
         )}
 
