@@ -8,7 +8,8 @@ let chatClient = null;
 export async function initializeStreamChat() {
   try {
     // Get chat token from backend
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/chat/token`, {
+    // NOTE: VITE_API_BASE is expected to already include '/api' (see src/utils/api.js)
+    const response = await fetch(`${import.meta.env.VITE_API_BASE}/chat/token`, {
       method: "GET",
       credentials: "include", // Include cookies with JWT
       headers: {
@@ -29,7 +30,7 @@ export async function initializeStreamChat() {
     // Connect user to Stream
     await chatClient.connectUser(
       {
-        id: streamUserId,
+        id: String(streamUserId),
       },
       token
     );
@@ -73,10 +74,11 @@ export async function getOrCreateWalkChannel(walkId, ownerId, walkerId) {
   
   const channel = client.channel("messaging", channelId, {
     name: `Walk #${walkId}`,
-    members: [ownerId, walkerId],
+    members: [String(ownerId), String(walkerId)],
   });
 
-  await channel.create();
+  // `watch()` will create the channel if it doesn't exist, and is safe to call repeatedly.
+  await channel.watch();
   return channel;
 }
 
@@ -90,6 +92,32 @@ export async function sendMessage(channel, text) {
     });
   } catch (error) {
     console.error("Error sending message:", error);
+    throw error;
+  }
+}
+
+/**
+ * Upload an image to Stream and send it as a message attachment.
+ */
+export async function sendImageMessage(channel, file, text = "") {
+  try {
+    const upload = await channel.sendImage(file);
+    const imageUrl = upload?.file;
+    if (!imageUrl) {
+      throw new Error("Image upload failed");
+    }
+
+    await channel.sendMessage({
+      text,
+      attachments: [
+        {
+          type: "image",
+          image_url: imageUrl,
+        },
+      ],
+    });
+  } catch (error) {
+    console.error("Error sending image message:", error);
     throw error;
   }
 }

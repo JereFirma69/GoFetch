@@ -35,19 +35,13 @@ function AdminRoute({ children }) {
 }
 
 export default function App() {
-
-   const walk = {
-    walkId: "walk-1",
-    startTime: new Date().toISOString(),
-    endTime: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-  };
-
   return (
     <AuthProvider>
       <ReviewsProvider>
-      <ChatProvider walk={walk}>
+      <ChatProvider>
       <Header />
       <LeaveReviewModal/>
+      <ChatWidget />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -60,7 +54,6 @@ export default function App() {
             <PrivateRoute>
               <>
               <ProfilePage />
-              <ChatWidget walk={walk}/>
               </>
             </PrivateRoute>
           }
@@ -80,7 +73,6 @@ export default function App() {
             <PrivateRoute>
               <>
               <HomePage />
-              <ChatWidget walk = {walk}></ChatWidget>
               </>
             </PrivateRoute>
           }

@@ -1,12 +1,17 @@
 import { useChat } from "./ChatContext";
 import ChatTimer from "./ChatTimer";
-import {useState} from "react";
+import { useContext, useRef, useState } from "react";
+import { AuthContext } from "../../../context/AuthContext";
 
-export default function ChatWidget({ walk, currentUserId }) {
-  const { messages, sendMessage, active, loading, isVisible } = useChat();
+export default function ChatWidget() {
+  const { user } = useContext(AuthContext);
+  const currentUserId = user?.userId;
+
+  const { messages, sendMessage, sendImage, loading, isVisible, rezervacija, endTime, ended } = useChat();
   const [minimized, setMinimized] = useState(false);
+  const fileInputRef = useRef(null);
 
-  if (!isVisible || (walk && !active) || loading) return null;
+  if (!isVisible || loading || !rezervacija) return null;
 
   //minimiziranje chata
   const toggleMinimize = () => setMinimized(!minimized);
@@ -30,7 +35,8 @@ export default function ChatWidget({ walk, currentUserId }) {
       <div className="px-4 py-2 border-b border-gray-200 bg-teal-100 rounded-t-xl cursor-pointer hover:bg-teal-200 transition"
            onClick={toggleMinimize}>
         <h3 className="font-semibold text-sm">Chat: vlasnik ↔ šetač</h3>
-        <ChatTimer endTime={walk.endTime} />
+        {endTime ? <ChatTimer endTime={endTime} /> : null}
+        {ended ? <div className="text-xs text-gray-500">Chat je arhiviran (slanje onemogućeno).</div> : null}
       </div>
 
       {/* poruke */}
@@ -42,7 +48,7 @@ export default function ChatWidget({ walk, currentUserId }) {
         ) : (
           messages.map((m) => {
             // Determine if message is from current user
-            const isCurrentUser = m.user?.id === currentUserId;
+            const isCurrentUser = String(m.user?.id) === String(currentUserId);
             return (
               <div
                 key={m.id}
@@ -52,7 +58,22 @@ export default function ChatWidget({ walk, currentUserId }) {
                     : "mr-auto bg-gray-200 text-gray-800 rounded-bl-none"
                 }`}
               >
-                <p>{m.text}</p>
+                {m.text ? <p>{m.text}</p> : null}
+
+                {(m.attachments ?? []).map((a, idx) => {
+                  if (a.type === "image" && (a.image_url || a.thumb_url)) {
+                    const src = a.image_url || a.thumb_url;
+                    return (
+                      <img
+                        key={`${m.id}-att-${idx}`}
+                        src={src}
+                        alt="attachment"
+                        className="mt-2 rounded-md max-h-40 object-cover"
+                      />
+                    );
+                  }
+                  return null;
+                })}
                 <span className="text-xs opacity-70 mt-1 block">
                   {new Date(m.created_at).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' })}
                 </span>
@@ -64,17 +85,43 @@ export default function ChatWidget({ walk, currentUserId }) {
 
       {/* input i slanje poruka */}
       <div className="p-2 border-t border-gray-200">
-        <input
-          type="text"
-          placeholder="Upiši poruku..."
-          className="w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring focus:ring-teal-300"
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              sendMessage(e.target.value);
+        <div className="flex gap-2 items-center">
+          <button
+            type="button"
+            className={`px-2 py-2 rounded-lg border text-sm ${ended ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-50"}`}
+            disabled={ended}
+            onClick={() => fileInputRef.current?.click()}
+            title="Pošalji fotografiju"
+          >
+            📷
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
               e.target.value = "";
-            }
-          }}
-        />
+              if (!file) return;
+              await sendImage(file);
+            }}
+          />
+
+          <input
+            type="text"
+            placeholder={ended ? "Chat je arhiviran" : "Upiši poruku..."}
+            disabled={ended}
+            className={`w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring focus:ring-teal-300 ${ended ? "bg-gray-50 text-gray-400" : ""}`}
+            onKeyDown={(e) => {
+              if (ended) return;
+              if (e.key === "Enter") {
+                sendMessage(e.target.value);
+                e.target.value = "";
+              }
+            }}
+          />
+        </div>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Net.Http.Headers;
 using Microsoft.Extensions.Options;
 using PawPal.Api.Configuration;
 using PawPal.Api.DTOs;
@@ -78,6 +79,9 @@ public class ChatService : IChatService
                 Content = content
             };
 
+            // Stream server-side REST calls must be authenticated with a server token (signed with the API secret).
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", GenerateServerToken());
+
             var response = await _httpClient.SendAsync(request);
             if (!response.IsSuccessStatusCode)
             {
@@ -102,6 +106,7 @@ public class ChatService : IChatService
             var streamUserId = userId.ToString();
 
             var request = new HttpRequestMessage(HttpMethod.Delete, $"{StreamApiUrl}/users/{streamUserId}?api_key={_streamOptions.ApiKey}");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", GenerateServerToken());
             
             var response = await _httpClient.SendAsync(request);
             if (!response.IsSuccessStatusCode)
@@ -146,6 +151,12 @@ public class ChatService : IChatService
         var signatureEncoded = Base64UrlEncode(signatureBytes);
 
         return $"{signatureInput}.{signatureEncoded}";
+    }
+
+    private string GenerateServerToken()
+    {
+        // Stream recommends using a dedicated server-side user id for REST calls.
+        return GenerateStreamToken("server");
     }
 
     private static string Base64UrlEncode(byte[] input)

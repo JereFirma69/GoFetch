@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { api } from "../utils/api";
-import ChatWidget from "../components/ChatWidget";
+import ChatWidget from "../components/PopUpWidget";
 import FavoriteDogs from "../components/Profile/FavoriteDogs";
 import AddedDogs from "../components/Profile/AddedDogs";
 import gD1 from "../assets/dogImages/goldenRetriver1.jpg";

@@ -90,6 +90,15 @@ builder.Services.AddAuthorization();
 builder.Services.Configure<SupabaseOptions>(config.GetSection("Supabase"));
 builder.Services.Configure<EmailOptions>(config.GetSection("Email"));
 builder.Services.Configure<GoogleCalendarOptions>(config.GetSection("GoogleCalendar"));
+
+// Override StreamOptions with environment variables
+var streamApiKey = Environment.GetEnvironmentVariable("STREAM_API_KEY");
+var streamApiSecret = Environment.GetEnvironmentVariable("STREAM_API_SECRET");
+if (!string.IsNullOrEmpty(streamApiKey) && !string.IsNullOrEmpty(streamApiSecret))
+{
+    config["Stream:ApiKey"] = streamApiKey;
+    config["Stream:ApiSecret"] = streamApiSecret;
+}
 builder.Services.Configure<StreamOptions>(config.GetSection("Stream"));
 
 // Services
