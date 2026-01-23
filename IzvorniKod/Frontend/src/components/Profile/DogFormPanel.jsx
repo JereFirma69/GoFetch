@@ -52,16 +52,7 @@ export default function DogFormPanel({ dog, onBack, onSave }) {
       }
       setPreviewUrl("");
     }
-  }, [dog]);
-
-  // Cleanup blob URL on unmount only
-  useEffect(() => {
-    return () => {
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
-      }
-    };
-  }, []);
+  }, [dog, previewUrl]);
 
   async function handleSave(e) {
     e.preventDefault();
@@ -157,10 +148,6 @@ export default function DogFormPanel({ dog, onBack, onSave }) {
             onUpload={async (file) => {
               if (!dog?.idPas) {
                 // For new dogs, store file and show a local preview
-                // Revoke old blob URL before creating new one
-                if (previewUrl) {
-                  URL.revokeObjectURL(previewUrl);
-                }
                 setPendingFile(file);
                 const url = URL.createObjectURL(file);
                 setPreviewUrl(url);

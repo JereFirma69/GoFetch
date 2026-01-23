@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PawPal.Api.Data;
 using PawPal.Api.DTOs;
-using PawPal.Api.Models;
 
 namespace PawPal.Api.Services.Implementations;
 
@@ -14,12 +13,10 @@ public class AdminService : IAdminService
         _db = db;
     }
 
-    public async Task<IEnumerable<PendingWalkerDto>> GetWalkersByStatusAsync(string status, CancellationToken ct = default)
+    public async Task<IEnumerable<PendingWalkerDto>> GetPendingWalkersAsync(CancellationToken ct = default)
     {
-        var normalizedStatus = string.IsNullOrWhiteSpace(status) ? "pending" : status.ToLower();
-
         var pendingWalkers = await _db.Setaci
-            .Where(s => s.VerificationStatus.ToLower() == normalizedStatus)
+            .Where(s => s.VerificationStatus == "pending")
             .Include(s => s.Korisnik)
             .Select(s => new PendingWalkerDto(
                 s.IdKorisnik,
@@ -28,10 +25,7 @@ public class AdminService : IAdminService
                 s.PrezimeSetac,
                 s.LokacijaSetac,
                 s.TelefonSetac,
-                s.ProfilnaSetac,
-                s.VerificationStatus,
-                s.IsVerified,
-                s.Bio
+                s.ProfilnaSetac
             ))
             .ToListAsync(ct);
 
@@ -126,92 +120,5 @@ public class AdminService : IAdminService
             walker.Korisnik.EmailKorisnik,
             walker.VerificationStatus,
             walker.IsVerified);
-    }
-
-    public async Task<MembershipPricingDto> GetMembershipPricingAsync(CancellationToken ct = default)
-    {
-        var pricing = await _db.MembershipSettings.FirstOrDefaultAsync(ct);
-
-        if (pricing == null)
-        {
-            pricing = new MembershipSetting
-            {
-                MonthlyPrice = 0m,
-                YearlyPrice = 0m,
-                Currency = "EUR"
-            };
-
-            _db.MembershipSettings.Add(pricing);
-            await _db.SaveChangesAsync(ct);
-        }
-
-        return new MembershipPricingDto(pricing.MonthlyPrice, pricing.YearlyPrice, pricing.Currency);
-    }
-
-    public async Task<MembershipPricingDto> UpdateMembershipPricingAsync(UpdateMembershipPricingRequest request, CancellationToken ct = default)
-    {
-        var pricing = await _db.MembershipSettings.FirstOrDefaultAsync(ct);
-
-        if (pricing == null)
-        {
-            pricing = new MembershipSetting();
-            _db.MembershipSettings.Add(pricing);
-        }
-
-        pricing.MonthlyPrice = request.MonthlyPrice;
-        pricing.YearlyPrice = request.YearlyPrice;
-        pricing.Currency = string.IsNullOrWhiteSpace(request.Currency) ? "EUR" : request.Currency;
-
-        await _db.SaveChangesAsync(ct);
-
-        return new MembershipPricingDto(pricing.MonthlyPrice, pricing.YearlyPrice, pricing.Currency);
-    }
-
-    public async Task<(IEnumerable<AdminUserDto> Users, int TotalCount)> SearchUsersAsync(string? role, string? query, CancellationToken ct = default)
-    {
-        var users = _db.Korisnici
-            .Include(k => k.Setac)
-            .Include(k => k.Vlasnik)
-            .Include(k => k.Administrator)
-            .AsQueryable();
-
-        if (!string.IsNullOrWhiteSpace(query))
-        {
-            var lowered = query.ToLower();
-            users = users.Where(k =>
-                (k.EmailKorisnik != null && k.EmailKorisnik.ToLower().Contains(lowered)) ||
-                (k.Ime != null && k.Ime.ToLower().Contains(lowered)) ||
-                (k.Prezime != null && k.Prezime.ToLower().Contains(lowered)));
-        }
-
-        if (!string.IsNullOrWhiteSpace(role))
-        {
-            role = role.ToLower();
-            users = role switch
-            {
-                "admin" => users.Where(k => k.Administrator != null),
-                "walker" => users.Where(k => k.Setac != null),
-                "owner" => users.Where(k => k.Vlasnik != null),
-                _ => users
-            };
-        }
-
-        var total = await users.CountAsync(ct);
-
-        var result = await users
-            .Select(k => new AdminUserDto(
-                k.IdKorisnik,
-                k.EmailKorisnik,
-                k.Ime,
-                k.Prezime,
-                k.Administrator != null ? "admin" : k.Setac != null ? "walker" : k.Vlasnik != null ? "owner" : "none",
-                k.Setac != null ? k.Setac.LokacijaSetac : null,
-                k.Setac != null ? k.Setac.TelefonSetac : null,
-                k.Setac != null ? (bool?)k.Setac.IsVerified : null,
-                k.Setac != null ? k.Setac.ProfilnaSetac : k.ProfilnaKorisnik,
-                k.Setac != null ? k.Setac.Bio : null))
-            .ToListAsync(ct);
-
-        return (result, total);
     }
 }

@@ -25,8 +25,6 @@ public class ChatService : IChatService
     {
         try
         {
-            EnsureStreamConfigured();
-
             // Create user in Stream if it doesn't exist
             await CreateOrUpdateStreamUserAsync(userId, userEmail, userName);
 
@@ -52,8 +50,6 @@ public class ChatService : IChatService
     {
         try
         {
-            EnsureStreamConfigured();
-
             var streamUserId = userId.ToString();
             var displayName = userName ?? userEmail.Split('@')[0];
 
@@ -82,8 +78,6 @@ public class ChatService : IChatService
                 Content = content
             };
 
-            ApplyStreamServerAuth(request);
-
             var response = await _httpClient.SendAsync(request);
             if (!response.IsSuccessStatusCode)
             {
@@ -105,12 +99,9 @@ public class ChatService : IChatService
     {
         try
         {
-            EnsureStreamConfigured();
-
             var streamUserId = userId.ToString();
 
             var request = new HttpRequestMessage(HttpMethod.Delete, $"{StreamApiUrl}/users/{streamUserId}?api_key={_streamOptions.ApiKey}");
-            ApplyStreamServerAuth(request);
             
             var response = await _httpClient.SendAsync(request);
             if (!response.IsSuccessStatusCode)
@@ -155,29 +146,6 @@ public class ChatService : IChatService
         var signatureEncoded = Base64UrlEncode(signatureBytes);
 
         return $"{signatureInput}.{signatureEncoded}";
-    }
-
-    private string GenerateServerToken()
-    {
-        // Stream recommends using a dedicated server-side user id for REST calls.
-        return GenerateStreamToken("server");
-    }
-
-    private void ApplyStreamServerAuth(HttpRequestMessage request)
-    {
-        // Stream Chat REST API expects the JWT in the Authorization header and Stream-Auth-Type=jwt.
-        var token = GenerateServerToken();
-        request.Headers.TryAddWithoutValidation("Stream-Auth-Type", "jwt");
-        request.Headers.TryAddWithoutValidation("Authorization", token);
-    }
-
-    private void EnsureStreamConfigured()
-    {
-        if (string.IsNullOrWhiteSpace(_streamOptions.ApiKey) || string.IsNullOrWhiteSpace(_streamOptions.ApiSecret))
-        {
-            throw new InvalidOperationException("Stream is not configured (missing Stream:ApiKey / Stream:ApiSecret or STREAM_API_KEY / STREAM_API_SECRET)."
-            );
-        }
     }
 
     private static string Base64UrlEncode(byte[] input)

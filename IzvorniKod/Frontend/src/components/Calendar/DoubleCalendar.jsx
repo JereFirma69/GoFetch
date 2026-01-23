@@ -1,161 +1,257 @@
-import React, { useState, useEffect, useContext } from "react";
-import { AuthContext } from "../../context/AuthContext";
+import React, { useState, useEffect } from "react";
 import { Calendar } from "../../pages/CalendarPage";
-import { 
-  getMyRezervacije,
-  getGoogleAuthUrl,
-  getGoogleConnectionStatus,
-  disconnectGoogleCalendar
-} from "../../utils/calendarApi";
 
 export default function DoubleCalendar() {
-  const { user } = useContext(AuthContext);
-  const [upcomingAppointments, setUpcomingAppointments] = useState([]);
+  const [isConnected, setIsConnected] = useState(false);
+  const [accessToken, setAccessToken] = useState(null);
+  const [googleEvents, setGoogleEvents] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [googleConnected, setGoogleConnected] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(true);
+  const [showNewEvent, setShowNewEvent] = useState(false);
+  const [newEvent, setNewEvent] = useState({
+    summary: "",
+    date: "",
+    startTime: "",
+    endTime: "",
+  });
 
   useEffect(() => {
-    fetchAppointments();
-    checkGoogleConnection();
-    
-    // Check for OAuth callback
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get("calendar") === "connected") {
-      // Refresh connection status after successful OAuth
-      setTimeout(() => {
-        checkGoogleConnection();
-      }, 500);
-      // Clean URL
-      window.history.replaceState({}, document.title, window.location.pathname);
+    const savedToken = localStorage.getItem("google_calendar_token");
+    if (savedToken) {
+      setAccessToken(savedToken);
+      setIsConnected(true);
+      fetchGoogleEvents(savedToken);
     }
   }, []);
 
-  const checkGoogleConnection = async () => {
-    setGoogleLoading(true);
-    try {
-      const status = await getGoogleConnectionStatus();
-      setGoogleConnected(status.isConnected);
-    } catch (error) {
-      console.error("Error checking Google connection:", error);
-    } finally {
-      setGoogleLoading(false);
-    }
-  };
+  // Google OAuth login za Calendar
+  const handleGoogleLogin = () => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    const redirectUri = window.location.origin;
+    const scope = "https://www.googleapis.com/auth/calendar";
+    
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=${scope}`;
+    
+    // Otvori popup
+    const popup = window.open(authUrl, "google-auth", "width=500,height=600");
+    
+    // Slušaj za token
+    const checkPopup = setInterval(() => {
+      try {
+        if (popup.location.hash) {
+          const hash = popup.location.hash.substring(1);
+          const params = new URLSearchParams(hash);
+          const token = params.get("access_token");
+          
+          if (token) {
+            localStorage.setItem("google_calendar_token", token);
+            setAccessToken(token);
+            setIsConnected(true);
+            fetchGoogleEvents(token);
+            popup.close();
+            clearInterval(checkPopup);
+          }
+        }
+      } catch (e) {
 
-  const handleConnectGoogle = async () => {
-    try {
-      const response = await getGoogleAuthUrl();
-      const url = response?.authorizationUrl;
-      if (url && typeof url === "string") {
-        window.location.href = url;
-      } else {
-        console.error("Missing authorizationUrl in response:", response);
-        alert("Could not start Google authorization. Please try again later.");
       }
-    } catch (error) {
-      console.error("Error getting Google auth URL:", error);
-      alert("Error starting Google authorization");
-    }
+      
+      if (popup.closed) {
+        clearInterval(checkPopup);
+      }
+    }, 500);
   };
 
-  const handleDisconnectGoogle = async () => {
-    if (!confirm("Are you sure you want to disconnect Google Calendar?")) return;
-    try {
-      await disconnectGoogleCalendar();
-      setGoogleConnected(false);
-    } catch (error) {
-      console.error("Error disconnecting Google Calendar:", error);
-    }
+  const handleDisconnect = () => {
+    localStorage.removeItem("google_calendar_token");
+    setAccessToken(null);
+    setIsConnected(false);
+    setGoogleEvents([]);
   };
 
-  const fetchAppointments = async () => {
+  const fetchGoogleEvents = async (token) => {
     setLoading(true);
     try {
-      const rezervacije = await getMyRezervacije();
-      // Filter only upcoming non-cancelled bookings
-      const now = new Date();
-      const futureBookings = [...(rezervacije || [])]
-        .filter((r) => r.statusRezervacija !== "otkazana" && new Date(r.datumVrijemePolaska) > now);
-      
-      // Group bookings by termin ID to combine multiple dogs booked separately
-      const groupedByTermin = {};
-      for (const rez of futureBookings) {
-        const terminId = rez.termin?.idTermin;
-        if (!terminId) continue;
-        
-        if (!groupedByTermin[terminId]) {
-          groupedByTermin[terminId] = { ...rez, dogs: [...(rez.dogs || [])] };
-        } else {
-          // Merge dogs from this booking into the existing one
-          const existingDogs = groupedByTermin[terminId].dogs || [];
-          const newDogs = rez.dogs || [];
-          const allDogIds = new Set(existingDogs.map(d => d.idPas));
-          for (const dog of newDogs) {
-            if (!allDogIds.has(dog.idPas)) {
-              existingDogs.push(dog);
-              allDogIds.add(dog.idPas);
-            }
-          }
-          groupedByTermin[terminId].dogs = existingDogs;
-        }
+      const response = await fetch(
+        `https://www.googleapis.com/calendar/v3/calendars/primary/events?maxResults=20&orderBy=startTime&singleEvents=true&timeMin=${new Date().toISOString()}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (response.status === 401) {
+        handleDisconnect();
+        return;
       }
-      
-      const upcoming = Object.values(groupedByTermin)
-        .sort((a, b) => new Date(a.datumVrijemePolaska) - new Date(b.datumVrijemePolaska))
-        .slice(0, 20); // Show max 20
-      setUpcomingAppointments(upcoming);
+      const data = await response.json();
+      setGoogleEvents(data.items || []);
     } catch (error) {
-      console.error("Error fetching appointments:", error);
+      console.error("Error fetching events:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="space-y-4">
-      {/* Google Calendar Connection - Teal gradient box */}
-      {!googleConnected ? (
+  const createGoogleEvent = async (e) => {
+    e.preventDefault();
+    if (!accessToken) return;
+
+    const event = {
+      summary: newEvent.summary,
+      start: {
+        dateTime: `${newEvent.date}T${newEvent.startTime}:00`,
+        timeZone: "Europe/Zagreb",
+      },
+      end: {
+        dateTime: `${newEvent.date}T${newEvent.endTime}:00`,
+        timeZone: "Europe/Zagreb",
+      },
+    };
+
+    try {
+      const response = await fetch(
+        "https://www.googleapis.com/calendar/v3/calendars/primary/events",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(event),
+        }
+      );
+      if (response.ok) {
+        setShowNewEvent(false);
+        setNewEvent({ summary: "", date: "", startTime: "", endTime: "" });
+        fetchGoogleEvents(accessToken);
+        alert("Appointment booked!");
+      }
+    } catch (error) {
+      console.error("Error creating event:", error);
+    }
+  };
+
+  const cancelGoogleEvent = async (eventId, eventStart) => {
+    const hoursUntil = (new Date(eventStart) - new Date()) / (1000 * 60 * 60);
+    if (hoursUntil < 24) {
+      alert("Cannot cancel less than 24 hours before.");
+      return;
+    }
+    if (!confirm("Cancel this appointment?")) return;
+
+    try {
+      await fetch(
+        `https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`,
+        { method: "DELETE", headers: { Authorization: `Bearer ${accessToken}` } }
+      );
+      fetchGoogleEvents(accessToken);
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+    const canCancel = (eventStart) => {
+    return (new Date(eventStart) - new Date()) / (1000 * 60 * 60) >= 24;
+  };
+
+
+  if (!isConnected) {
+    return (
+      <div className="space-y-4">
         <div className="bg-gradient-to-r from-teal-500 to-teal-600 rounded-xl p-4 text-white">
-          {googleLoading ? (
-            <div className="flex items-center gap-3">
-              <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full" />
-              <span>Checking connection...</span>
-            </div>
-          ) : (
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-medium">🔗 Connect Google Calendar</h4>
-                <p className="text-sm text-teal-100">Sync appointments across devices</p>
-              </div>
-              <button
-                onClick={handleConnectGoogle}
-                className="px-4 py-2 bg-white text-teal-600 rounded-lg font-medium hover:bg-gray-100 transition-colors"
-              >
-                Connect
-              </button>
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="bg-green-50 border border-green-300 rounded-lg p-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <svg className="w-8 h-8" viewBox="0 0 24 24">
-                <path fill="#10b981" d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM5 8V6h14v2H5z"/>
-              </svg>
-              <div>
-                <h4 className="font-semibold text-gray-800">✓ Connected</h4>
-                <p className="text-sm text-gray-600">Your appointments sync automatically</p>
-              </div>
+            <div>
+              <h4 className="font-medium">🔗 Connect Google Calendar</h4>
+              <p className="text-sm text-teal-100">Sync appointments across devices</p>
             </div>
             <button
-              onClick={handleDisconnectGoogle}
-              className="px-4 py-2 text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
+              onClick={handleGoogleLogin}
+              className="px-4 py-2 bg-white text-teal-600 rounded-lg font-medium hover:bg-gray-100"
+            >
+              Connect
+            </button>
+          </div>
+        </div>
+        <Calendar compact={false} />
+      </div>
+    );
+  }
+
+  // ========== SPOJEN ==========
+ return (
+    <div className="space-y-4">
+      {/* Header s connect statusom */}
+      <div className="bg-white rounded-xl shadow-sm p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">📅</span>
+            <div>
+              <h3 className="font-semibold text-gray-800">Google Calendar</h3>
+              <p className="text-sm text-gray-500">Synced with your account</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">
+              ✓ Connected
+            </span>
+            <button
+              onClick={() => setShowNewEvent(true)}
+              className="px-3 py-1.5 bg-teal-500 text-white text-sm rounded-lg hover:bg-teal-600"
+            >
+              + Book
+            </button>
+            <button
+              onClick={handleDisconnect}
+              className="text-sm text-gray-400 hover:text-gray-600"
             >
               Disconnect
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* Nova rezervacija forma */}
+      {showNewEvent && (
+        <div className="bg-white rounded-xl shadow-sm p-4">
+          <form onSubmit={createGoogleEvent}>
+            <h4 className="font-medium mb-3">New Appointment</h4>
+            <div className="space-y-3">
+              <input
+                type="text"
+                placeholder="Title (e.g., Walk with Max)"
+                value={newEvent.summary}
+                onChange={(e) => setNewEvent({ ...newEvent, summary: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg"
+                required
+              />
+              <input
+                type="date"
+                value={newEvent.date}
+                onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg"
+                required
+              />
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="time"
+                  value={newEvent.startTime}
+                  onChange={(e) => setNewEvent({ ...newEvent, startTime: e.target.value })}
+                  className="px-3 py-2 border rounded-lg"
+                  required
+                />
+                <input
+                  type="time"
+                  value={newEvent.endTime}
+                  onChange={(e) => setNewEvent({ ...newEvent, endTime: e.target.value })}
+                  className="px-3 py-2 border rounded-lg"
+                  required
+                />
+              </div>
+              <div className="flex gap-2">
+                <button type="button" onClick={() => setShowNewEvent(false)} className="flex-1 py-2 border rounded-lg hover:bg-gray-50">
+                  Cancel
+                </button>
+                <button type="submit" className="flex-1 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600">
+                  Book
+                </button>
+              </div>
+            </div>
+          </form>
         </div>
       )}
 
@@ -168,36 +264,33 @@ export default function DoubleCalendar() {
         
         {loading ? (
           <p className="text-gray-500 text-center py-4">Loading...</p>
-        ) : upcomingAppointments.length === 0 ? (
+        ) : googleEvents.length === 0 ? (
           <p className="text-gray-500 text-center py-4">No upcoming appointments</p>
         ) : (
           <div className="space-y-3 max-h-[300px] overflow-auto">
-            {upcomingAppointments.map((rezervacija) => (
-              <div key={rezervacija.idRezervacija} className="p-3 bg-gray-50 rounded-lg border-l-4 border-teal-500">
+            {googleEvents.map((event) => (
+              <div key={event.id} className="p-3 bg-gray-50 rounded-lg border-l-4 border-teal-500">
                 <div className="flex justify-between items-start">
-                  <div className="font-medium text-gray-800">
-                    {rezervacija.termin?.walker ? 
-                      `${rezervacija.termin.walker.imeSetac} ${rezervacija.termin.walker.prezimeSetac}` : 
-                      "Walk"}
-                  </div>
-                  <button
-                    onClick={() => {/* TODO: Cancel reservation */}}
-                    className="text-xs text-red-500 hover:text-red-700"
-                  >
-                    Cancel
-                  </button>
+                  <div className="font-medium text-gray-800">{event.summary || "No title"}</div>
+                  {canCancel(event.start?.dateTime || event.start?.date) ? (
+                    <button
+                      onClick={() => cancelGoogleEvent(event.id, event.start?.dateTime)}
+                      className="text-xs text-red-500 hover:text-red-700"
+                    >
+                      Cancel
+                    </button>
+                  ) : (
+                    <span className="text-xs text-gray-400">Cannot cancel (&lt;24h)</span>
+                  )}
                 </div>
                 <div className="text-sm text-gray-500 mt-1">
-                  {new Date(rezervacija.datumVrijemePolaska).toLocaleString("en-US", {
+                  {new Date(event.start?.dateTime || event.start?.date).toLocaleString("en-US", {
                     weekday: "short",
                     month: "short",
                     day: "numeric",
                     hour: "2-digit",
                     minute: "2-digit",
                   })}
-                </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  📍 {rezervacija.adresaPolaska} • 🐕 {rezervacija.dogs?.map(d => d.imePas).join(", ")}
                 </div>
               </div>
             ))}

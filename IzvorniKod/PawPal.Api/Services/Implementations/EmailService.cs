@@ -16,15 +16,10 @@ public class EmailService : IEmailService
         _options = options.Value;
         _logger = logger;
 
-        if ((_options.Provider == "AzureCommunication" || _options.Provider == "AzureCommunicationServices")
+        if ((_options.Provider == "AzureCommunication") 
             && !string.IsNullOrEmpty(_options.ConnectionString))
         {
             _emailClient = new EmailClient(_options.ConnectionString);
-            _logger.LogInformation("EmailService initialized with provider {Provider}", _options.Provider);
-        }
-        else
-        {
-            _logger.LogWarning("EmailService not fully configured. Provider={Provider}, HasConnectionString={HasCS}", _options.Provider, !string.IsNullOrEmpty(_options.ConnectionString));
         }
     }
 
@@ -43,7 +38,7 @@ public class EmailService : IEmailService
                     <div style='text-align: center; margin: 30px 0;'>
                         <a href='{resetLink}' style='background-color: #4F46E5; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;'>Reset Password</a>
                     </div>
-                    <p style='color: #6b7280; font-size: 14px;'>This link will expire in 60 minutes.</p>
+                    <p style='color: #6b7280; font-size: 14px;'>This link will expire in 30 minutes.</p>
                     <p style='color: #6b7280; font-size: 14px;'>If you didn't request this, you can safely ignore this email.</p>
                 </div>
                 <div style='padding: 20px; text-align: center; color: #9ca3af; font-size: 12px;'>
@@ -74,12 +69,9 @@ public class EmailService : IEmailService
     {
         try
         {
-            var senderAddress = _options.FromEmail; // Azure Communication requires a valid sender email from the resource
-            if (string.IsNullOrEmpty(senderAddress))
-            {
-                _logger.LogError("Email FromEmail is not configured. Cannot send password reset email.");
-                throw new InvalidOperationException("Email sender address is not configured.");
-            }
+            var senderAddress = string.IsNullOrEmpty(_options.FromName) 
+                ? _options.FromEmail 
+                : $"{_options.FromName} <{_options.FromEmail}>";
                 
             var emailMessage = new EmailMessage(
                 senderAddress: senderAddress,
