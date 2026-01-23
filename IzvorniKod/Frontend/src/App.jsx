@@ -13,12 +13,12 @@ import { AuthProvider, AuthContext } from "./context/AuthContext";
 import { useContext } from "react";
 import HomePage from "./pages/Homepage";
 import Header from "./shared_components/Header";
-
 import { CalendarPage } from "./pages/CalendarPage";
 import  ChatWidget from "./components/chat/ChatWidget";
 import { ChatProvider } from "./components/chat/ChatContext";
 import { ReviewsProvider } from "./components/reviews/ReviewsContext";
 import LeaveReviewModal from "./components/reviews/LeaveReviewModal";
+import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 
 function PrivateRoute({ children }) {
   const { user } = useContext(AuthContext);
@@ -36,6 +36,13 @@ function AdminRoute({ children }) {
 
 export default function App() {
   return (
+    <PayPalScriptProvider
+      options={{
+        "client-id": import.meta.env.VITE_PAYPAL_CLIENT_ID,
+        currency: "EUR",
+        intent: "capture"
+      }}
+    >
     <AuthProvider>
       <ReviewsProvider>
       
@@ -104,6 +111,6 @@ export default function App() {
       
       </ReviewsProvider>
     </AuthProvider>
-
+  </PayPalScriptProvider>
   );
 }
