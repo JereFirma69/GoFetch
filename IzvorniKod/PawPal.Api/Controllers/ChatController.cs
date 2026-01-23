@@ -54,4 +54,33 @@ public class ChatController : ControllerBase
             return StatusCode(500, new { message = "Error generating chat token", error = ex.Message });
         }
     }
+
+    /// <summary>
+    /// Ensure multiple users exist in Stream before creating a channel
+    /// </summary>
+    [HttpPost("ensure-users")]
+    public async Task<IActionResult> EnsureUsersExist([FromBody] EnsureUsersRequest request)
+    {
+        try
+        {
+            if (request.UserIds == null || request.UserIds.Length == 0)
+            {
+                return BadRequest(new { message = "userIds array is required" });
+            }
+
+            await _chatService.EnsureUsersExistAsync(request.UserIds);
+            return Ok(new { message = "Users ensured in Stream" });
+        }
+        catch (Exception ex)
+        {
+            var traceId = HttpContext.TraceIdentifier;
+            _logger.LogError(ex, "Error ensuring users exist. TraceId={TraceId}", traceId);
+            return StatusCode(500, new { message = "Error ensuring users exist", error = ex.Message, traceId });
+        }
+    }
+}
+
+public class EnsureUsersRequest
+{
+    public int[] UserIds { get; set; } = Array.Empty<int>();
 }

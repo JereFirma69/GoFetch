@@ -6,6 +6,7 @@ using PawPal.Api.Configuration;
 using PawPal.Api.Data;
 using PawPal.Api.Services;
 using PawPal.Api.Services.Implementations;
+using PawPal.Api.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -89,6 +90,21 @@ builder.Services.AddAuthorization();
 // Configuration
 builder.Services.Configure<SupabaseOptions>(config.GetSection("Supabase"));
 builder.Services.Configure<EmailOptions>(config.GetSection("Email"));
+builder.Services.Configure<GoogleCalendarOptions>(config.GetSection("GoogleCalendar"));
+
+// Override StreamOptions with environment variables
+var streamApiKey = Environment.GetEnvironmentVariable("STREAM_API_KEY");
+var streamApiSecret = Environment.GetEnvironmentVariable("STREAM_API_SECRET");
+var streamApiUrl = Environment.GetEnvironmentVariable("STREAM_API_URL");
+if (!string.IsNullOrEmpty(streamApiKey) && !string.IsNullOrEmpty(streamApiSecret))
+{
+    config["Stream:ApiKey"] = streamApiKey;
+    config["Stream:ApiSecret"] = streamApiSecret;
+}
+if (!string.IsNullOrEmpty(streamApiUrl))
+{
+    config["Stream:ApiUrl"] = streamApiUrl;
+}
 builder.Services.Configure<StreamOptions>(config.GetSection("Stream"));
 
 // Services
@@ -97,8 +113,12 @@ builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IStorageService, StorageService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IGoogleCalendarService, GoogleCalendarService>();
+builder.Services.AddScoped<ICalendarService, CalendarService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddHttpClient<IChatService, ChatService>();
+builder.Services.AddScoped<ISearchService, SearchService>();
+builder.Services.AddScoped<IPayPalService, PayPalService>();
 
 // Controllers
 builder.Services.AddControllers();
