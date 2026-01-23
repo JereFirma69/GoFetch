@@ -33,6 +33,8 @@ export default function ProfilePage() {
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("reviews");
+  const [reviews, setReviews] = useState([]);
+  const [loadingReviews, setLoadingReviews] = useState(false);
 
   function openEditProfile() {
     setShowEdit(true);
@@ -89,6 +91,32 @@ export default function ProfilePage() {
     }
   }, [showEdit, dogFormMode, setSearchParams]);
 
+  useEffect(() => {
+    async function fetchWalkerReviews() {
+      const walkerId = profileData?.walker?.walkerId;
+      if (!walkerId) {
+        setReviews([]);
+        return;
+      }
+
+      setLoadingReviews(true);
+      try {
+        const data = await api.get(`/search/walkers/${walkerId}/reviews?limit=100`);
+        setReviews(data || []);
+      } catch (e) {
+        console.error("Failed to load reviews:", e);
+        setReviews([]);
+      } finally {
+        setLoadingReviews(false);
+      }
+    }
+
+    if (!profileData) return;
+    if (showEdit || dogFormMode) return;
+    if (activeTab !== "reviews") return;
+    fetchWalkerReviews();
+  }, [profileData, showEdit, dogFormMode, activeTab]);
+
 
   const addedDogs = profileData?.owner?.dogs?.map(dog => ({
       id: dog.idPas,
@@ -97,16 +125,6 @@ export default function ProfilePage() {
       image: dog.profilnaPas,
       ...dog,
     })) || [];
-
-  const reviews = [
-    { id: 1, dogName: "Rex", rating: 5, text: "Lorem ipsum dolor sit amet." },
-    {
-      id: 2,
-      dogName: "Max",
-      rating: 4,
-      text: "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-    },
-  ];
 
   function handleDogSave() {
     setRefreshKey((k) => k + 1);
@@ -189,7 +207,13 @@ export default function ProfilePage() {
 
               {/* Tab Content */}
               <div className="p-6">
-                {activeTab === "reviews" && <Reviews reviews={reviews} />}
+                {activeTab === "reviews" && (
+                  loadingReviews ? (
+                    <div className="text-gray-500">Loading reviews...</div>
+                  ) : (
+                    <Reviews reviews={reviews} />
+                  )
+                )}
 
                 {activeTab === "settings" && (
                   <div className="space-y-6">

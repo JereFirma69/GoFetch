@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useReviews } from "./ReviewsContext";
 
 export default function LeaveReviewModal() {
-  const { pendingReview, submitReview } = useReviews();
+  const { pendingReview, submitReview, submitting } = useReviews();
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
 
@@ -45,18 +45,23 @@ export default function LeaveReviewModal() {
         {/* submit */}
        <div className="flex justify-end">
   <button
-    disabled={rating === 0}
+    disabled={rating === 0 || submitting}
     className="px-4 py-2 text-sm rounded-lg bg-teal-500 text-white disabled:opacity-50"
-    onClick={() =>
-      submitReview({
-        walkId: pendingReview.walkId,
-        rating,
-        comment,
-        date: new Date().toISOString(),
-      })
-    }
+    onClick={async () => {
+      try {
+        await submitReview({
+          walkId: pendingReview.walkId,
+          rating,
+          comment,
+        });
+        setRating(0);
+        setComment("");
+      } catch (e) {
+        alert(e?.message || "Neuspješno slanje recenzije");
+      }
+    }}
   >
-    Pošalji
+    {submitting ? "Šaljem..." : "Pošalji"}
   </button>
 </div>
       </div>

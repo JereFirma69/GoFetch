@@ -178,7 +178,9 @@ public class SearchService : ISearchService
 
     public async Task<IEnumerable<WalkerReviewDto>> GetWalkerReviewsAsync(int walkerId, int limit = 3, CancellationToken ct = default)
     {
-        limit = Math.Clamp(limit, 1, 10);
+        // Profile page may need more than 10; keep a hard cap to avoid abuse.
+        if (limit <= 0) limit = 100;
+        limit = Math.Clamp(limit, 1, 100);
 
         var reviews = await _db.Recenzije
             .Include(r => r.Rezervacija)

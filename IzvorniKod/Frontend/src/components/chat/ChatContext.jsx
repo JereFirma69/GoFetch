@@ -173,10 +173,23 @@ export function ChatProvider({ children }) {
       setActive(false);
 
       if (!reviewRequestedRef.current) {
+        const status = rezervacija.statusRezervacija ?? rezervacija.StatusRezervacija;
+        if (status !== "prihvacena") {
+          reviewRequestedRef.current = true;
+          return;
+        }
+
         const bookingId = rezervacija.idRezervacija ?? rezervacija.IdRezervacija;
+
+        const termin = rezervacija.termin ?? rezervacija.Termin;
+        const walker = termin?.walker ?? termin?.Walker;
+        const first = walker?.imeSetac ?? walker?.ImeSetac;
+        const last = walker?.prezimeSetac ?? walker?.PrezimeSetac;
+        const fullName = `${first ?? ""} ${last ?? ""}`.trim();
+
         requestReview({
           walkId: bookingId,
-          otherUserName: "other",
+          otherUserName: fullName || "šetaca",
           role: "owner",
         });
         reviewRequestedRef.current = true;
