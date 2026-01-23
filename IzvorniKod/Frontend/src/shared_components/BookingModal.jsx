@@ -4,7 +4,8 @@ import { api } from "../utils/api";
 import verifiedBadge from "../assets/verification.png";
 import { AuthContext } from "../context/AuthContext";
 
-const fallbackAvatar = "https://via.placeholder.com/80?text=%3F";
+// Inline SVG data URI for fallback avatar (no external dependency)
+const fallbackAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect fill='%2399f6e4' width='80' height='80'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='32' fill='%230d9488'%3E%3F%3C/text%3E%3C/svg%3E";
 
 export default function BookingModal({ open, onClose, appointment, onSuccess }) {
   const { user } = useContext(AuthContext);
@@ -50,30 +51,14 @@ export default function BookingModal({ open, onClose, appointment, onSuccess }) 
     setLoadingDogs(true);
     try {
       const response = await api.get("/profile/me");
-      console.log("✅ Profile API call successful");
-      console.log("Response data type:", typeof response.data);
-      console.log("Full response:", response);
       
       // The API returns the profile object directly, not wrapped
       const profileData = response?.owner || response?.data?.owner || response;
       const ownerDogs = profileData?.dogs || [];
       
-      console.log("✅ Dogs fetched:", ownerDogs.length, "dogs");
       setDogs(ownerDogs);
-      
-      if (ownerDogs.length === 0) {
-        console.warn("⚠️ No dogs found in profile");
-      }
     } catch (err) {
-      console.error("❌ API Error fetching profile:", err.message);
-      console.error("Error status:", err.status);
-      console.error("Error data:", err.data);
-      
-      // Don't show error to user, just log it
-      if (err.status === 401) {
-        console.error("❌ Unauthorized - check authentication token");
-      }
-      
+      // Don't show error to user, just set empty dogs
       setDogs([]);
     } finally {
       setLoadingDogs(false);

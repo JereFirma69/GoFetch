@@ -6,7 +6,8 @@ import { api } from "../utils/api";
 const [openChats, setOpenChats] = useState([]);
 
 
-const fallbackAvatar = "https://via.placeholder.com/64?text=%3F";
+// Inline SVG data URI for fallback avatar (no external dependency)
+const fallbackAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect fill='%2399f6e4' width='64' height='64'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='24' fill='%230d9488'%3E%3F%3C/text%3E%3C/svg%3E";
 
 const STATUS_CONFIG = {
   "na cekanju": { bg: "bg-amber-100", border: "border-amber-400", text: "text-amber-700", label: "Pending", icon: "⏳" },
@@ -32,7 +33,8 @@ function BookingCard({ booking, isOwner, onStatusChange, loading, onOpenChat }) 
       await updateRezervacijaStatus(booking.idRezervacija, newStatus);
       onStatusChange?.();
     } catch (err) {
-      setLocalError(err.response?.data?.error || "Failed to update booking status");
+      // err.message contains the error text, err.data contains the full response
+      setLocalError(err.message || err.data?.error || "Failed to update booking status");
     } finally {
       setActionLoading(false);
     }

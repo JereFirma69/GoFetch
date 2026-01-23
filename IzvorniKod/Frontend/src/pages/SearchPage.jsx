@@ -21,7 +21,8 @@ const cardStyle = {
   padding: "18px",
 };
 
-const fallbackAvatar = "https://via.placeholder.com/80?text=%3F";
+// Inline SVG data URI for fallback avatar (no external dependency)
+const fallbackAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect fill='%2399f6e4' width='80' height='80'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='32' fill='%230d9488'%3E%3F%3C/text%3E%3C/svg%3E";
 const handleImgError = (e) => {
   e.currentTarget.onerror = null;
   e.currentTarget.src = fallbackAvatar;
@@ -265,6 +266,21 @@ export default function SearchPage() {
     });
   }, [slots, slotSearch]);
 
+  const resetWalkerFilters = () => {
+    setWalkerSearch("");
+    setWalkerLocation("");
+  };
+
+  const resetSlotFilters = () => {
+    setSlotSearch("");
+    setSlotLocation("");
+    setSlotDate("");
+    setSlotType("");
+    setSlotMaxPrice("");
+    setSlotMinPrice("");
+    setSlotOnlyAvailable(false);
+  };
+
   const renderWalkers = () => (
     <div style={cardStyle}>
       <div className="flex" style={{ gap: "12px", flexWrap: "wrap", marginBottom: 12 }}>
@@ -291,12 +307,16 @@ export default function SearchPage() {
         >
           {walkerLoading ? "Loading..." : "Search"}
         </button>
+        <button
+          onClick={resetWalkerFilters}
+          style={{ padding: "10px 16px", background: "#f3f4f6", color: "#374151", border: "1px solid #d1d5db", borderRadius: 8, fontWeight: 500 }}
+        >
+          Reset
+        </button>
       </div>
 
       <SearchFilterTable
         title={`${walkerData.length} walkers found`}
-        searchValue=""
-        onSearchChange={() => {}}
         columns={walkerColumns}
         data={walkerData}
         actions={(row) => (
@@ -390,12 +410,16 @@ export default function SearchPage() {
         >
           {slotLoading ? "Loading..." : "Search"}
         </button>
+        <button
+          onClick={resetSlotFilters}
+          style={{ padding: "10px 16px", background: "#f3f4f6", color: "#374151", border: "1px solid #d1d5db", borderRadius: 8, fontWeight: 500 }}
+        >
+          Reset
+        </button>
       </div>
 
       <SearchFilterTable
         title={`${slotData.length} appointments found`}
-        searchValue=""
-        onSearchChange={() => {}}
         columns={slotColumns}
         data={slotData}
         actions={(row) => (
