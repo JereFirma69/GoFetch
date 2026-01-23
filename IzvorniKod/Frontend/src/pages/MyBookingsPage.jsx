@@ -1,0 +1,455 @@
+import React, { useEffect, useState, useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
+import { getMyRezervacije, updateRezervacijaStatus } from "../utils/calendarApi";
+import { useReviews } from "../components/reviews/ReviewsContext";
+import { api } from "../utils/api";
+import ChatContainer from "../components/chat/ChatContainer";
+
+
+// Inline SVG data URI for fallback avatar (no external dependency)
+const createFallbackAvatar = (letter) => {
+  const char = letter || "?";
+  return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect fill='%2399f6e4' width='64' height='64'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='24' fill='%230d9488'%3E${encodeURIComponent(char)}%3C/text%3E%3C/svg%3E`;
+};
+
+const STATUS_CONFIG = {
+  "na cekanju": { bg: "bg-amber-100", border: "border-amber-400", text: "text-amber-700", label: "Pending", icon: "⏳" },
+  "prihvacena": { bg: "bg-emerald-100", border: "border-emerald-400", text: "text-emerald-700", label: "Confirmed", icon: "✓" },
+  "otkazana": { bg: "bg-red-100", border: "border-red-400", text: "text-red-700", label: "Cancelled", icon: "✕" },
+  "zavrsena": { bg: "bg-blue-100", border: "border-blue-400", text: "text-blue-700", label: "Finished", icon: "🏁" },
+};
+
+function BookingCard({ booking, isOwner, onStatusChange, loading, onOpenChat, onOpenReview }) {
+  const [localError, setLocalError] = useState("");
+  const [actionLoading, setActionLoading] = useState(false);
+
+  const statusConfig = STATUS_CONFIG[booking.statusRezervacija] || STATUS_CONFIG["na cekanju"];
+  const bookingDate = new Date(booking.datumVrijemePolaska);
+  const hoursUntilStart = (bookingDate - new Date()) / (1000 * 60 * 60);
+  const canCancel = isOwner && booking.statusRezervacija === "prihvacena" && hoursUntilStart >= 24;
+  const canConfirm = !isOwner && booking.statusRezervacija === "na cekanju";
+  const canReject = !isOwner && booking.statusRezervacija === "na cekanju";
+
+  const handleStatusChange = async (newStatus) => {
+    setActionLoading(true);
+    setLocalError("");
+    try {
+      await updateRezervacijaStatus(booking.idRezervacija, newStatus);
+      onStatusChange?.();
+    } catch (err) {
+      // err.message contains the error text, err.data contains the full response
+      setLocalError(err.message || err.data?.error || "Failed to update booking status");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  return (
+    <div className={`p-4 rounded-lg border-2 ${statusConfig.bg} ${statusConfig.border}`}>
+      {localError && (
+        <div className="mb-3 p-2 bg-red-100 border border-red-300 rounded text-red-700 text-sm">
+          {localError}
+        </div>
+      )}
+
+      <div className="flex gap-4">
+        {/* Avatar */}
+        <div className="flex-shrink-0">
+          {isOwner ? (
+            (() => {
+              const pic = booking.termin?.walker?.profilnaSetac;
+              const initial = booking.termin?.walker?.imeSetac?.charAt(0) || "?";
+              const hasValidPic = pic && pic !== "null" && pic.trim() !== "";
+              return hasValidPic ? (
+                <img
+                  src={pic}
+                  alt={booking.termin.walker.imeSetac}
+                  className="w-12 h-12 rounded-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = createFallbackAvatar(initial);
+                  }}
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-full bg-teal-200 flex items-center justify-center text-teal-700 font-bold">
+                  {initial}
+                </div>
+              );
+            })()
+          ) : (
+            (() => {
+              const pic = booking.owner?.profilnaKorisnik;
+              const initial = booking.owner?.ime?.charAt(0) || "?";
+              const hasValidPic = pic && pic !== "null" && pic.trim() !== "";
+              return hasValidPic ? (
+                <img
+                  src={pic}
+                  alt={booking.owner.ime}
+                  className="w-12 h-12 rounded-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = createFallbackAvatar(initial);
+                  }}
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-full bg-teal-200 flex items-center justify-center text-teal-700 font-bold">
+                  {initial}
+                </div>
+              );
+            })()
+          )}
+        </div>
+
+        {/* Info */}
+        <div className="flex-1">
+          {/* Clear relationship header */}
+          <div className="flex items-center gap-2 mb-3">
+            {isOwner ? (
+              <>
+                <span className="text-xs font-bold px-2 py-1 bg-blue-200 text-blue-800 rounded">My Booking</span>
+                <div className="font-semibold text-gray-900">
+                  {booking.termin?.walker?.imeSetac} {booking.termin?.walker?.prezimeSetac}
+                </div>
+                <span className="text-xs text-gray-500">(Walker)</span>
+              </>
+            ) : (
+              <>
+                <span className="text-xs font-bold px-2 py-1 bg-green-200 text-green-800 rounded">Walk Request</span>
+                <div className="font-semibold text-gray-900">
+                  {booking.owner?.ime} {booking.owner?.prezime}
+                </div>
+                <span className="text-xs text-gray-500">(Owner)</span>
+              </>
+            )}
+          </div>
+
+          <div className="space-y-1 text-sm text-gray-700 mb-3">
+            <div>
+              📅 {bookingDate.toLocaleDateString()} at {bookingDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+            </div>
+            <div>
+              🐕 {booking.dogs?.map((d) => d.imePas).join(", ") || "Dog"}
+            </div>
+            <div>
+              📍 {booking.adresaPolaska}
+            </div>
+            <div>
+              ⏱️ {booking.termin?.trajanjeMins || 60} minutes • 💰 {booking.termin?.cijena} €
+            </div>
+            {booking.napomenaRezervacija && (
+              <div className="mt-2 p-2 bg-gray-50 rounded text-gray-600 italic">
+                📝 {booking.napomenaRezervacija}
+              </div>
+            )}
+          </div>
+
+          {/* Status Badge */}
+          <div className={`inline-block px-3 py-1 rounded-full ${statusConfig.bg} ${statusConfig.text} text-sm font-medium mb-3`}>
+            {statusConfig.icon} {statusConfig.label}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-2 flex-wrap">
+            {isOwner && canCancel && (
+              <button
+                onClick={() => handleStatusChange("otkazana")}
+                disabled={actionLoading || loading}
+                className="px-3 py-1 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              >
+                {actionLoading ? "Cancelling..." : "Cancel Booking"}
+              </button>
+            )}
+
+            {isOwner && !canCancel && booking.statusRezervacija === "prihvacena" && (
+              <div className="text-xs text-red-600 font-medium">
+                ✕ Cannot cancel less than 24 hours before
+              </div>
+            )}
+
+            {/* Owner can leave a review for finished bookings */}
+            {isOwner && booking.statusRezervacija === "zavrsena" && (
+              <button
+                onClick={() => onOpenReview?.(booking)}
+                className="px-3 py-1 bg-yellow-500 text-white text-sm rounded-lg hover:bg-yellow-600 font-medium"
+              >
+                ⭐ Leave Review
+              </button>
+            )}
+
+            {!isOwner && canConfirm && (
+              <>
+                <button
+                  onClick={() => handleStatusChange("prihvacena")}
+                  disabled={actionLoading || loading}
+                  className="px-3 py-1 bg-emerald-500 text-white text-sm rounded-lg hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                >
+                  {actionLoading ? "Confirming..." : "✓ Confirm"}
+                </button>
+                <button
+                  onClick={() => handleStatusChange("otkazana")}
+                  disabled={actionLoading || loading}
+                  className="px-3 py-1 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                >
+                  {actionLoading ? "Rejecting..." : "✕ Reject"}
+                </button>
+              </>
+            )}
+            {!isOwner && booking.statusRezervacija === "prihvacena" && (
+              <button
+                onClick={() => handleStatusChange("zavrsena")}
+                disabled={actionLoading || loading}
+                className="px-3 py-1 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              >
+                {actionLoading ? "Finishing..." : "🏁 Finish Walk"}
+              </button>
+            )}
+            <button
+              onClick={() => onOpenChat(booking)}
+              className="px-3 py-1 bg-teal-600 text-white text-sm rounded-lg hover:bg-teal-700"
+            >
+              💬 Open chat
+            </button>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function MyBookingsPage() {
+  const { user } = useContext(AuthContext);
+  const { requestReview } = useReviews();
+  const [isOwner, setIsOwner] = useState(false);
+  const [isWalker, setIsWalker] = useState(false);
+  const [activeTab, setActiveTab] = useState("owner"); // or "walker"
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [openChats, setOpenChats] = useState([]);
+
+  useEffect(() => {
+    const checkRoles = async () => {
+      try {
+        const response = await api.get("/profile/me");
+        // `api.get` returns parsed JSON directly (no `.data` wrapper)
+        const hasOwner = !!response?.owner;
+        const hasWalker = !!response?.walker;
+
+        setIsOwner(hasOwner);
+        setIsWalker(hasWalker);
+
+        // Set initial tab based on roles
+        if (hasOwner && !hasWalker) {
+          setActiveTab("owner");
+        } else if (hasWalker && !hasOwner) {
+          setActiveTab("walker");
+        } else if (hasOwner) {
+          setActiveTab("owner");
+        }
+      } catch (err) {
+        console.error("Failed to check roles:", err);
+      }
+    };
+
+    checkRoles();
+  }, []);
+
+  useEffect(() => {
+    fetchBookings();
+  }, [activeTab]);
+
+  const fetchBookings = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await getMyRezervacije();
+      // `getMyRezervacije` returns the bookings array directly
+      setBookings(response || []);
+    } catch (err) {
+      console.error("Failed to fetch bookings:", err);
+      setError("Failed to load bookings. Please try again.");
+      setBookings([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const openChatForBooking = (booking) => {
+    setOpenChats((prev) => {
+      if (prev.some((b) => b.idRezervacija === booking.idRezervacija)) {
+        return prev;
+      }
+      return [...prev, booking];
+    });
+  };
+
+
+  const filteredBookings = bookings
+    .filter((booking) => {
+      // Filter by active role tab first to determine if user is owner for this booking
+      const isOwnerForBooking = booking.owner?.idKorisnik === user?.userId;
+      const isWalkerForBooking = booking.termin?.walker?.idKorisnik === user?.userId;
+      
+      // Filter out finished bookings (but keep "zavrsena" for owners so they can review)
+      if (booking.statusRezervacija === "zavrsena") {
+        // Show finished bookings only to owners (so they can leave a review)
+        if (activeTab === "owner" && isOwnerForBooking) {
+          return true;
+        }
+        return false; // Hide from walkers
+      }
+      const bookingDate = new Date(booking.datumVrijemePolaska);
+      const durationMins = booking.termin?.trajanjeMins || 60;
+      const endTime = new Date(bookingDate.getTime() + durationMins * 60 * 1000);
+      if (endTime < new Date()) {
+        return false; // Booking time has passed
+      }
+      return true;
+    })
+    .filter((booking) => {
+      // Filter by active role tab
+      if (activeTab === "owner") {
+        return booking.owner?.idKorisnik === user?.userId;
+      }
+      if (activeTab === "walker") {
+        return booking.termin?.walker?.idKorisnik === user?.userId;
+      }
+      return true;
+    })
+    .filter((booking) => {
+      // Filter by status
+      if (statusFilter === "all") return true;
+      return booking.statusRezervacija === statusFilter;
+    });
+
+  const emptyMessage = {
+    owner: "No bookings yet. Start by searching for walkers!",
+    walker: "No incoming bookings yet. Make sure your calendar is set up!",
+  };
+
+  return (
+    <>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Bookings</h1>
+          <p className="text-gray-600">Manage your walk bookings and requests</p>
+        </div>
+
+        {/* Role Subtabs (Owner / Walker) */}
+        {(isOwner || isWalker) && (
+          <div className="space-y-4 mb-6">
+            <div className="flex gap-2 bg-white rounded-lg p-2 shadow-sm">
+              {isOwner && (
+                <button
+                  onClick={() => {
+                    setActiveTab("owner");
+                    setStatusFilter("all");
+                  }}
+                  className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
+                    activeTab === "owner"
+                      ? "bg-teal-600 text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  🐕 My Dogs (Owner)
+                </button>
+              )}
+              {isWalker && (
+                <button
+                  onClick={() => {
+                    setActiveTab("walker");
+                    setStatusFilter("all");
+                  }}
+                  className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
+                    activeTab === "walker"
+                      ? "bg-teal-600 text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  👟 My Walks (Walker)
+                </button>
+              )}
+            </div>
+
+          </div>
+        )}
+
+        {/* Status Filters */}
+        <div className="flex gap-2 mb-6 flex-wrap">
+          {["all", "na cekanju", "prihvacena", "otkazana"].map((status) => {
+            const statusLabels = {
+              all: "All",
+              "na cekanju": "Pending",
+              "prihvacena": "Confirmed",
+              "otkazana": "Cancelled",
+            };
+            const statusBg = {
+              all: "bg-gray-200 text-gray-900",
+              "na cekanju": "bg-amber-200 text-amber-900",
+              "prihvacena": "bg-emerald-200 text-emerald-900",
+              "otkazana": "bg-red-200 text-red-900",
+            };
+
+            return (
+              <button
+                key={status}
+                onClick={() => setStatusFilter(status)}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  statusFilter === status ? statusBg[status] : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                {statusLabels[status]}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Content */}
+        {error && (
+          <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 mb-6">
+            {error}
+          </div>
+        )}
+
+        {loading ? (
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-32 bg-white rounded-lg animate-pulse" />
+            ))}
+          </div>
+        ) : filteredBookings.length === 0 ? (
+          <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
+            <div className="text-4xl mb-4">{activeTab === "owner" ? "📅" : "🔔"}</div>
+            <p className="text-gray-600 text-lg">{emptyMessage[activeTab]}</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {filteredBookings.map((booking) => {
+              const walkerName = `${booking.termin?.walker?.imeSetac || ""} ${booking.termin?.walker?.prezimeSetac || ""}`.trim();
+              return (
+                <BookingCard
+                  key={booking.idRezervacija}
+                  booking={booking}
+                  isOwner={activeTab === "owner"}
+                  onStatusChange={fetchBookings}
+                  loading={loading}
+                  onOpenChat={openChatForBooking}
+                  onOpenReview={() => requestReview({
+                    walkId: booking.idRezervacija,
+                    otherUserName: walkerName || "Walker",
+                  }, fetchBookings)}
+                />
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+     <ChatContainer rezervacije={openChats} />
+     </>
+  );
+}

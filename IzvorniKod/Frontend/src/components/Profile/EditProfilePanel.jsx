@@ -14,6 +14,7 @@ export default function EditProfilePanel({ onBack, profileData, onRoleChange, on
       location: profileData?.walker?.location || "",
       phone: profileData?.walker?.phone || "",
       profilePicture: profileData?.walker?.profilePicture || "",
+      bio: profileData?.walker?.bio || "",
     },
   });
 
@@ -41,17 +42,25 @@ export default function EditProfilePanel({ onBack, profileData, onRoleChange, on
       setOwnerEnabled(!!profileData.owner);
       setWalkerEnabled(!!profileData.walker);
 
+      // Add cache-busting to profile pictures to prevent browser caching issues
+      const addCacheBust = (url) => {
+        if (!url) return url;
+        const separator = url.includes("?") ? "&" : "?";
+        return url + separator + "t=" + Date.now();
+      };
+
       setFormData((prev) => ({
         ...prev,
         firstName: profileData.firstName ?? prev.firstName,
         lastName: profileData.lastName ?? prev.lastName,
         email: profileData.email ?? prev.email,
-        profilePicture: profileData.profilePicture ?? prev.profilePicture,
+        profilePicture: profileData.profilePicture ? addCacheBust(profileData.profilePicture) : prev.profilePicture,
         walker: profileData.walker
           ? {
               location: profileData.walker.location || "",
               phone: profileData.walker.phone || "",
-              profilePicture: profileData.walker.profilePicture || "",
+              profilePicture: profileData.walker.profilePicture ? addCacheBust(profileData.walker.profilePicture) : "",
+              bio: profileData.walker.bio || "",
             }
           : prev.walker,
       }));
@@ -72,6 +81,7 @@ export default function EditProfilePanel({ onBack, profileData, onRoleChange, on
               location: formData.walker.location || "",
               phone: formData.walker.phone || "",
               walkerProfilePicture: formData.walker.profilePicture || null,
+              bio: formData.walker.bio || null,
             }
           : null,
       };
@@ -85,8 +95,14 @@ export default function EditProfilePanel({ onBack, profileData, onRoleChange, on
         firstName: data.firstName,
         lastName: data.lastName,
       };
-  localStorage.setItem("user", JSON.stringify(updatedUser));
-  setUser(updatedUser);
+      
+      // Preserve admin role if it exists
+      if (user.role === "admin") {
+        updatedUser.role = "admin";
+      }
+      
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+      setUser(updatedUser);
   onSaved?.(data);
   onBack?.();
     } catch (e) {
@@ -116,6 +132,7 @@ export default function EditProfilePanel({ onBack, profileData, onRoleChange, on
             location: formData.walker.location,
             phone: formData.walker.phone,
             walkerProfilePicture: formData.walker.profilePicture,
+            bio: formData.walker.bio,
           };
           try {
             localStorage.setItem("savedWalkerDetails", JSON.stringify(saved));
@@ -137,6 +154,7 @@ export default function EditProfilePanel({ onBack, profileData, onRoleChange, on
                   location: saved.location || "",
                   phone: saved.phone || "",
                   walkerProfilePicture: saved.walkerProfilePicture || null,
+                  bio: saved.bio || null,
                 },
               });
               setFormData((prev) => ({
@@ -145,6 +163,7 @@ export default function EditProfilePanel({ onBack, profileData, onRoleChange, on
                   location: saved.location || "",
                   phone: saved.phone || "",
                   profilePicture: saved.walkerProfilePicture || "",
+                  bio: saved.bio || "",
                 },
               }));
               localStorage.removeItem("savedWalkerDetails");
@@ -163,6 +182,12 @@ export default function EditProfilePanel({ onBack, profileData, onRoleChange, on
         firstName: user.firstName,
         lastName: user.lastName,
       };
+      
+      // Preserve admin role if it exists
+      if (user.role === "admin") {
+        updatedUser.role = "admin";
+      }
+      
       localStorage.setItem("user", JSON.stringify(updatedUser));
       setUser(updatedUser);
 
@@ -221,7 +246,9 @@ export default function EditProfilePanel({ onBack, profileData, onRoleChange, on
             currentUrl={formData.profilePicture}
             onUpload={async (file) => {
               const data = await api.upload("/upload/avatar", file);
-              setFormData((prev) => ({ ...prev, profilePicture: data.url }));
+              // Add cache-busting timestamp to force browser to reload image
+              const urlWithCacheBust = data.url + "?t=" + Date.now();
+              setFormData((prev) => ({ ...prev, profilePicture: urlWithCacheBust }));
               if (onSaved) await onSaved();
             }}
             onDelete={async () => {
@@ -263,25 +290,22 @@ export default function EditProfilePanel({ onBack, profileData, onRoleChange, on
                   }
                 />
               </label>
-          </div>
-          <ImageUpload
-            label="Walker Profile Picture (optional)"
-            currentUrl={formData.walker.profilePicture}
-            onUpload={async (file) => {
-              const data = await api.upload("/upload/walker-avatar", file);
-              setFormData((prev) => ({
-                ...prev,
-                walker: { ...prev.walker, profilePicture: data.url },
-              }));
-            }}
-            onDelete={async () => {
-              await api.delete("/upload/avatar");
-              setFormData((prev) => ({
-                ...prev,
-                walker: { ...prev.walker, profilePicture: "" },
-              }));
-            }}
-          />
+            </div>
+            <label className="form-field full">
+              <span>About Me</span>
+              <textarea
+                rows={5}
+                placeholder="Tell potential clients about your experience with dogs, availability, special skills, etc..."
+                value={formData.walker.bio}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    walker: { ...prev.walker, bio: e.target.value },
+                  }))
+                }
+                style={{ resize: "vertical" }}
+              />
+            </label>
           </section>
         )}
 

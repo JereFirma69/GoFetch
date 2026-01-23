@@ -103,12 +103,49 @@ namespace PawPal.Api.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
+                    b.Property<string>("StreamUserId")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.HasKey("IdKorisnik");
 
                     b.HasIndex("EmailKorisnik")
                         .IsUnique();
 
                     b.ToTable("Korisnici");
+                });
+
+            modelBuilder.Entity("PawPal.Api.Models.MembershipSetting", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(5)
+                        .HasColumnType("character varying(5)");
+
+                    b.Property<decimal>("MonthlyPrice")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal>("YearlyPrice")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("MembershipSettings");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Currency = "EUR",
+                            MonthlyPrice = 0m,
+                            YearlyPrice = 0m
+                        });
                 });
 
             modelBuilder.Entity("PawPal.Api.Models.Pas", b =>
@@ -360,6 +397,9 @@ namespace PawPal.Api.Migrations
                     b.Property<int>("IdTermin")
                         .HasColumnType("integer");
 
+                    b.Property<int>("IdVlasnik")
+                        .HasColumnType("integer");
+
                     b.Property<string>("NapomenaRezervacija")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
@@ -377,6 +417,8 @@ namespace PawPal.Api.Migrations
                     b.HasKey("IdRezervacija");
 
                     b.HasIndex("IdTermin");
+
+                    b.HasIndex("IdVlasnik");
 
                     b.ToTable("Rezervacije");
                 });
@@ -400,6 +442,10 @@ namespace PawPal.Api.Migrations
                 {
                     b.Property<int>("IdKorisnik")
                         .HasColumnType("integer");
+
+                    b.Property<string>("Bio")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
 
                     b.Property<string>("ImeSetac")
                         .IsRequired()
@@ -455,6 +501,10 @@ namespace PawPal.Api.Migrations
                     b.Property<DateTime>("DatumVrijemePocetka")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("GoogleCalendarEventId")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
                     b.Property<int>("IdKorisnik")
                         .HasColumnType("integer");
 
@@ -462,6 +512,9 @@ namespace PawPal.Api.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<int>("MaxDogs")
+                        .HasColumnType("integer");
 
                     b.Property<TimeSpan>("Trajanje")
                         .HasColumnType("interval");
@@ -488,6 +541,32 @@ namespace PawPal.Api.Migrations
                     b.HasKey("IdKorisnik");
 
                     b.ToTable("Vlasnici");
+                });
+
+            modelBuilder.Entity("PawPal.Api.Models.WalkerGoogleAuth", b =>
+                {
+                    b.Property<int>("IdKorisnik")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("AccessToken")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CalendarId")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("RefreshToken")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("TokenExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("IdKorisnik");
+
+                    b.ToTable("WalkerGoogleAuths");
                 });
 
             modelBuilder.Entity("PawPal.Api.Models.Administrator", b =>
@@ -605,7 +684,15 @@ namespace PawPal.Api.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("PawPal.Api.Models.Vlasnik", "Vlasnik")
+                        .WithMany("Rezervacije")
+                        .HasForeignKey("IdVlasnik")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Termin");
+
+                    b.Navigation("Vlasnik");
                 });
 
             modelBuilder.Entity("PawPal.Api.Models.RezervacijaPas", b =>
@@ -660,9 +747,22 @@ namespace PawPal.Api.Migrations
                     b.Navigation("Korisnik");
                 });
 
+            modelBuilder.Entity("PawPal.Api.Models.WalkerGoogleAuth", b =>
+                {
+                    b.HasOne("PawPal.Api.Models.Korisnik", "Korisnik")
+                        .WithOne("GoogleAuth")
+                        .HasForeignKey("PawPal.Api.Models.WalkerGoogleAuth", "IdKorisnik")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Korisnik");
+                });
+
             modelBuilder.Entity("PawPal.Api.Models.Korisnik", b =>
                 {
                     b.Navigation("Administrator");
+
+                    b.Navigation("GoogleAuth");
 
                     b.Navigation("Poruke");
 
@@ -706,6 +806,8 @@ namespace PawPal.Api.Migrations
                     b.Navigation("Pretplata");
 
                     b.Navigation("Psi");
+
+                    b.Navigation("Rezervacije");
                 });
 #pragma warning restore 612, 618
         }

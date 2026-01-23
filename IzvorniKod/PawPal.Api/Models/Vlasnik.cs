@@ -12,4 +12,5 @@ public class Vlasnik
     public Korisnik Korisnik { get; set; } = null!;
     public PretplataVlasnikSetacNovosti? Pretplata { get; set; }
     public List<Pas> Psi { get; set; } = new();
+    public List<Rezervacija> Rezervacije { get; set; } = new();
 }
