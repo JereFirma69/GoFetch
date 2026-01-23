@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { searchApi } from "../utils/searchApi";
 import verifiedBadge from "../assets/verification.png";
 
-const fallbackAvatar = "https://via.placeholder.com/128?text=%3F";
+// Inline SVG data URI for fallback avatar (no external dependency)
+const fallbackAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128' viewBox='0 0 128 128'%3E%3Crect fill='%2399f6e4' width='128' height='128'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='48' fill='%230d9488'%3E%3F%3C/text%3E%3C/svg%3E";
 
 export default function ProfileModal({ open, onClose, profile }) {
   const [appointments, setAppointments] = useState([]);

@@ -17,13 +17,15 @@ export default function SearchFilterTable({
     <div className="bg-white shadow rounded-lg p-4 space-y-3">
       <div className="flex flex-wrap items-center gap-3 justify-between">
         <div className="text-lg font-semibold text-gray-800">{title}</div>
-        <input
-          type="text"
-          value={searchValue}
-          onChange={(e) => onSearchChange?.(e.target.value)}
-          placeholder="Search..."
-          className="border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring focus:border-blue-400"
-        />
+        {onSearchChange && searchValue !== undefined && (
+          <input
+            type="text"
+            value={searchValue}
+            onChange={(e) => onSearchChange?.(e.target.value)}
+            placeholder="Search..."
+            className="border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring focus:border-blue-400"
+          />
+        )}
       </div>
 
       {filters.length > 0 && (

@@ -42,17 +42,24 @@ export default function EditProfilePanel({ onBack, profileData, onRoleChange, on
       setOwnerEnabled(!!profileData.owner);
       setWalkerEnabled(!!profileData.walker);
 
+      // Add cache-busting to profile pictures to prevent browser caching issues
+      const addCacheBust = (url) => {
+        if (!url) return url;
+        const separator = url.includes("?") ? "&" : "?";
+        return url + separator + "t=" + Date.now();
+      };
+
       setFormData((prev) => ({
         ...prev,
         firstName: profileData.firstName ?? prev.firstName,
         lastName: profileData.lastName ?? prev.lastName,
         email: profileData.email ?? prev.email,
-        profilePicture: profileData.profilePicture ?? prev.profilePicture,
+        profilePicture: profileData.profilePicture ? addCacheBust(profileData.profilePicture) : prev.profilePicture,
         walker: profileData.walker
           ? {
               location: profileData.walker.location || "",
               phone: profileData.walker.phone || "",
-              profilePicture: profileData.walker.profilePicture || "",
+              profilePicture: profileData.walker.profilePicture ? addCacheBust(profileData.walker.profilePicture) : "",
               bio: profileData.walker.bio || "",
             }
           : prev.walker,
@@ -239,7 +246,9 @@ export default function EditProfilePanel({ onBack, profileData, onRoleChange, on
             currentUrl={formData.profilePicture}
             onUpload={async (file) => {
               const data = await api.upload("/upload/avatar", file);
-              setFormData((prev) => ({ ...prev, profilePicture: data.url }));
+              // Add cache-busting timestamp to force browser to reload image
+              const urlWithCacheBust = data.url + "?t=" + Date.now();
+              setFormData((prev) => ({ ...prev, profilePicture: urlWithCacheBust }));
               if (onSaved) await onSaved();
             }}
             onDelete={async () => {
