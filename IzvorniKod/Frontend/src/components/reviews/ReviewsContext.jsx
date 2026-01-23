@@ -7,9 +7,11 @@ export function ReviewsProvider({ children }) {
   const [pendingReview, setPendingReview] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+  const [onSuccessCallback, setOnSuccessCallback] = useState(null);
 
-  function requestReview(data) {
+  function requestReview(data, onSuccess = null) {
     setPendingReview(data);
+    setOnSuccessCallback(() => onSuccess); // Store callback as function
   }
 
   async function submitReview({ walkId, rating, comment }) {
@@ -27,6 +29,13 @@ export function ReviewsProvider({ children }) {
       // Keep a local cache in case some UI wants it (optional)
       setReviews((prev) => [...prev, created]);
       setPendingReview(null);
+      
+      // Call onSuccess callback if provided
+      if (onSuccessCallback) {
+        onSuccessCallback();
+        setOnSuccessCallback(null);
+      }
+      
       return created;
     } finally {
       setSubmitting(false);

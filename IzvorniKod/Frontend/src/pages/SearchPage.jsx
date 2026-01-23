@@ -51,12 +51,41 @@ export default function SearchPage() {
   const [slotOnlyAvailable, setSlotOnlyAvailable] = useState(false);
 
   const [profile, setProfile] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(false);
   const [bookingAppointment, setBookingAppointment] = useState(null);
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
     setSearchParams({ tab });
   }, [tab, setSearchParams]);
+
+  // Helper to fetch full walker profile and open modal
+  const openWalkerProfile = async (walkerId) => {
+    setProfileLoading(true);
+    try {
+      const walker = await searchApi.getWalkerById(walkerId);
+      if (walker) {
+        setProfile({
+          name: walker.FullName ?? walker.fullName,
+          email: walker.Email ?? walker.email,
+          phone: walker.Phone ?? walker.phone,
+          location: walker.Location ?? walker.location,
+          profilePicture: walker.ProfilePicture ?? walker.profilePicture,
+          bio: walker.Bio ?? walker.bio,
+          rating: walker.Rating ?? walker.rating,
+          ratingCount: walker.RatingCount ?? walker.ratingCount,
+          isVerified: walker.IsVerified === true || walker.isVerified === true,
+          walkerId: walker.WalkerId ?? walker.walkerId,
+        });
+      }
+    } catch (e) {
+      console.error("Failed to load walker profile:", e);
+      setToast("Failed to load walker profile");
+      setTimeout(() => setToast(null), 3000);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (tab === "walkers") {
@@ -328,21 +357,11 @@ export default function SearchPage() {
         data={walkerData}
         actions={(row) => (
           <button
-            onClick={() => setProfile({
-              name: row.FullName,
-              email: row.Email,
-              phone: row.Phone,
-              location: row.Location,
-              profilePicture: row.ProfilePicture,
-              bio: row.Bio,
-              rating: row.Rating,
-              ratingCount: row.RatingCount,
-              isVerified: row.IsVerified === true,
-              walkerId: row.WalkerId,
-            })}
-            className="px-3 py-1 text-sm rounded border border-gray-300"
+            onClick={() => openWalkerProfile(row.WalkerId)}
+            disabled={profileLoading}
+            className="px-3 py-1 text-sm rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-50"
           >
-            View
+            {profileLoading ? "Loading..." : "View"}
           </button>
         )}
       />
@@ -441,15 +460,11 @@ export default function SearchPage() {
               return (
                 <>
                   <button
-                    onClick={() => setProfile({
-                      name: row.WalkerName,
-                      location: row.Location,
-                      profilePicture: row.WalkerProfilePicture,
-                      walkerId: row.WalkerId,
-                    })}
-                    className="px-3 py-1 text-sm rounded border border-gray-300 hover:bg-gray-50"
+                    onClick={() => openWalkerProfile(row.WalkerId)}
+                    disabled={profileLoading}
+                    className="px-3 py-1 text-sm rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-50"
                   >
-                    View
+                    {profileLoading ? "..." : "View"}
                   </button>
                   <button
                     onClick={() => {

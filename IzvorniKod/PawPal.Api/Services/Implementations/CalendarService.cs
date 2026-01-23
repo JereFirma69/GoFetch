@@ -279,15 +279,19 @@ public class CalendarService : ICalendarService
             throw new InvalidOperationException("Termin not found.");
         }
 
-        // Check availability
-        var bookedDogs = termin.Rezervacije
-            .Where(r => r.StatusRezervacija != "otkazana")
-            .SelectMany(r => r.PsiRezervacije)
-            .Count();
+        // Check if this termin already has an active booking (only 1 booking per termin allowed)
+        var existingBooking = termin.Rezervacije
+            .FirstOrDefault(r => r.StatusRezervacija != "otkazana");
 
-        if (bookedDogs + request.DogIds.Count > termin.MaxDogs)
+        if (existingBooking != null)
         {
-            throw new InvalidOperationException($"Not enough slots available. Only {termin.MaxDogs - bookedDogs} spots left.");
+            throw new InvalidOperationException("This walk slot is already booked. Please choose a different time.");
+        }
+
+        // Check availability (still validate max dogs for the booking itself)
+        if (request.DogIds.Count > termin.MaxDogs)
+        {
+            throw new InvalidOperationException($"Too many dogs selected. Maximum {termin.MaxDogs} dogs allowed for this walk.");
         }
 
         // Create reservation
@@ -410,10 +414,17 @@ public class CalendarService : ICalendarService
             rezervacije.AddRange(await q.ToListAsync(ct));
         }
 
+        // Get IDs of bookings that have already been reviewed
+        var reviewedIds = await _db.Recenzije
+            .Select(r => r.IdRezervacija)
+            .ToListAsync(ct);
+
         // Remove duplicates (in case of overlap) and order by date
+        // Also filter out finished bookings that have already been reviewed
         var distinct = rezervacije
             .GroupBy(r => r.IdRezervacija)
             .Select(g => g.First())
+            .Where(r => !(r.StatusRezervacija == "zavrsena" && reviewedIds.Contains(r.IdRezervacija)))
             .OrderBy(r => r.DatumVrijemePolaska)
             .ToList();
 

@@ -441,7 +441,7 @@ export default function MyBookingsPage() {
                   onOpenReview={() => requestReview({
                     walkId: booking.idRezervacija,
                     otherUserName: walkerName || "Walker",
-                  })}
+                  }, fetchBookings)}
                 />
               );
             })}

@@ -203,4 +203,41 @@ public class SearchService : ISearchService
 
         return reviews;
     }
+
+    public async Task<WalkerSearchResultDto?> GetWalkerByIdAsync(int walkerId, CancellationToken ct = default)
+    {
+        var walker = await _db.Setaci
+            .Include(s => s.Korisnik)
+            .Include(s => s.Termini)
+            .FirstOrDefaultAsync(s => s.IdKorisnik == walkerId, ct);
+
+        if (walker == null) return null;
+
+        // Get rating info
+        var ratingInfo = await _db.Recenzije
+            .Join(_db.Rezervacije, r => r.IdRezervacija, rez => rez.IdRezervacija, (r, rez) => new { r, rez })
+            .Join(_db.Termini, rr => rr.rez.IdTermin, t => t.IdTermin, (rr, t) => new { rr.r, t })
+            .Where(x => x.t.IdKorisnik == walkerId)
+            .GroupBy(x => x.t.IdKorisnik)
+            .Select(g => new { Avg = g.Average(x => x.r.Ocjena), Count = g.Count() })
+            .FirstOrDefaultAsync(ct);
+
+        var hasTermini = walker.Termini.Any();
+        var lowest = hasTermini ? walker.Termini.Min(t => t.Cijena) : (decimal?)null;
+        var highest = hasTermini ? walker.Termini.Max(t => t.Cijena) : (decimal?)null;
+
+        return new WalkerSearchResultDto(
+            walker.IdKorisnik,
+            $"{walker.ImeSetac} {walker.PrezimeSetac}",
+            walker.LokacijaSetac,
+            lowest,
+            highest,
+            ratingInfo?.Count > 0 ? ratingInfo.Avg : 0,
+            ratingInfo?.Count ?? 0,
+            walker.Korisnik.ProfilnaKorisnik,
+            walker.IsVerified,
+            walker.Bio,
+            walker.Korisnik.EmailKorisnik,
+            walker.TelefonSetac);
+    }
 }

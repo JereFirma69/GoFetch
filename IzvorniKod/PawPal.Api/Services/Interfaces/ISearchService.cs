@@ -27,4 +27,6 @@ public interface ISearchService
         int walkerId,
         int limit = 3,
         CancellationToken ct = default);
+
+    Task<WalkerSearchResultDto?> GetWalkerByIdAsync(int walkerId, CancellationToken ct = default);
 }
