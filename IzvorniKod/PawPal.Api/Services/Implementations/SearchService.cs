@@ -72,7 +72,7 @@ public class SearchService : ISearchService
                     highest,
                     ratingInfo.Count > 0 ? ratingInfo.Avg : 0,
                     ratingInfo.Count,
-                    w.ProfilnaSetac,
+                    w.Korisnik.ProfilnaKorisnik,
                     w.IsVerified,
                     w.Bio,
                     w.Korisnik.EmailKorisnik,
@@ -99,6 +99,7 @@ public class SearchService : ISearchService
     {
         var termini = _db.Termini
             .Include(t => t.Setac)
+                .ThenInclude(s => s.Korisnik)
             .Include(t => t.Rezervacije)
                 .ThenInclude(r => r.PsiRezervacije)
             .AsQueryable();
@@ -165,7 +166,7 @@ public class SearchService : ISearchService
                 available,
                 t.Setac.IdKorisnik,
                 $"{t.Setac.ImeSetac} {t.Setac.PrezimeSetac}",
-                t.Setac.ProfilnaSetac);
+                t.Setac.Korisnik?.ProfilnaKorisnik);
         });
 
         if (onlyAvailable.HasValue && onlyAvailable.Value)

@@ -21,11 +21,10 @@ const cardStyle = {
   padding: "18px",
 };
 
-// Inline SVG data URI for fallback avatar (no external dependency)
-const fallbackAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect fill='%2399f6e4' width='80' height='80'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='32' fill='%230d9488'%3E%3F%3C/text%3E%3C/svg%3E";
-const handleImgError = (e) => {
-  e.currentTarget.onerror = null;
-  e.currentTarget.src = fallbackAvatar;
+// Helper to create a fallback avatar SVG with a specific letter
+const createFallbackAvatar = (letter) => {
+  const char = letter || "?";
+  return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect fill='%2399f6e4' width='80' height='80'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='32' fill='%230d9488'%3E${encodeURIComponent(char)}%3C/text%3E%3C/svg%3E`;
 };
 
 export default function SearchPage() {
@@ -141,6 +140,7 @@ export default function SearchPage() {
         render: (r) => {
           const pic = r.ProfilePicture;
           const hasValidPic = pic && pic !== "null" && pic.trim() !== "";
+          const initial = r.FullName?.charAt(0) || "?";
           return (
             <div className="flex items-center justify-center">
               {hasValidPic ? (
@@ -148,11 +148,14 @@ export default function SearchPage() {
                   src={pic} 
                   alt={r.FullName} 
                   className="w-10 h-10 rounded-full object-cover"
-                  onError={handleImgError}
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = createFallbackAvatar(initial);
+                  }}
                 />
               ) : (
                 <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 font-semibold">
-                  {r.FullName?.charAt(0) || "?"}
+                  {initial}
                 </div>
               )}
             </div>
@@ -201,6 +204,7 @@ export default function SearchPage() {
         render: (r) => {
           const pic = r.WalkerProfilePicture;
           const hasValidPic = pic && pic !== "null" && pic.trim() !== "";
+          const initial = r.WalkerName?.charAt(0) || "?";
           return (
             <div className="flex items-center justify-center">
               {hasValidPic ? (
@@ -208,11 +212,14 @@ export default function SearchPage() {
                   src={pic}
                   alt={r.WalkerName}
                   className="w-10 h-10 rounded-full object-cover"
-                  onError={handleImgError}
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = createFallbackAvatar(initial);
+                  }}
                 />
               ) : (
                 <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 font-semibold">
-                  {r.WalkerName?.charAt(0) || "?"}
+                  {initial}
                 </div>
               )}
             </div>
