@@ -27,9 +27,9 @@ public class ChatService : IChatService
         {
             EnsureStreamConfigured();
 
-            // Generate JWT token for the user
-            // Note: Stream Chat will automatically create the user on first connection
-            // We pass user info in the token which Stream uses to create/update the user
+            // Upsert user on the server first (recommended)
+            await CreateOrUpdateStreamUserAsync(userId, userEmail, userName);
+
             var token = GenerateStreamToken(userId.ToString());
 
             _logger.LogInformation("Generated Stream token for user {UserId}", userId);
@@ -78,8 +78,8 @@ public class ChatService : IChatService
             var json = JsonSerializer.Serialize(payload);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            // Use the correct Stream Chat API endpoint for upserting users
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{StreamApiUrl}/users?api_key={_streamOptions.ApiKey}")
+            // Correct upsert endpoint + method (PUT for upsert)
+            var request = new HttpRequestMessage(HttpMethod.Put, $"{StreamApiUrl}/users?api_key={_streamOptions.ApiKey}")
             {
                 Content = content
             };
@@ -170,10 +170,10 @@ public class ChatService : IChatService
 
     private void ApplyStreamServerAuth(HttpRequestMessage request)
     {
-        // Stream Chat REST API expects the JWT in the Authorization header and Stream-Auth-Type=jwt.
+        // Stream Chat REST API expects the JWT in the Authorization header with Bearer prefix
         var token = GenerateServerToken();
         request.Headers.TryAddWithoutValidation("Stream-Auth-Type", "jwt");
-        request.Headers.TryAddWithoutValidation("Authorization", token);
+        request.Headers.TryAddWithoutValidation("Authorization", $"Bearer {token}");
     }
 
     private void EnsureStreamConfigured()
