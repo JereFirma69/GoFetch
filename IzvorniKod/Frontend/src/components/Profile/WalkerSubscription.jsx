@@ -28,7 +28,7 @@ export default function WalkerSubscription({ isWalker }) {
         }
       } catch (e) {
         console.error("Failed to fetch pricing:", e);
-        setError("Nije moguće učitati cijene");
+        setError("Unable to load pricing");
       } finally {
         setLoading(false);
       }
@@ -46,7 +46,7 @@ export default function WalkerSubscription({ isWalker }) {
   };
 
   if (loading) {
-    return <div className="text-gray-500">Učitavanje...</div>;
+    return <div className="text-gray-500">Loading...</div>;
   }
 
   if (error) {
@@ -56,13 +56,13 @@ export default function WalkerSubscription({ isWalker }) {
   if (!isWalker) {
     return (
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold">🐕 Walker članarina</h3>
+        <h3 className="text-lg font-semibold">🐕 Walker Membership</h3>
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <p className="text-yellow-800">
-            Morate se registrirati kao šetač da biste se mogli pretplatiti na članarinu.
+            You must register as a walker to subscribe to a membership.
           </p>
           <p className="text-sm text-yellow-600 mt-2">
-            Idite na "Uredi profil" i omogućite opciju "Postani šetač".
+            Go to "Edit Profile" and enable the "Become a Walker" option.
           </p>
         </div>
       </div>
@@ -74,7 +74,7 @@ export default function WalkerSubscription({ isWalker }) {
 
   return (
     <div className="space-y-6">
-      <h3 className="text-lg font-semibold">🐕 Walker članarina</h3>
+      <h3 className="text-lg font-semibold">🐕 Walker Membership</h3>
 
       {/* Subscription Status */}
       {hasActiveSubscription && (
@@ -82,13 +82,13 @@ export default function WalkerSubscription({ isWalker }) {
           <div className="flex items-center gap-2">
             <span className="text-green-600 text-xl">✓</span>
             <div>
-              <p className="font-medium text-green-800">Aktivna pretplata</p>
+              <p className="font-medium text-green-800">Active Subscription</p>
               <p className="text-sm text-green-600">
-                Plan: {subscription.plan === "yearly" ? "Godišnji" : "Mjesečni"}
+                Plan: {subscription.plan === "yearly" ? "Yearly" : "Monthly"}
               </p>
               {expiryDate && (
                 <p className="text-sm text-green-600">
-                  Vrijedi do: {expiryDate.toLocaleDateString("hr-HR")}
+                  Valid until: {expiryDate.toLocaleDateString("en-US")}
                 </p>
               )}
             </div>
@@ -109,8 +109,8 @@ export default function WalkerSubscription({ isWalker }) {
         >
           <div className="flex justify-between items-start">
             <div>
-              <h4 className="font-semibold text-gray-900">Mjesečna</h4>
-              <p className="text-sm text-gray-500">Fleksibilna opcija</p>
+              <h4 className="font-semibold text-gray-900">Monthly</h4>
+              <p className="text-sm text-gray-500">Flexible option</p>
             </div>
             <div
               className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
@@ -128,7 +128,7 @@ export default function WalkerSubscription({ isWalker }) {
             <span className="text-3xl font-bold text-gray-900">
               {pricing?.monthlyPrice?.toFixed(2)}
             </span>
-            <span className="text-gray-500 ml-1">{pricing?.currency}/mj</span>
+            <span className="text-gray-500 ml-1">{pricing?.currency}/mo</span>
           </div>
         </div>
 
@@ -143,13 +143,13 @@ export default function WalkerSubscription({ isWalker }) {
         >
           {pricing && pricing.monthlyPrice * 12 > pricing.yearlyPrice && (
             <div className="absolute -top-3 left-4 bg-orange-500 text-white text-xs px-2 py-1 rounded-full">
-              Uštedi {Math.round((1 - pricing.yearlyPrice / (pricing.monthlyPrice * 12)) * 100)}%
+              Save {Math.round((1 - pricing.yearlyPrice / (pricing.monthlyPrice * 12)) * 100)}%
             </div>
           )}
           <div className="flex justify-between items-start">
             <div>
-              <h4 className="font-semibold text-gray-900">Godišnja</h4>
-              <p className="text-sm text-gray-500">Najbolja vrijednost</p>
+              <h4 className="font-semibold text-gray-900">Yearly</h4>
+              <p className="text-sm text-gray-500">Best value</p>
             </div>
             <div
               className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
@@ -167,32 +167,32 @@ export default function WalkerSubscription({ isWalker }) {
             <span className="text-3xl font-bold text-gray-900">
               {pricing?.yearlyPrice?.toFixed(2)}
             </span>
-            <span className="text-gray-500 ml-1">{pricing?.currency}/god</span>
+            <span className="text-gray-500 ml-1">{pricing?.currency}/yr</span>
           </div>
           {pricing && (
             <p className="text-xs text-gray-400 mt-1">
-              ({(pricing.yearlyPrice / 12).toFixed(2)} {pricing.currency}/mj)
+              ({(pricing.yearlyPrice / 12).toFixed(2)} {pricing.currency}/mo)
             </p>
           )}
         </div>
       </div>
 
-      {/* PayPal Buttons */}
+      {/* Pay Button */}
       <div className="max-w-md">
         <p className="text-sm text-gray-500 mb-3">
           {hasActiveSubscription
-            ? "Produlji ili promijeni pretplatu:"
-            : "Odaberi plan i plati putem PayPal-a:"}
+            ? "Extend or change your subscription:"
+            : "Select a plan and pay via PayPal:"}
         </p>
 
         {processing ? (
           <div className="text-center py-4 text-gray-500">
-            Obrada plaćanja...
+            Processing payment...
           </div>
         ) : (
           <PayPalButtons
             key={selectedPlan}
-            style={{ layout: "vertical", label: "subscribe" }}
+            style={{ layout: "vertical" }}
             createOrder={async () => {
               setProcessing(true);
               setError(null);
@@ -203,7 +203,7 @@ export default function WalkerSubscription({ isWalker }) {
                 return response.orderId;
               } catch (e) {
                 setProcessing(false);
-                setError("Greška pri kreiranju narudžbe");
+                setError("Error creating order");
                 throw e;
               }
             }}
@@ -213,10 +213,10 @@ export default function WalkerSubscription({ isWalker }) {
                   plan: selectedPlan,
                 });
                 await refreshSubscription();
-                alert("✅ Pretplata uspješno aktivirana!");
+                alert("✅ Subscription activated successfully!");
               } catch (e) {
                 console.error("Capture failed:", e);
-                setError("Greška pri aktivaciji pretplate");
+                setError("Error activating subscription");
               } finally {
                 setProcessing(false);
               }
@@ -226,7 +226,7 @@ export default function WalkerSubscription({ isWalker }) {
             }}
             onError={(err) => {
               console.error("PayPal error:", err);
-              setError("Greška pri plaćanju");
+              setError("Payment error");
               setProcessing(false);
             }}
           />
@@ -235,29 +235,6 @@ export default function WalkerSubscription({ isWalker }) {
         {error && (
           <p className="text-red-500 text-sm mt-2">{error}</p>
         )}
-      </div>
-
-      {/* Benefits */}
-      <div className="bg-gray-50 rounded-lg p-4">
-        <h4 className="font-medium text-gray-900 mb-2">Što dobivate s članarinom:</h4>
-        <ul className="space-y-2 text-sm text-gray-600">
-          <li className="flex items-center gap-2">
-            <span className="text-teal-500">✓</span>
-            Pristup svim funkcijama za šetače
-          </li>
-          <li className="flex items-center gap-2">
-            <span className="text-teal-500">✓</span>
-            Mogućnost primanja rezervacija
-          </li>
-          <li className="flex items-center gap-2">
-            <span className="text-teal-500">✓</span>
-            Vidljivost u pretraživanju
-          </li>
-          <li className="flex items-center gap-2">
-            <span className="text-teal-500">✓</span>
-            Chat komunikacija s vlasnicima
-          </li>
-        </ul>
       </div>
     </div>
   );

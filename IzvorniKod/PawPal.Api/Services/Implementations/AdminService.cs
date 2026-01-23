@@ -40,7 +40,6 @@ public class AdminService : IAdminService
 
     public async Task<VerificationResultDto> ApproveWalkerAsync(int adminId, ApproveWalkerRequest request, CancellationToken ct = default)
     {
-        // Verify requester is admin
         var admin = await _db.Administratori
             .FirstOrDefaultAsync(a => a.IdKorisnik == adminId, ct);
         
@@ -76,7 +75,7 @@ public class AdminService : IAdminService
 
     public async Task<VerificationResultDto> RejectWalkerAsync(int adminId, RejectWalkerRequest request, CancellationToken ct = default)
     {
-        // Verify requester is admin
+        
         var admin = await _db.Administratori
             .FirstOrDefaultAsync(a => a.IdKorisnik == adminId, ct);
 
@@ -208,7 +207,9 @@ public class AdminService : IAdminService
                 k.Setac != null ? k.Setac.LokacijaSetac : null,
                 k.Setac != null ? k.Setac.TelefonSetac : null,
                 k.Setac != null ? (bool?)k.Setac.IsVerified : null,
-                k.Setac != null ? k.Setac.ProfilnaSetac : k.ProfilnaKorisnik,
+                k.Setac != null 
+                    ? (!string.IsNullOrEmpty(k.Setac.ProfilnaSetac) ? k.Setac.ProfilnaSetac : k.ProfilnaKorisnik)
+                    : k.ProfilnaKorisnik,
                 k.Setac != null ? k.Setac.Bio : null))
             .ToListAsync(ct);
 
