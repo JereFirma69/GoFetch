@@ -465,16 +465,28 @@ public class CalendarService : ICalendarService
         }
 
         // Validate status transitions
-        var validStatuses = new[] { "prihvacena", "otkazana" };
+        var validStatuses = new[] { "prihvacena", "otkazana", "zavrsena" };
         if (!validStatuses.Contains(request.Status))
         {
-            throw new InvalidOperationException("Invalid status. Must be 'prihvacena' or 'otkazana'.");
+            throw new InvalidOperationException("Invalid status. Must be 'prihvacena', 'otkazana', or 'zavrsena'.");
         }
 
         // Only walker can confirm
         if (request.Status == "prihvacena" && !isWalker)
         {
             throw new InvalidOperationException("Only the walker can confirm a booking.");
+        }
+
+        // Only walker can mark as finished
+        if (request.Status == "zavrsena" && !isWalker)
+        {
+            throw new InvalidOperationException("Only the walker can mark a booking as finished.");
+        }
+
+        // Can only finish confirmed bookings
+        if (request.Status == "zavrsena" && rezervacija.StatusRezervacija != "prihvacena")
+        {
+            throw new InvalidOperationException("Only confirmed bookings can be marked as finished.");
         }
 
         rezervacija.StatusRezervacija = request.Status;

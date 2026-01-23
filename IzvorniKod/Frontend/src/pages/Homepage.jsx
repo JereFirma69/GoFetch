@@ -89,9 +89,6 @@ export default function HomePage() {
               onDogClick={(dog) => navigate(`/profile?view=edit-dog&dogId=${dog.id}`)}
             />
             
-            {/* Favorite Dogs */}
-            <FavoriteDogs dogs={favoriteDogs} />
-
             {/* Quick Actions */}
             <div className="bg-white rounded-xl shadow-sm p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
@@ -99,12 +96,6 @@ export default function HomePage() {
                 <button
                   onClick={() => navigate("/profile")}
                   className="w-full py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  ⚙️ Profile Settings
-                </button>
-                <button
-                  onClick={() => navigate("/profile?view=add-dog")}
-                  className="w-full py-3 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors"
                 >
                   🐕 Add New Dog
                 </button>

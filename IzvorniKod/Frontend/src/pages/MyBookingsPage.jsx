@@ -15,6 +15,7 @@ const STATUS_CONFIG = {
   "na cekanju": { bg: "bg-amber-100", border: "border-amber-400", text: "text-amber-700", label: "Pending", icon: "⏳" },
   "prihvacena": { bg: "bg-emerald-100", border: "border-emerald-400", text: "text-emerald-700", label: "Confirmed", icon: "✓" },
   "otkazana": { bg: "bg-red-100", border: "border-red-400", text: "text-red-700", label: "Cancelled", icon: "✕" },
+  "zavrsena": { bg: "bg-blue-100", border: "border-blue-400", text: "text-blue-700", label: "Finished", icon: "🏁" },
 };
 
 function BookingCard({ booking, isOwner, onStatusChange, loading, onOpenChat }) {
@@ -182,6 +183,15 @@ function BookingCard({ booking, isOwner, onStatusChange, loading, onOpenChat }) 
                 </button>
               </>
             )}
+            {!isOwner && booking.statusRezervacija === "prihvacena" && (
+              <button
+                onClick={() => handleStatusChange("zavrsena")}
+                disabled={actionLoading || loading}
+                className="px-3 py-1 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              >
+                {actionLoading ? "Finishing..." : "🏁 Finish Walk"}
+              </button>
+            )}
             <button
               onClick={() => onOpenChat(booking)}
               className="px-3 py-1 bg-teal-600 text-white text-sm rounded-lg hover:bg-teal-700"
@@ -265,6 +275,19 @@ export default function MyBookingsPage() {
 
 
   const filteredBookings = bookings
+    .filter((booking) => {
+      // Filter out finished bookings (past bookings or manually finished)
+      if (booking.statusRezervacija === "zavrsena") {
+        return false; // Manually marked as finished
+      }
+      const bookingDate = new Date(booking.datumVrijemePolaska);
+      const durationMins = booking.termin?.trajanjeMins || 60;
+      const endTime = new Date(bookingDate.getTime() + durationMins * 60 * 1000);
+      if (endTime < new Date()) {
+        return false; // Booking time has passed
+      }
+      return true;
+    })
     .filter((booking) => {
       // Filter by active role tab
       if (activeTab === "owner") {
