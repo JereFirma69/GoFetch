@@ -3,7 +3,7 @@
 -------------------------------
 Login info za testiranje:
 
-  šetać:    mail - "testwalker@pawpal.com"
+  šetač:    mail - "testwalker@pawpal.com"
             pass - "test"
             
   vlasnik:  mail - "testowner@pawpal.com"
