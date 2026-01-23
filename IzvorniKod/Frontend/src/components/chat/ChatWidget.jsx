@@ -20,7 +20,7 @@ export default function ChatWidget() {
   if(minimized){
     return(
       <div
-        className="fixed bottom-5 right-5 w-16 h-16 bg-teal-500 rounded-full shadow-lg flex items-center justify-center text-white cursor-pointer hover:bg-teal-600 transition"
+        className="w-16 h-16 bg-teal-500 rounded-full shadow-lg flex items-center justify-center text-white cursor-pointer hover:bg-teal-600 transition"
         onClick={toggleMinimize}
       >
         💬
@@ -29,7 +29,7 @@ export default function ChatWidget() {
   }
 
   return (
-    <div className="fixed bottom-5 right-5 w-80 h-[400px] bg-white border border-gray-300 rounded-xl shadow-lg flex flex-col">
+    <div className="w-80 h-[400px] bg-white border border-gray-300 rounded-xl shadow-lg flex flex-col">
       
       {/* header */}
       <div className="px-4 py-2 border-b border-gray-200 bg-teal-100 rounded-t-xl cursor-pointer hover:bg-teal-200 transition"

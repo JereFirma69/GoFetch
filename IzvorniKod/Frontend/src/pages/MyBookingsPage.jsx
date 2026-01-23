@@ -3,6 +3,7 @@ import { AuthContext } from "../context/AuthContext";
 import { getMyRezervacije, updateRezervacijaStatus } from "../utils/calendarApi";
 import { api } from "../utils/api";
 
+
 // Inline SVG data URI for fallback avatar (no external dependency)
 const createFallbackAvatar = (letter) => {
   const char = letter || "?";
@@ -15,7 +16,7 @@ const STATUS_CONFIG = {
   "otkazana": { bg: "bg-red-100", border: "border-red-400", text: "text-red-700", label: "Cancelled", icon: "✕" },
 };
 
-function BookingCard({ booking, isOwner, onStatusChange, loading }) {
+function BookingCard({ booking, isOwner, onStatusChange, loading, onOpenChat }) {
   const [localError, setLocalError] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -180,6 +181,13 @@ function BookingCard({ booking, isOwner, onStatusChange, loading }) {
                 </button>
               </>
             )}
+            <button
+              onClick={() => onOpenChat(booking)}
+              className="px-3 py-1 bg-teal-600 text-white text-sm rounded-lg hover:bg-teal-700"
+            >
+              💬 Open chat
+            </button>
+
           </div>
         </div>
       </div>
@@ -243,6 +251,16 @@ export default function MyBookingsPage() {
       setLoading(false);
     }
   };
+
+  const openChatForBooking = (booking) => {
+  setOpenChats((prev) => {
+    if (prev.some((b) => b.idRezervacija === booking.idRezervacija)) {
+      return prev;
+    }
+    return [...prev, booking];
+  });
+};
+
 
   const filteredBookings = bookings
     .filter((booking) => {
@@ -371,6 +389,7 @@ export default function MyBookingsPage() {
                 isOwner={activeTab === "owner"}
                 onStatusChange={fetchBookings}
                 loading={loading}
+                onOpenChat={openChatForBooking}
               />
             ))}
           </div>
