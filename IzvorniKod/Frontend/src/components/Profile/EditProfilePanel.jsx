@@ -88,8 +88,14 @@ export default function EditProfilePanel({ onBack, profileData, onRoleChange, on
         firstName: data.firstName,
         lastName: data.lastName,
       };
-  localStorage.setItem("user", JSON.stringify(updatedUser));
-  setUser(updatedUser);
+      
+      // Preserve admin role if it exists
+      if (user.role === "admin") {
+        updatedUser.role = "admin";
+      }
+      
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+      setUser(updatedUser);
   onSaved?.(data);
   onBack?.();
     } catch (e) {
@@ -169,6 +175,12 @@ export default function EditProfilePanel({ onBack, profileData, onRoleChange, on
         firstName: user.firstName,
         lastName: user.lastName,
       };
+      
+      // Preserve admin role if it exists
+      if (user.role === "admin") {
+        updatedUser.role = "admin";
+      }
+      
       localStorage.setItem("user", JSON.stringify(updatedUser));
       setUser(updatedUser);
 
@@ -285,24 +297,6 @@ export default function EditProfilePanel({ onBack, profileData, onRoleChange, on
                 style={{ resize: "vertical" }}
               />
             </label>
-          <ImageUpload
-            label="Walker Profile Picture (optional)"
-            currentUrl={formData.walker.profilePicture}
-            onUpload={async (file) => {
-              const data = await api.upload("/upload/walker-avatar", file);
-              setFormData((prev) => ({
-                ...prev,
-                walker: { ...prev.walker, profilePicture: data.url },
-              }));
-            }}
-            onDelete={async () => {
-              await api.delete("/upload/avatar");
-              setFormData((prev) => ({
-                ...prev,
-                walker: { ...prev.walker, profilePicture: "" },
-              }));
-            }}
-          />
           </section>
         )}
 

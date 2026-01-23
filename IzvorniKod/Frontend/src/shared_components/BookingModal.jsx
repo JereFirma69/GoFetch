@@ -139,7 +139,7 @@ export default function BookingModal({ open, onClose, appointment, onSuccess }) 
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
+        className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -227,7 +227,10 @@ export default function BookingModal({ open, onClose, appointment, onSuccess }) 
                         <div className="font-medium text-gray-900">{dog.imePas}</div>
                         <div className="text-xs text-gray-600">{dog.pasmina}, {dog.starost} years old</div>
                         {dog.zdravstveneNapomene && (
-                          <div className="text-xs text-amber-600 mt-1">⚠️ {dog.zdravstveneNapomene}</div>
+                          <div className="text-xs text-amber-600 mt-1 flex items-start gap-1">
+                            <span className="flex-shrink-0">⚠️</span>
+                            <span>{dog.zdravstveneNapomene}</span>
+                          </div>
                         )}
                       </div>
                     </label>

@@ -169,7 +169,7 @@ export default function ProfilePage() {
                 <div className="flex">
                   {[
                     { key: "reviews", label: "⭐ Reviews" },
-                    { key: "settings", label: "⚙️ Settings" },
+                    { key: "settings", label: "📅 Booking History" },
                     { key: "payment", label: "💳 Payment" },
                   ].map((tab) => (
                     <button
