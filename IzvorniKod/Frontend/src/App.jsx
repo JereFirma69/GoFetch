@@ -38,10 +38,9 @@ export default function App() {
   return (
     <AuthProvider>
       <ReviewsProvider>
-      <ChatProvider>
+      
       <Header />
       <LeaveReviewModal/>
-      <ChatWidget />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -102,7 +101,7 @@ export default function App() {
           }
         />
       </Routes>
-      </ChatProvider>
+      
       </ReviewsProvider>
     </AuthProvider>
 
