@@ -300,15 +300,6 @@ export default function MyBookingsPage() {
               )}
             </div>
 
-            {/* Context Info Box */}
-            <div className={`p-4 rounded-lg ${activeTab === "owner" ? "bg-blue-50 border border-blue-200" : "bg-green-50 border border-green-200"}`}>
-              <p className={`font-medium ${activeTab === "owner" ? "text-blue-900" : "text-green-900"}`}>
-                {activeTab === "owner" 
-                  ? "📅 Bookings: I'm looking for walkers for my dogs"
-                  : "🚶 Walks: I'm providing walking services"
-                }
-              </p>
-            </div>
           </div>
         )}
 

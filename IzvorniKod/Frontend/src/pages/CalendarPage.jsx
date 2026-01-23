@@ -343,7 +343,7 @@ function NewTerminModal({ isOpen, onClose, onSave, selectedDate, editingTermin }
 }
 
 // ==================== Month View ====================
-function MonthView({ currentDate, termini, rezervacije = [], onDayClick, compact, isWalker }) {
+function MonthView({ currentDate, termini, rezervacije = [], onDayClick, compact, isWalker, isOwner }) {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
   const firstDayOfMonth = new Date(year, month, 1);
@@ -360,7 +360,8 @@ function MonthView({ currentDate, termini, rezervacije = [], onDayClick, compact
   };
 
   const getRezForDate = (day) => {
-    if (isWalker) return [];
+    // Show owner's bookings (including users with "both" role)
+    if (!isOwner) return [];
     const dateStr = formatDateString(year, month, day);
     return rezervacije.filter((r) => parseDateTime(r.datumVrijemePolaska).date === dateStr);
   };
@@ -400,7 +401,7 @@ function MonthView({ currentDate, termini, rezervacije = [], onDayClick, compact
               {dayTermini.slice(0, 2).map((termin) => (
                 <TerminBadge key={termin.idTermin} termin={termin} compact />
               ))}
-              {!isWalker && dayRez.slice(0, 2 - dayTermini.slice(0, 2).length).map((rez) => (
+              {isOwner && dayRez.slice(0, 2 - dayTermini.slice(0, 2).length).map((rez) => (
                 <div key={rez.idRezervacija} className="text-xs px-1 py-0.5 rounded bg-emerald-100 text-emerald-700 truncate">
                   Booking: {rez.dogs?.map((d) => d.imePas).join(", ") || "Dog"}
                 </div>
@@ -417,7 +418,7 @@ function MonthView({ currentDate, termini, rezervacije = [], onDayClick, compact
               ))}
             </div>
           )}
-          {compact && !isWalker && dayRez.length > 0 && (
+          {compact && isOwner && dayRez.length > 0 && (
             <div className="flex gap-0.5 mt-1">
               {dayRez.slice(0, 3).map((rez) => (
                 <div key={rez.idRezervacija} className="w-2 h-2 rounded-full bg-emerald-500" />
@@ -447,7 +448,7 @@ function MonthView({ currentDate, termini, rezervacije = [], onDayClick, compact
 }
 
 // ==================== Week View ====================
-function WeekView({ currentDate, termini, rezervacije = [], onTimeSlotClick, isWalker }) {
+function WeekView({ currentDate, termini, rezervacije = [], onTimeSlotClick, isWalker, isOwner }) {
   const getWeekDays = () => {
     const startOfWeek = new Date(currentDate);
     // Align week to start on Monday
@@ -519,7 +520,7 @@ function WeekView({ currentDate, termini, rezervacije = [], onTimeSlotClick, isW
                   {hourTermini.map((termin) => (
                     <TerminBadge key={termin.idTermin} termin={termin} compact />
                   ))}
-                  {!isWalker && hourRez.map((rez) => (
+                  {isOwner && hourRez.map((rez) => (
                     <div key={rez.idRezervacija} className="mt-0.5 text-xs rounded bg-emerald-100 text-emerald-700 px-1.5 py-0.5 truncate">
                       Booking: {rez.dogs?.map((d) => d.imePas).join(", ") || "Dog"}
                     </div>
@@ -535,7 +536,7 @@ function WeekView({ currentDate, termini, rezervacije = [], onTimeSlotClick, isW
 }
 
 // ==================== Day View ====================
-function DayView({ selectedDate, termini, rezervacije, onNewTermin, onTerminClick, onBack, onStatusChange, isWalker }) {
+function DayView({ selectedDate, termini, rezervacije, onNewTermin, onTerminClick, onBack, onStatusChange, isWalker, isOwner }) {
   const dayTermini = termini.filter((t) => parseDateTime(t.datumVrijemePocetka).date === selectedDate);
   const dayRezervacije = rezervacije.filter((r) => parseDateTime(r.datumVrijemePolaska).date === selectedDate);
   // 24h timeline to cover overnight or very early walks
@@ -584,7 +585,7 @@ function DayView({ selectedDate, termini, rezervacije, onNewTermin, onTerminClic
                       onClick={onTerminClick}
                     />
                   ))}
-                  {!isWalker && hourRez.map((rez) => (
+                  {isOwner && hourRez.map((rez) => (
                     <RezervacijaBadge 
                       key={rez.idRezervacija}
                       rezervacija={rez}
@@ -660,13 +661,19 @@ function DayView({ selectedDate, termini, rezervacije, onNewTermin, onTerminClic
 // ==================== Main Calendar Component ====================
 export function Calendar({ compact = false }) {
   const { user } = useContext(AuthContext);
-  // Allow calendar management for walkers and admins
+  // Determine user roles - a user can be both walker and owner
   const isWalker = user && (
     user.role === "walker" || 
     user.role === "setac" || 
     user.role === "both" ||
     user.role?.toLowerCase() === "admin" ||
     user.email?.includes("admin")
+  );
+  const isOwner = user && (
+    user.role === "owner" ||
+    user.role === "vlasnik" ||
+    user.role === "both" ||
+    !user.role // Default to owner if no role set
   );
 
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -850,6 +857,7 @@ export function Calendar({ compact = false }) {
           onDayClick={handleDayClick}
           compact={compact}
           isWalker={isWalker}
+          isOwner={isOwner}
         />
       )}
 
@@ -861,6 +869,7 @@ export function Calendar({ compact = false }) {
             rezervacije={rezervacije}
             onTimeSlotClick={handleTimeSlotClick}
             isWalker={isWalker}
+            isOwner={isOwner}
           />
         </div>
       )}
@@ -878,6 +887,7 @@ export function Calendar({ compact = false }) {
           onBack={() => setView("month")}
           onStatusChange={handleStatusChange}
           isWalker={isWalker}
+          isOwner={isOwner}
         />
       )}
 

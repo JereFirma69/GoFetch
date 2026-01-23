@@ -73,10 +73,35 @@ export default function DoubleCalendar() {
     setLoading(true);
     try {
       const rezervacije = await getMyRezervacije();
-      // Filter only upcoming confirmed bookings
+      // Filter only upcoming non-cancelled bookings
       const now = new Date();
-      const upcoming = [...(rezervacije || [])]
-        .filter((r) => r.statusRezervacija !== "otkazana" && new Date(r.datumVrijemePolaska) > now)
+      const futureBookings = [...(rezervacije || [])]
+        .filter((r) => r.statusRezervacija !== "otkazana" && new Date(r.datumVrijemePolaska) > now);
+      
+      // Group bookings by termin ID to combine multiple dogs booked separately
+      const groupedByTermin = {};
+      for (const rez of futureBookings) {
+        const terminId = rez.termin?.idTermin;
+        if (!terminId) continue;
+        
+        if (!groupedByTermin[terminId]) {
+          groupedByTermin[terminId] = { ...rez, dogs: [...(rez.dogs || [])] };
+        } else {
+          // Merge dogs from this booking into the existing one
+          const existingDogs = groupedByTermin[terminId].dogs || [];
+          const newDogs = rez.dogs || [];
+          const allDogIds = new Set(existingDogs.map(d => d.idPas));
+          for (const dog of newDogs) {
+            if (!allDogIds.has(dog.idPas)) {
+              existingDogs.push(dog);
+              allDogIds.add(dog.idPas);
+            }
+          }
+          groupedByTermin[terminId].dogs = existingDogs;
+        }
+      }
+      
+      const upcoming = Object.values(groupedByTermin)
         .sort((a, b) => new Date(a.datumVrijemePolaska) - new Date(b.datumVrijemePolaska))
         .slice(0, 20); // Show max 20
       setUpcomingAppointments(upcoming);

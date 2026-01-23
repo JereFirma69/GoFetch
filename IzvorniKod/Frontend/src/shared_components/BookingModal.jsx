@@ -10,6 +10,7 @@ export default function BookingModal({ open, onClose, appointment, onSuccess }) 
   const { user } = useContext(AuthContext);
   const [dogs, setDogs] = useState([]);
   const [selectedDogIds, setSelectedDogIds] = useState([]);
+  const [alreadyBookedDogIds, setAlreadyBookedDogIds] = useState([]);
   const [pickupAddress, setPickupAddress] = useState("");
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
@@ -19,6 +20,7 @@ export default function BookingModal({ open, onClose, appointment, onSuccess }) 
   useEffect(() => {
     if (open) {
       fetchOwnerDogs();
+      fetchAlreadyBookedDogs();
       // Reset form
       setSelectedDogIds([]);
       setPickupAddress("");
@@ -26,6 +28,23 @@ export default function BookingModal({ open, onClose, appointment, onSuccess }) 
       setError("");
     }
   }, [open]);
+
+  const fetchAlreadyBookedDogs = async () => {
+    if (!appointment?.terminId) return;
+    try {
+      // Fetch user's existing bookings for this termin
+      const rezervacije = await api.get("/calendar/my-rezervacije");
+      const myBookingsForTermin = (rezervacije || []).filter(
+        (r) => r.termin?.idTermin === appointment.terminId && r.statusRezervacija !== "otkazana"
+      );
+      // Collect all dog IDs already booked by this user for this termin
+      const bookedIds = myBookingsForTermin.flatMap((r) => r.dogs?.map((d) => d.idPas) || []);
+      setAlreadyBookedDogIds(bookedIds);
+    } catch (err) {
+      console.error("Error fetching existing bookings:", err);
+      setAlreadyBookedDogIds([]);
+    }
+  };
 
   const fetchOwnerDogs = async () => {
     setLoadingDogs(true);
@@ -62,6 +81,8 @@ export default function BookingModal({ open, onClose, appointment, onSuccess }) 
   };
 
   const handleDogToggle = (dogId) => {
+    // Don't allow toggling dogs already booked
+    if (alreadyBookedDogIds.includes(dogId)) return;
     setSelectedDogIds((prev) =>
       prev.includes(dogId) ? prev.filter((id) => id !== dogId) : [...prev, dogId]
     );
@@ -221,33 +242,44 @@ export default function BookingModal({ open, onClose, appointment, onSuccess }) 
             ) : (
               <>
                 <div className="space-y-2 mb-2">
-                  {dogs.map((dog) => (
-                    <label
-                      key={dog.idPas}
-                      className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
-                        selectedDogIds.includes(dog.idPas)
-                          ? "bg-teal-50 border-teal-400"
-                          : "bg-white border-gray-200 hover:bg-gray-50"
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedDogIds.includes(dog.idPas)}
-                        onChange={() => handleDogToggle(dog.idPas)}
-                        className="w-4 h-4 text-teal-600 rounded focus:ring-teal-500"
-                      />
-                      <div className="flex-1">
-                        <div className="font-medium text-gray-900">{dog.imePas}</div>
-                        <div className="text-xs text-gray-600">{dog.pasmina}, {dog.starost} years old</div>
-                        {dog.zdravstveneNapomene && (
-                          <div className="text-xs text-amber-600 mt-1 flex items-start gap-1">
-                            <span className="flex-shrink-0">⚠️</span>
-                            <span>{dog.zdravstveneNapomene}</span>
+                  {dogs.map((dog) => {
+                    const isAlreadyBooked = alreadyBookedDogIds.includes(dog.idPas);
+                    return (
+                      <label
+                        key={dog.idPas}
+                        className={`flex items-center gap-3 p-3 border rounded-lg transition-colors ${
+                          isAlreadyBooked
+                            ? "bg-gray-100 border-gray-300 cursor-not-allowed opacity-60"
+                            : selectedDogIds.includes(dog.idPas)
+                            ? "bg-teal-50 border-teal-400 cursor-pointer"
+                            : "bg-white border-gray-200 hover:bg-gray-50 cursor-pointer"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedDogIds.includes(dog.idPas) || isAlreadyBooked}
+                          onChange={() => handleDogToggle(dog.idPas)}
+                          disabled={isAlreadyBooked}
+                          className="w-4 h-4 text-teal-600 rounded focus:ring-teal-500 disabled:opacity-50"
+                        />
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-900">
+                            {dog.imePas}
+                            {isAlreadyBooked && (
+                              <span className="ml-2 text-xs font-normal text-gray-500">(already booked)</span>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    </label>
-                  ))}
+                          <div className="text-xs text-gray-600">{dog.pasmina}, {dog.starost} years old</div>
+                          {dog.zdravstveneNapomene && (
+                            <div className="text-xs text-amber-600 mt-1 flex items-start gap-1" title="Health notes for this dog">
+                              <span className="flex-shrink-0">📋</span>
+                              <span>{dog.zdravstveneNapomene}</span>
+                            </div>
+                          )}
+                        </div>
+                      </label>
+                    );
+                  })}
                 </div>
                 <div className="text-xs text-gray-500 flex items-center gap-1">
                   ℹ️ {availableSlots} spot(s) available for this appointment
