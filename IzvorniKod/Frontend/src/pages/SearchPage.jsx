@@ -1,10 +1,11 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import SearchFilterTable from "../shared_components/SearchFilterTable";
 import ProfileModal from "../shared_components/ProfileModal";
 import BookingModal from "../shared_components/BookingModal";
 import { searchApi } from "../utils/searchApi";
 import verifiedBadge from "../assets/verification.png";
+import { AuthContext } from "../context/AuthContext";
 
 const shellStyle = {
   maxWidth: "1100px",
@@ -20,7 +21,14 @@ const cardStyle = {
   padding: "18px",
 };
 
+const fallbackAvatar = "https://via.placeholder.com/80?text=%3F";
+const handleImgError = (e) => {
+  e.currentTarget.onerror = null;
+  e.currentTarget.src = fallbackAvatar;
+};
+
 export default function SearchPage() {
+  const { user } = useContext(AuthContext);
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = searchParams.get("tab") === "slots" ? "slots" : "walkers";
   const [tab, setTab] = useState(initialTab);
@@ -112,6 +120,8 @@ export default function SearchPage() {
         WalkerId: s.WalkerId ?? s.walkerId,
         WalkerName: s.WalkerName ?? s.walkerName,
         WalkerProfilePicture: s.WalkerProfilePicture ?? s.walkerProfilePicture,
+        MaxDogs: s.MaxDogs ?? s.maxDogs ?? s.maxdogs,
+        BookedDogs: s.BookedDogs ?? s.bookedDogs ?? s.bookeddogs ?? 0,
       }));
       setSlots(normalized);
     } catch (e) {
@@ -134,6 +144,7 @@ export default function SearchPage() {
                 src={r.ProfilePicture} 
                 alt={r.FullName} 
                 className="w-10 h-10 rounded-full object-cover"
+                onError={handleImgError}
               />
             ) : (
               <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 font-semibold">
@@ -189,6 +200,7 @@ export default function SearchPage() {
                 src={r.WalkerProfilePicture}
                 alt={r.WalkerName}
                 className="w-10 h-10 rounded-full object-cover"
+                onError={handleImgError}
               />
             ) : (
               <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 font-semibold">
@@ -223,7 +235,12 @@ export default function SearchPage() {
       {
         key: "IsAvailable",
         title: "Status",
-        render: (r) => (r.IsAvailable ? "Available" : "Booked"),
+        render: (r) => {
+          const maxDogs = r.MaxDogs ?? 1;
+          const booked = r.BookedDogs ?? 0;
+          const spotsLeft = Math.max(maxDogs - booked, 0);
+          return spotsLeft > 0 ? `Available (${spotsLeft} spots left)` : "Fully booked";
+        },
       },
     ],
     []
@@ -375,37 +392,57 @@ export default function SearchPage() {
         data={slotData}
         actions={(row) => (
           <div className="flex gap-2">
-            <button
-              onClick={() => setProfile({
-                name: row.WalkerName,
-                location: row.Location,
-                profilePicture: row.WalkerProfilePicture,
-                walkerId: row.WalkerId,
-              })}
-              className="px-3 py-1 text-sm rounded border border-gray-300 hover:bg-gray-50"
-            >
-              View
-            </button>
-            {row.IsAvailable && (
-              <button
-                onClick={() => setBookingAppointment({
-                  terminId: row.TerminId,
-                  walkerName: row.WalkerName,
-                  walkerProfilePicture: row.WalkerProfilePicture,
-                  location: row.Location,
-                  start: row.Start,
-                  duration: row.Duration,
-                  type: row.Type,
-                  price: row.Price,
-                  maxDogs: row.MaxDogs || 5,
-                  bookedDogs: row.BookedDogs || 0,
-                  isVerified: false
-                })}
-                className="px-3 py-1 text-sm rounded bg-teal-600 text-white hover:bg-teal-700 font-medium"
-              >
-                Book
-              </button>
-            )}
+            {(() => {
+              const maxDogs = row.MaxDogs ?? 1;
+              const booked = row.BookedDogs ?? 0;
+              const spotsLeft = Math.max(maxDogs - booked, 0);
+              const isMySlot = row.WalkerId && user?.userId && row.WalkerId === user.userId;
+              const canBook = spotsLeft > 0 && !isMySlot;
+
+              return (
+                <>
+                  <button
+                    onClick={() => setProfile({
+                      name: row.WalkerName,
+                      location: row.Location,
+                      profilePicture: row.WalkerProfilePicture,
+                      walkerId: row.WalkerId,
+                    })}
+                    className="px-3 py-1 text-sm rounded border border-gray-300 hover:bg-gray-50"
+                  >
+                    View
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (!canBook) return;
+                      setBookingAppointment({
+                        terminId: row.TerminId,
+                        walkerId: row.WalkerId,
+                        walkerName: row.WalkerName,
+                        walkerProfilePicture: row.WalkerProfilePicture,
+                        location: row.Location,
+                        start: row.Start,
+                        duration: row.Duration,
+                        type: row.Type,
+                        price: row.Price,
+                        maxDogs: maxDogs || 5,
+                        bookedDogs: booked || 0,
+                        isVerified: false
+                      });
+                    }}
+                    disabled={!canBook}
+                    className={`px-3 py-1 text-sm rounded font-medium ${
+                      canBook
+                        ? "bg-teal-600 text-white hover:bg-teal-700"
+                        : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                    }`}
+                    title={isMySlot ? "You can't book your own walk" : spotsLeft <= 0 ? "No spots left" : "Book"}
+                  >
+                    {isMySlot ? "Your slot" : spotsLeft > 0 ? "Book" : "Full"}
+                  </button>
+                </>
+              );
+            })()}
           </div>
         )}
       />

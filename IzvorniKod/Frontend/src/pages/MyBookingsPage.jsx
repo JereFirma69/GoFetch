@@ -3,6 +3,8 @@ import { AuthContext } from "../context/AuthContext";
 import { getMyRezervacije, updateRezervacijaStatus } from "../utils/calendarApi";
 import { api } from "../utils/api";
 
+const fallbackAvatar = "https://via.placeholder.com/64?text=%3F";
+
 const STATUS_CONFIG = {
   "na cekanju": { bg: "bg-amber-100", border: "border-amber-400", text: "text-amber-700", label: "Pending", icon: "⏳" },
   "prihvacena": { bg: "bg-emerald-100", border: "border-emerald-400", text: "text-emerald-700", label: "Confirmed", icon: "✓" },
@@ -51,6 +53,10 @@ function BookingCard({ booking, isOwner, onStatusChange, loading }) {
                   src={booking.termin.walker.profilnaSetac}
                   alt={booking.termin.walker.imeSetac}
                   className="w-12 h-12 rounded-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = fallbackAvatar;
+                  }}
                 />
               ) : (
                 <div className="w-12 h-12 rounded-full bg-teal-200 flex items-center justify-center text-teal-700 font-bold">
@@ -65,6 +71,10 @@ function BookingCard({ booking, isOwner, onStatusChange, loading }) {
                   src={booking.owner.profilnaKorisnik}
                   alt={booking.owner.ime}
                   className="w-12 h-12 rounded-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = fallbackAvatar;
+                  }}
                 />
               ) : (
                 <div className="w-12 h-12 rounded-full bg-teal-200 flex items-center justify-center text-teal-700 font-bold">

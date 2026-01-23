@@ -1,9 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { createRezervacija } from "../utils/calendarApi";
 import { api } from "../utils/api";
 import verifiedBadge from "../assets/verification.png";
+import { AuthContext } from "../context/AuthContext";
+
+const fallbackAvatar = "https://via.placeholder.com/80?text=%3F";
 
 export default function BookingModal({ open, onClose, appointment, onSuccess }) {
+  const { user } = useContext(AuthContext);
   const [dogs, setDogs] = useState([]);
   const [selectedDogIds, setSelectedDogIds] = useState([]);
   const [pickupAddress, setPickupAddress] = useState("");
@@ -73,8 +77,13 @@ export default function BookingModal({ open, onClose, appointment, onSuccess }) 
       return;
     }
 
-    if (!pickupAddress.trim() || pickupAddress.trim().length < 10) {
-      setError("Please enter a valid pickup address (min 10 characters)");
+    if (!pickupAddress.trim()) {
+      setError("Please enter a pickup address");
+      return;
+    }
+
+    if (appointment?.walkerId && user?.userId && appointment.walkerId === user.userId) {
+      setError("You can't book your own walk");
       return;
     }
 
@@ -173,6 +182,10 @@ export default function BookingModal({ open, onClose, appointment, onSuccess }) 
                     src={appointment.walkerProfilePicture}
                     alt={appointment.walkerName}
                     className="w-12 h-12 rounded-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = fallbackAvatar;
+                    }}
                   />
                 ) : (
                   <div className="w-12 h-12 rounded-full bg-teal-200 flex items-center justify-center text-teal-700 font-bold text-lg">
@@ -255,7 +268,6 @@ export default function BookingModal({ open, onClose, appointment, onSuccess }) 
               placeholder="Enter the address where the walker should pick up your dog(s)"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
               required
-              minLength={10}
             />
           </div>
 

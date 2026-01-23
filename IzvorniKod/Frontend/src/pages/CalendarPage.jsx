@@ -523,7 +523,7 @@ function DayView({ selectedDate, termini, rezervacije, onNewTermin, onTerminClic
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       {/* Timeline */}
-      <div className="lg:col-span-2 bg-white rounded-lg border">
+      <div className="lg:col-span-2 bg-white rounded-lg border flex flex-col max-h-[75vh]">
         <div className="p-4 border-b bg-gray-50 flex items-center gap-3">
           <button
             onClick={onBack}
@@ -533,7 +533,7 @@ function DayView({ selectedDate, termini, rezervacije, onNewTermin, onTerminClic
           </button>
           <h3 className="font-semibold text-gray-800 capitalize">{formattedDate}</h3>
         </div>
-        <div className="divide-y">
+        <div className="divide-y overflow-y-auto">
           {hours.map((hour) => {
             const hourTermini = dayTermini.filter(
               (t) => parseInt(parseDateTime(t.datumVrijemePocetka).time.split(":")[0]) === hour

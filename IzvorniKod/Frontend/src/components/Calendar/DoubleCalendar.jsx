@@ -75,8 +75,8 @@ export default function DoubleCalendar() {
       const rezervacije = await getMyRezervacije();
       // Filter only upcoming confirmed bookings
       const now = new Date();
-      const upcoming = (rezervacije || [])
-        .filter(r => r.statusRezervacija === "prihvacena" && new Date(r.datumVrijemePolaska) > now)
+      const upcoming = [...(rezervacije || [])]
+        .filter((r) => r.statusRezervacija === "prihvacena" && new Date(r.datumVrijemePolaska) > now)
         .sort((a, b) => new Date(a.datumVrijemePolaska) - new Date(b.datumVrijemePolaska))
         .slice(0, 20); // Show max 20
       setUpcomingAppointments(upcoming);
