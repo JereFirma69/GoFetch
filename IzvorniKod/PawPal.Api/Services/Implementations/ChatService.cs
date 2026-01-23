@@ -12,7 +12,7 @@ public class ChatService : IChatService
     private readonly StreamOptions _streamOptions;
     private readonly ILogger<ChatService> _logger;
     private readonly HttpClient _httpClient;
-    private const string StreamApiUrl = "https://chat-eu-west-1.stream-io-api.com/";
+    private const string StreamApiUrl = "https://chat-eu.stream-io-api.com";
 
     public ChatService(IOptions<StreamOptions> streamOptions, ILogger<ChatService> logger, HttpClient httpClient)
     {
