@@ -349,9 +349,10 @@ function MonthView({ currentDate, termini, onDayClick, compact }) {
   const firstDayOfMonth = new Date(year, month, 1);
   const lastDayOfMonth = new Date(year, month + 1, 0);
   const daysInMonth = lastDayOfMonth.getDate();
-  const startingDayOfWeek = firstDayOfMonth.getDay();
+  // Shift so Monday is index 0 instead of Sunday
+  const startingDayOfWeek = (firstDayOfMonth.getDay() + 6) % 7;
 
-  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   const getTerminiForDate = (day) => {
     const dateStr = formatDateString(year, month, day);
@@ -430,8 +431,10 @@ function MonthView({ currentDate, termini, onDayClick, compact }) {
 function WeekView({ currentDate, termini, onTimeSlotClick }) {
   const getWeekDays = () => {
     const startOfWeek = new Date(currentDate);
+    // Align week to start on Monday
     const day = startOfWeek.getDay();
-    startOfWeek.setDate(startOfWeek.getDate() - day);
+    const diffToMonday = (day + 6) % 7;
+    startOfWeek.setDate(startOfWeek.getDate() - diffToMonday);
 
     const days = [];
     for (let i = 0; i < 7; i++) {
@@ -443,8 +446,9 @@ function WeekView({ currentDate, termini, onTimeSlotClick }) {
   };
 
   const weekDays = getWeekDays();
-  const hours = Array.from({ length: 12 }, (_, i) => i + 7);
-  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  // Show full 24h range so early/late appointments are visible; scroll container handles height
+  const hours = Array.from({ length: 24 }, (_, i) => i);
+  const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   const isToday = (date) => {
     const today = new Date();
@@ -505,7 +509,8 @@ function WeekView({ currentDate, termini, onTimeSlotClick }) {
 function DayView({ selectedDate, termini, rezervacije, onNewTermin, onTerminClick, onBack, onStatusChange, isWalker }) {
   const dayTermini = termini.filter((t) => parseDateTime(t.datumVrijemePocetka).date === selectedDate);
   const dayRezervacije = rezervacije.filter((r) => parseDateTime(r.datumVrijemePolaska).date === selectedDate);
-  const hours = Array.from({ length: 12 }, (_, i) => i + 7);
+  // 24h timeline to cover overnight or very early walks
+  const hours = Array.from({ length: 24 }, (_, i) => i);
 
   const dateObj = new Date(selectedDate + "T00:00:00");
   const formattedDate = dateObj.toLocaleDateString("en-US", {
