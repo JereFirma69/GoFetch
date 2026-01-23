@@ -7,9 +7,16 @@ let chatClient = null;
  */
 export async function initializeStreamChat() {
   try {
+    const baseUrl = import.meta.env.VITE_API_BASE;
+    if (!baseUrl) {
+      throw new Error(
+        "VITE_API_BASE is not set. In Vercel Preview you must configure it (expected to include '/api', e.g. https://<azure-app>.azurewebsites.net/api)."
+      );
+    }
+
     // Get chat token from backend
     // NOTE: VITE_API_BASE is expected to already include '/api' (see src/utils/api.js)
-    const response = await fetch(`${import.meta.env.VITE_API_BASE}/chat/token`, {
+    const response = await fetch(`${baseUrl}/chat/token`, {
       method: "GET",
       credentials: "include", // Include cookies with JWT
       headers: {
@@ -18,11 +25,28 @@ export async function initializeStreamChat() {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to get chat token: ${response.status}`);
+      const text = await response.text().catch(() => "");
+      throw new Error(
+        `Failed to get chat token: ${response.status}${text ? ` - ${text}` : ""}`
+      );
     }
 
-    const data = await response.json();
+    const raw = await response.text();
+    let data;
+    try {
+      data = JSON.parse(raw);
+    } catch {
+      throw new Error(
+        `Chat token endpoint did not return JSON. Response: ${raw || "<empty>"}`
+      );
+    }
     const { streamUserId, token, apiKey } = data;
+
+    if (!streamUserId || !token || !apiKey) {
+      throw new Error(
+        `Chat token response missing required fields (streamUserId/token/apiKey). Response: ${raw}`
+      );
+    }
 
     // Create Stream Chat client
     chatClient = new StreamChat(apiKey);
