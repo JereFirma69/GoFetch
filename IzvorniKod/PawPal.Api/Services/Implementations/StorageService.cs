@@ -30,6 +30,9 @@ public class StorageService : IStorageService
         var extension = Path.GetExtension(fileName);
         var path = $"{userId}/avatar{extension}";
 
+        // Delete any existing avatar files first (handles extension changes)
+        await DeleteAvatarAsync(userId, ct);
+
         // Convert stream to byte array
         using var memoryStream = new MemoryStream();
         await fileStream.CopyToAsync(memoryStream, ct);
@@ -51,6 +54,9 @@ public class StorageService : IStorageService
     {
         var extension = Path.GetExtension(fileName);
         var path = $"{ownerId}/{dogId}{extension}";
+
+        // Delete any existing dog image files first (handles extension changes)
+        await DeleteDogImageAsync(ownerId, dogId, ct);
 
         using var memoryStream = new MemoryStream();
         await fileStream.CopyToAsync(memoryStream, ct);

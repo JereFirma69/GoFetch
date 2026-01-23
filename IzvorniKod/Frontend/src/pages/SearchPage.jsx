@@ -137,22 +137,26 @@ export default function SearchPage() {
       {
         key: "ProfilePicture",
         title: "",
-        render: (r) => (
-          <div className="flex items-center justify-center">
-            {r.ProfilePicture ? (
-              <img 
-                src={r.ProfilePicture} 
-                alt={r.FullName} 
-                className="w-10 h-10 rounded-full object-cover"
-                onError={handleImgError}
-              />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 font-semibold">
-                {r.FullName?.charAt(0) || "?"}
-              </div>
-            )}
-          </div>
-        ),
+        render: (r) => {
+          const pic = r.ProfilePicture;
+          const hasValidPic = pic && pic !== "null" && pic.trim() !== "";
+          return (
+            <div className="flex items-center justify-center">
+              {hasValidPic ? (
+                <img 
+                  src={pic} 
+                  alt={r.FullName} 
+                  className="w-10 h-10 rounded-full object-cover"
+                  onError={handleImgError}
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 font-semibold">
+                  {r.FullName?.charAt(0) || "?"}
+                </div>
+              )}
+            </div>
+          );
+        },
       },
       { key: "FullName", title: "Name" },
       { key: "Location", title: "Location" },
@@ -193,22 +197,26 @@ export default function SearchPage() {
       {
         key: "WalkerProfilePicture",
         title: "",
-        render: (r) => (
-          <div className="flex items-center justify-center">
-            {r.WalkerProfilePicture ? (
-              <img
-                src={r.WalkerProfilePicture}
-                alt={r.WalkerName}
-                className="w-10 h-10 rounded-full object-cover"
-                onError={handleImgError}
-              />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 font-semibold">
-                {r.WalkerName?.charAt(0) || "?"}
-              </div>
-            )}
-          </div>
-        ),
+        render: (r) => {
+          const pic = r.WalkerProfilePicture;
+          const hasValidPic = pic && pic !== "null" && pic.trim() !== "";
+          return (
+            <div className="flex items-center justify-center">
+              {hasValidPic ? (
+                <img
+                  src={pic}
+                  alt={r.WalkerName}
+                  className="w-10 h-10 rounded-full object-cover"
+                  onError={handleImgError}
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 font-semibold">
+                  {r.WalkerName?.charAt(0) || "?"}
+                </div>
+              )}
+            </div>
+          );
+        },
       },
       { key: "WalkerName", title: "Walker" },
       { key: "Location", title: "Location" },
