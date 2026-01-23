@@ -11,7 +11,6 @@ export default function ChatContainer({ rezervacije }) {
       bottom: 20,
       right: 20,
       zIndex: 9999,
-      background: "red",
       padding: "10px"
     }}>
       {}
