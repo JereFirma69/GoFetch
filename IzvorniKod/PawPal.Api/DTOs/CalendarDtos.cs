@@ -58,6 +58,11 @@ public record UpdateRezervacijaStatusRequest(
     string Status // "prihvacena", "otkazana"
 );
 
+public record CreateRecenzijaRequest(
+    int Ocjena,
+    string? Komentar
+);
+
 public record RezervacijaDto(
     int IdRezervacija,
     DateTime DatumRezervacija,

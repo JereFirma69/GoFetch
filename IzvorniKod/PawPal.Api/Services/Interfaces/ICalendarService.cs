@@ -44,6 +44,9 @@ public interface ICalendarService
     // Owner cancels booking (must be 24h before)
     Task CancelRezervacijaAsync(int ownerId, int rezervacijaId, CancellationToken ct = default);
 
+    // Owner leaves a review for a completed walk (booking)
+    Task<WalkerReviewDto> CreateRecenzijaAsync(int ownerId, int rezervacijaId, CreateRecenzijaRequest request, CancellationToken ct = default);
+
     // ============ WALKER DISCOVERY ============
     
     // Get walkers with calendar enabled (paginated)
