@@ -68,7 +68,8 @@ public class ProfileService : IProfileService
                 walkerEntity.TelefonSetac,
                 walkerEntity.ProfilnaSetac,
                 walkerEntity.VerificationStatus,
-                walkerEntity.IsVerified
+                walkerEntity.IsVerified,
+                walkerEntity.Bio
             );
         }
 
@@ -123,6 +124,7 @@ public class ProfileService : IProfileService
         {
             user.Setac.LokacijaSetac = request.WalkerDetails.Location;
             user.Setac.TelefonSetac = request.WalkerDetails.Phone;
+            user.Setac.Bio = request.WalkerDetails.Bio;
             
             if (request.WalkerDetails.WalkerProfilePicture != null)
             {
@@ -144,13 +146,8 @@ public class ProfileService : IProfileService
     private string DetermineUserRole(Korisnik user)
     {
         if (user.Administrator != null) return "admin";
-        
-        bool isOwner = user.Vlasnik != null;
-        bool isWalker = user.Setac != null;
-        
-        if (isOwner && isWalker) return "both";
-        if (isOwner) return "owner";
-        if (isWalker) return "walker";
+        if (user.Setac != null) return "walker";
+        if (user.Vlasnik != null) return "owner";
         return "none";
     }
 
