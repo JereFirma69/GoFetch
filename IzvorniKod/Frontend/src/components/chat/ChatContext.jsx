@@ -26,12 +26,27 @@ export function ChatProvider({ children }) {
   const [walkerId, setWalkerId] = useState(null);
   const [endTimeMs, setEndTimeMs] = useState(null);
   const [ended, setEnded] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const channelRef = useRef(null);
   const unsubscribeRef = useRef(null);
 
   const reviewRequestedRef = useRef(false);
   const { requestReview } = useReviews();
+  
+  // Function to force refresh the chat/booking data
+  const refreshChat = () => setRefreshKey((k) => k + 1);
+
+  // Auto-refresh when page becomes visible (user navigates back)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        refreshChat();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
 
   useEffect(() => {
     // Load the currently accepted booking (rezervacija) for this user.
@@ -98,11 +113,15 @@ export function ChatProvider({ children }) {
     };
 
     load();
-  }, [user?.userId]);
+  }, [user?.userId, refreshKey]);
 
   useEffect(() => {
     // Initialize Stream + channel once we have an accepted booking and participants.
     const initChat = async () => {
+      // Clear previous state first
+      setMessages([]);
+      setActive(false);
+      
       if (!rezervacija || ownerId == null || walkerId == null || endTimeMs == null) return;
 
       const now = Date.now();
@@ -127,9 +146,10 @@ export function ChatProvider({ children }) {
 
         setMessages(existingMessages || []);
 
-        unsubscribeRef.current = channel.on("message.new", (event) => {
+        const subscription = channel.on("message.new", (event) => {
           setMessages((prev) => [...prev, event.message]);
         });
+        unsubscribeRef.current = subscription;
 
         setActive(true);
         setEnded(false);
@@ -140,13 +160,26 @@ export function ChatProvider({ children }) {
       }
     };
 
+    // Cleanup previous channel before initializing new one
+    if (unsubscribeRef.current && typeof unsubscribeRef.current.unsubscribe === 'function') {
+      unsubscribeRef.current.unsubscribe();
+    }
+    unsubscribeRef.current = null;
+
+    if (channelRef.current && typeof channelRef.current.stopWatching === 'function') {
+      channelRef.current.stopWatching();
+    }
+    channelRef.current = null;
+
     initChat();
 
     return () => {
-      if (unsubscribeRef.current) unsubscribeRef.current();
+      if (unsubscribeRef.current && typeof unsubscribeRef.current.unsubscribe === 'function') {
+        unsubscribeRef.current.unsubscribe();
+      }
       unsubscribeRef.current = null;
 
-      if (channelRef.current) {
+      if (channelRef.current && typeof channelRef.current.stopWatching === 'function') {
         channelRef.current.stopWatching();
       }
       channelRef.current = null;
@@ -165,10 +198,14 @@ export function ChatProvider({ children }) {
     }
 
     const timer = setTimeout(() => {
-      if (unsubscribeRef.current) unsubscribeRef.current();
+      if (unsubscribeRef.current && typeof unsubscribeRef.current.unsubscribe === 'function') {
+        unsubscribeRef.current.unsubscribe();
+      }
       unsubscribeRef.current = null;
 
-      if (channelRef.current) channelRef.current.stopWatching();
+      if (channelRef.current && typeof channelRef.current.stopWatching === 'function') {
+        channelRef.current.stopWatching();
+      }
       setEnded(true);
       setActive(false);
 
@@ -234,6 +271,7 @@ export function ChatProvider({ children }) {
         setIsVisible,
         rezervacija,
         endTime: endTimeMs != null ? new Date(endTimeMs).toISOString() : null,
+        refreshChat,
       }}
     >
       {children}
