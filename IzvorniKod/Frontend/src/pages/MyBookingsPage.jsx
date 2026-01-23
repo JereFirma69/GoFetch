@@ -3,6 +3,7 @@ import { AuthContext } from "../context/AuthContext";
 import { getMyRezervacije, updateRezervacijaStatus } from "../utils/calendarApi";
 import { useReviews } from "../components/reviews/ReviewsContext";
 import { api } from "../utils/api";
+import ChatContainer from "../components/chat/ChatContainer";
 
 
 // Inline SVG data URI for fallback avatar (no external dependency)
@@ -226,7 +227,7 @@ export default function MyBookingsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [openChats, setOpenChats] = useState([]); // For chat windows
+  const [openChats, setOpenChats] = useState([]);
 
   useEffect(() => {
     const checkRoles = async () => {
@@ -329,6 +330,7 @@ export default function MyBookingsPage() {
   };
 
   return (
+    <>
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
@@ -447,5 +449,7 @@ export default function MyBookingsPage() {
         )}
       </div>
     </div>
+     <ChatContainer rezervacije={openChats} />
+     </>
   );
 }
