@@ -15,6 +15,11 @@ public interface IChatService
     Task CreateOrUpdateStreamUserAsync(int userId, string userEmail, string? userName = null);
 
     /// <summary>
+    /// Ensures multiple users exist in Stream (upserts them)
+    /// </summary>
+    Task EnsureUsersExistAsync(int[] userIds);
+
+    /// <summary>
     /// Deletes a user from Stream
     /// </summary>
     Task DeleteStreamUserAsync(int userId);

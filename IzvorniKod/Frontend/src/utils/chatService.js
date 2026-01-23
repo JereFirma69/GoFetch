@@ -95,6 +95,19 @@ export async function disconnectStreamChat() {
 export async function getOrCreateWalkChannel(walkId, ownerId, walkerId) {
   const client = getChatClient();
   
+  // Ensure both users exist in Stream before creating channel
+  const baseUrl = import.meta.env.VITE_API_BASE;
+  try {
+    await fetch(`${baseUrl}/chat/ensure-users`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userIds: [ownerId, walkerId] }),
+    });
+  } catch (err) {
+    console.warn("Failed to ensure users exist in Stream:", err);
+  }
+  
   // Create a unique channel ID based on walk ID
   const channelId = `walk-${walkId}`;
   

@@ -94,10 +94,15 @@ builder.Services.Configure<GoogleCalendarOptions>(config.GetSection("GoogleCalen
 // Override StreamOptions with environment variables
 var streamApiKey = Environment.GetEnvironmentVariable("STREAM_API_KEY");
 var streamApiSecret = Environment.GetEnvironmentVariable("STREAM_API_SECRET");
+var streamApiUrl = Environment.GetEnvironmentVariable("STREAM_API_URL");
 if (!string.IsNullOrEmpty(streamApiKey) && !string.IsNullOrEmpty(streamApiSecret))
 {
     config["Stream:ApiKey"] = streamApiKey;
     config["Stream:ApiSecret"] = streamApiSecret;
+}
+if (!string.IsNullOrEmpty(streamApiUrl))
+{
+    config["Stream:ApiUrl"] = streamApiUrl;
 }
 builder.Services.Configure<StreamOptions>(config.GetSection("Stream"));
 
