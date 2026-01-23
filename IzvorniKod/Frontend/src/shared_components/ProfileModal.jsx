@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { searchApi } from "../utils/searchApi";
 import verifiedBadge from "../assets/verification.png";
 
+const fallbackAvatar = "https://via.placeholder.com/128?text=%3F";
+
 export default function ProfileModal({ open, onClose, profile }) {
   const [appointments, setAppointments] = useState([]);
   const [loadingAppointments, setLoadingAppointments] = useState(false);
@@ -19,12 +21,23 @@ export default function ProfileModal({ open, onClose, profile }) {
   async function fetchAppointments() {
     setLoadingAppointments(true);
     try {
+      // Pass walkerId directly to the API - it supports filtering by walker
       const data = await searchApi.searchTermini({
+        walkerId: profile.walkerId,
         onlyAvailable: true,
       });
-      // Filter by walkerId
-      const filtered = data.filter(slot => slot.WalkerId === profile.walkerId);
-      setAppointments(filtered.slice(0, 5)); // Show max 5
+      // Normalize property names
+      const normalized = (data || []).map((s) => ({
+        TerminId: s.TerminId ?? s.terminId,
+        Start: s.Start ?? s.start,
+        Duration: s.Duration ?? s.duration,
+        Location: s.Location ?? s.location,
+        Price: s.Price ?? s.price,
+        Type: s.Type ?? s.type,
+        IsAvailable: s.IsAvailable ?? s.isAvailable,
+        WalkerId: s.WalkerId ?? s.walkerId,
+      }));
+      setAppointments(normalized.slice(0, 5)); // Show max 5
     } catch (e) {
       console.error(e);
       setAppointments([]);
@@ -37,7 +50,14 @@ export default function ProfileModal({ open, onClose, profile }) {
     setLoadingReviews(true);
     try {
       const data = await searchApi.getWalkerReviews(profile.walkerId, 3);
-      setReviews(data || []);
+      // Normalize property names from backend (Date, Rating, Comment, ReviewerName)
+      const normalized = (data || []).map((r) => ({
+        Date: r.Date ?? r.date,
+        Rating: r.Rating ?? r.rating,
+        Comment: r.Comment ?? r.comment,
+        ReviewerName: r.ReviewerName ?? r.reviewerName,
+      }));
+      setReviews(normalized);
     } catch (e) {
       console.error(e);
       setReviews([]);
@@ -70,7 +90,11 @@ export default function ProfileModal({ open, onClose, profile }) {
             <img 
               src={profile.profilePicture} 
               alt={profile.name} 
-              className="w-32 h-32 rounded-full object-cover border-4 border-teal-100" 
+              className="w-32 h-32 rounded-full object-cover border-4 border-teal-100"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = fallbackAvatar;
+              }}
             />
           ) : (
             <div className="w-32 h-32 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 text-4xl font-bold border-4 border-teal-200">
@@ -180,7 +204,7 @@ export default function ProfileModal({ open, onClose, profile }) {
                         {rev.Date ? new Date(rev.Date).toLocaleDateString() : ""}
                       </span>
                     </div>
-                    <div className="text-amber-500 text-sm mt-1">{"★".repeat(rev.Rating)}</div>
+                    <div className="text-amber-500 text-sm mt-1">{"★".repeat(rev.Rating || 0)}</div>
                     {rev.Comment && (
                       <div className="text-sm text-gray-700 mt-2 whitespace-pre-wrap">{rev.Comment}</div>
                     )}

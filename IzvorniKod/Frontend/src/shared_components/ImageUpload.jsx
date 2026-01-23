@@ -7,6 +7,8 @@ export default function ImageUpload({ label, currentUrl, onUpload, onDelete, acc
 
   async function handleFileSelect(e) {
     const file = e.target.files?.[0];
+    // Reset input value so same file can be selected again
+    e.target.value = "";
     if (!file) return;
 
     // Validate file size (max 5MB)
