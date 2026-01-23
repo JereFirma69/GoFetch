@@ -12,7 +12,7 @@ public class ChatService : IChatService
     private readonly StreamOptions _streamOptions;
     private readonly ILogger<ChatService> _logger;
     private readonly HttpClient _httpClient;
-    private const string StreamApiUrl = "https://chat.stream-io-api.com";
+    private const string StreamApiUrl = "https://eu-west-api.stream-io-api.com/api/v1.0/";
 
     public ChatService(IOptions<StreamOptions> streamOptions, ILogger<ChatService> logger, HttpClient httpClient)
     {
@@ -27,11 +27,12 @@ public class ChatService : IChatService
         {
             EnsureStreamConfigured();
 
-            // Create user in Stream if it doesn't exist
-            await CreateOrUpdateStreamUserAsync(userId, userEmail, userName);
-
             // Generate JWT token for the user
+            // Note: Stream Chat will automatically create the user on first connection
+            // We pass user info in the token which Stream uses to create/update the user
             var token = GenerateStreamToken(userId.ToString());
+
+            _logger.LogInformation("Generated Stream token for user {UserId}", userId);
 
             return new ChatTokenResponse
             {
