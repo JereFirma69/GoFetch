@@ -1,6 +1,18 @@
 # GoFetch! - Moderna platforma za pronalazak pouzdanih šetača pasa u vašoj blizini
 [PawPal](https://gofetch-pawpal.vercel.app)
-Note za testiranje, za dodavanje psa treba si u profilu staviti owner role inace se nemogu dodavati psi.
+-------------------------------
+Login info za testiranje:
+
+  šetać:    mail - "testwalker@pawpal.com"
+            pass - "test"
+            
+  vlasnik:  mail - "testowner@pawpal.com"
+            pass - "test"
+            
+  admin:    mail - "admin@pawpal.com"
+            pass - "admin"
+
+  
 # Opis projekta
 Ovaj projekt je reultat timskog rada u sklopu projeknog zadatka kolegija [Programsko inženjerstvo](https://www.fer.unizg.hr/predmet/proinz) na Fakultetu elektrotehnike i računarstva Sveučilišta u Zagrebu.
 
