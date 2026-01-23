@@ -222,7 +222,7 @@ export default function ProfilePage() {
                         const result = await res.json();
                         console.log("CAPTURE RESULT:", result);
 
-                        alert("✅ Plaćanje uspješno! ✅");
+                        alert("✅ Plaćanje uspješno ✅");
                       }}
                       onError={(err) => {
                         console.error(err);

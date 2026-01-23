@@ -5,6 +5,6 @@ namespace PawPal.Api.Services.Interfaces
         Task<string> CreateOrderAsync(decimal amount);
         Task<bool> CaptureOrderAsync(string orderId);
 
-        // kasnije za subskripcije
+        // kasnije za subskripcije eventualno
     }
 }
